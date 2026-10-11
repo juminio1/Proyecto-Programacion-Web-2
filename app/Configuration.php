@@ -2,14 +2,8 @@
 
 namespace app;
 
-use app\controller\EventoController;
-use app\controller\LoginController;
-use app\controller\LugaresController;
-use app\controller\ReservaController;
 use app\model\EventoModel;
-use app\model\LoginModel;
-use app\model\LugaresModel;
-use app\model\ReservaModel;
+use app\controller\InicioController;
 use MustacheRender;
 use MyDatabase;
 use Router;
@@ -25,51 +19,14 @@ class Configuration
     {
     }
 
-    public function getLugaresController()
+    public function getInicioController()
     {
-        return new LugaresController(
-            $this->getLugaresModel(),
+        return new InicioController(
             $this->gerRender()
-        );
-    }
-
-    public function getReservaController()
-    {
-        return new ReservaController(
-            $this->getReservaModel(),
-            $this->gerRender()
-        );
-    }
-
-    public function getEventoController()
-    {
-        return new EventoController(
-            $this->getEventoModel(),
-            $this->gerRender()
-        );
-    }
-
-    public function getLoginController()
-    {
-        return new LoginController(
-            $this->getLoginModel()
         );
     }
 
     // Los privados
-    private function getReservaModel()
-    {
-        return new ReservaModel(
-            $this->getDatabase()
-        );
-    }
-
-    private function getLugaresModel()
-    {
-        return new LugaresModel(
-            $this->getDatabase()
-        );
-    }
 
     private function getDatabase()
     {
@@ -87,22 +44,8 @@ class Configuration
         return new MustacheRender();
     }
 
-    private function getEventoModel()
-    {
-        return new EventoModel(
-            $this->getDatabase()
-        );
-    }
-
-    private function getLoginModel()
-    {
-        return new LoginModel(
-            $this->getDatabase()
-        );
-    }
-
     public function getRouter()
     {
-        return new Router($this, "evento", "show");
+        return new Router($this, "inicio", "show");
     }
 }
