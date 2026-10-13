@@ -13,7 +13,12 @@ class InicioController
 
     public function show()
     {
-        $this->render->renderiza("inicio");
-    }
+        $data = [
+            "titulo" => "Preguntados",
+            "mensaje" => "Hola mundo!",
+            "integrantes" => "Dorian Villalba - Ramiro Bruzón, Lucas García - Julieta Miño"
+        ];
 
+        $this->render->renderiza("inicio", $data);
+    }
 }
