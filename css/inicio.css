@@ -1,0 +1,758 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap");
+
+/* ===== VARIABLES ===== */
+
+:root {
+    --morado: #5b2fd9;
+    --morado-oscuro: #3d1fb3;
+    --tinta: #1d1050;
+    --gris: #6d6785;
+    --borde: #ece8f3;
+    --fondo: #fbf9f6;
+    --sombra: 0 6px 20px rgba(33, 16, 79, 0.06);
+}
+
+/* ===== ESTILOS GENERALES ===== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Nunito", Arial, Helvetica, sans-serif;
+    background-color: var(--fondo);
+    color: var(--tinta);
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 28px 32px 48px;
+}
+
+h1, h2, h3, p {
+    margin-top: 0;
+}
+
+ul, ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+svg {
+    display: block;
+}
+
+.solo-lectores {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+}
+
+/* ===== BARRA DE NAVEGACIÓN ===== */
+
+header {
+    min-height: 72px;
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--borde);
+    box-shadow: 0 2px 10px rgba(33, 16, 79, 0.04);
+}
+
+header h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    color: var(--tinta);
+}
+
+header h1::before {
+    content: "?";
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #7a4af0, #4d25c6);
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 900;
+    box-shadow: 0 3px 8px rgba(91, 47, 217, 0.3);
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+}
+
+nav a {
+    padding: 8px 0;
+    color: var(--gris);
+    font-size: 18px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+nav a:hover {
+    color: var(--morado);
+}
+
+nav a.activo,
+nav a[aria-current="page"] {
+    color: var(--morado-oscuro);
+    border-bottom: 3px solid var(--morado);
+}
+
+/* ===== FILAS (DISTRIBUCIÓN GENERAL) ===== */
+
+.fila-superior {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: center;
+    gap: 24px;
+}
+
+.fila-principal {
+    display: grid;
+    grid-template-columns: minmax(0, 12fr) minmax(0, 5fr);
+    gap: 20px;
+}
+
+.fila-inferior {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 20px;
+}
+
+/* Tarjetas blancas compartidas */
+.progreso article,
+.ranking-resumen,
+.categorias,
+.ultimas-partidas {
+    background-color: #ffffff;
+    border: 1px solid var(--borde);
+    border-radius: 20px;
+    box-shadow: var(--sombra);
+}
+
+/* ===== SALUDO ===== */
+
+.saludo h1 {
+    margin-bottom: 4px;
+    font-size: clamp(38px, 5vw, 60px);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--tinta);
+}
+
+.saludo h2 {
+    margin: 0;
+    font-size: clamp(22px, 2.4vw, 30px);
+    font-weight: 700;
+    color: #7a7392;
+}
+
+/* ===== PROGRESO (3 TARJETAS) ===== */
+
+.progreso {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.progreso article {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+}
+
+.dato-icono {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+}
+
+.dato-icono svg {
+    width: 32px;
+    height: 32px;
+}
+
+.dato-icono-puntaje  { background-color: #fff1bd; color: #f7b500; }
+.dato-icono-posicion { background-color: #d6f4e5; color: #1fb57a; }
+.dato-icono-partidas { background-color: #e6defc; color: var(--morado); }
+
+.dato-icono .detalle {
+    fill: #ffffff;
+}
+
+.progreso h3 {
+    margin: 0 0 2px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gris);
+}
+
+.progreso p {
+    margin: 0;
+    font-size: clamp(22px, 2vw, 29px);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--tinta);
+}
+
+.progreso .unidad {
+    font-size: 0.8em;
+}
+
+/* ===== BANNER PARA JUGAR ===== */
+
+.banner-jugar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    min-height: 340px;
+    padding: 32px 40px;
+    overflow: hidden;
+    border: 1px solid #e0d4fa;
+    border-radius: 26px;
+    background:
+            radial-gradient(ellipse at 82% 12%, rgba(255, 255, 255, 0.6), transparent 55%),
+            radial-gradient(ellipse at 96% 100%, rgba(255, 255, 255, 0.4), transparent 50%),
+            linear-gradient(120deg, #e9dffd, #dccbfa);
+}
+
+.banner-jugar h2 {
+    margin: 0 0 14px;
+    font-size: clamp(36px, 4.2vw, 58px);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: #25106f;
+}
+
+.banner-jugar p {
+    margin: 0 0 28px;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #5d5478;
+}
+
+.boton-jugar {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 46px 16px 36px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #6a3de8, #4d25c6);
+    color: #ffffff;
+    font-size: 28px;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 8px 18px rgba(91, 47, 217, 0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.boton-jugar svg {
+    width: 34px;
+    height: 34px;
+    fill: #ffffff;
+}
+
+.boton-jugar:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(91, 47, 217, 0.42);
+}
+
+.banner-ilustracion {
+    justify-self: center;
+    width: 100%;
+    max-height: 300px;
+    height: auto;
+}
+
+/* ===== RANKING ===== */
+
+.ranking-resumen {
+    display: flex;
+    flex-direction: column;
+    padding: 24px 22px 22px;
+}
+
+.ranking-resumen h2 {
+    margin: 0 0 12px;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+}
+
+.ranking-lista {
+    margin-bottom: 16px;
+}
+
+.ranking-item {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 6px 14px;
+    border-top: 1px solid #efeaf6;
+}
+
+.ranking-jugador {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.ranking-puntos {
+    font-size: 18px;
+    font-weight: 600;
+    color: #3d3560;
+}
+
+/* Medallas con cinta */
+.medalla {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.medalla::after {
+    content: "";
+    position: absolute;
+    bottom: -9px;
+    left: 50%;
+    z-index: -1;
+    width: 20px;
+    height: 16px;
+    background: inherit;
+    transform: translateX(-50%);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 72%, 0 100%);
+}
+
+.medalla-oro {
+    background: linear-gradient(160deg, #ffe066, #f2a900);
+    border: 3px solid #f7c531;
+    color: #7a4b00;
+}
+
+.medalla-plata {
+    background: linear-gradient(160deg, #eceff5, #aab1bf);
+    border: 3px solid #cdd2dc;
+    color: #4a5264;
+}
+
+.medalla-bronce {
+    background: linear-gradient(160deg, #f4b678, #c9722b);
+    border: 3px solid #e09a55;
+    color: #6b3510;
+}
+
+.boton-ranking {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: auto;
+    padding: 13px;
+    border: 0;
+    border-radius: 12px;
+    background-color: #eeebfd;
+    color: var(--morado-oscuro);
+    font-size: 16px;
+    font-weight: 700;
+    transition: background-color 0.2s;
+}
+
+.boton-ranking:hover {
+    background-color: #e0daf9;
+}
+
+.boton-ranking svg,
+.enlace-boton svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* ===== CATEGORÍAS (píldoras, no son botones) ===== */
+
+.categorias {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 22px;
+}
+
+.categorias h2 {
+    flex: none;
+    margin: 0;
+    max-width: 150px;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+}
+
+.categorias-lista {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.categoria {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 26px 6px 6px;
+    border-radius: 999px;
+    background-color: var(--bg);
+    color: var(--txt);
+    font-size: 17px;
+    font-weight: 700;
+    cursor: default;
+    user-select: none;
+}
+
+.categoria-icono {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: var(--c);
+    color: #ffffff;
+}
+
+.categoria-icono svg {
+    width: 24px;
+    height: 24px;
+}
+
+.categoria-icono .hueco {
+    fill: var(--c);
+}
+
+.categoria-nombre {
+    flex: 1;
+    text-align: center;
+}
+
+.categoria-historia        { --c: #e0403b; --bg: #fbd9d6; --txt: #8f2a24; }
+.categoria-deportes        { --c: #2fa866; --bg: #d5f0df; --txt: #1c6b3f; }
+.categoria-cultura         { --c: #f2b100; --bg: #fcebb0; --txt: #7a5a00; }
+.categoria-ciencia         { --c: #7c4ee6; --bg: #e0d6fb; --txt: #4a2aa8; }
+.categoria-geografia       { --c: #14b8c9; --bg: #cdf0f4; --txt: #0e6f7b; }
+.categoria-entretenimiento { --c: #f0605a; --bg: #fcd6d3; --txt: #9a2a22; }
+
+/* ===== ÚLTIMAS PARTIDAS ===== */
+
+.ultimas-partidas {
+    padding: 24px 26px;
+}
+
+.tarjeta-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.tarjeta-cabecera h2 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+}
+
+.enlace-boton {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--morado-oscuro);
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+}
+
+.enlace-boton:hover {
+    color: var(--morado);
+}
+
+.tabla-partidas {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.tabla-partidas th {
+    padding: 11px 16px;
+    background-color: #f3f0f8;
+    color: var(--gris);
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+}
+
+.tabla-partidas th:first-child {
+    border-radius: 12px 0 0 12px;
+}
+
+.tabla-partidas th:last-child {
+    border-radius: 0 12px 12px 0;
+}
+
+.tabla-partidas td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #efeaf6;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.tabla-partidas td:first-child,
+.tabla-partidas td:last-child {
+    font-weight: 800;
+}
+
+.tabla-partidas td:nth-child(2) {
+    color: var(--gris);
+}
+
+.tabla-partidas tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.mensaje-vacio {
+    margin: 0;
+    padding: 28px 20px;
+    border: 2px dashed #d9c5ff;
+    border-radius: 14px;
+    background-color: #faf7ff;
+    color: var(--gris);
+    font-weight: 600;
+    text-align: center;
+}
+
+/* ===== SUGERIR PREGUNTA ===== */
+
+.sugerir {
+    display: grid;
+    grid-template-columns: 170px minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    padding: 24px 26px 24px 18px;
+    border: 1px solid #f4e2ac;
+    border-radius: 22px;
+    background: linear-gradient(120deg, #fff6d9, #fdeab8);
+}
+
+.sugerir-ilustracion {
+    width: 100%;
+    height: auto;
+}
+
+.sugerir h2 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    color: var(--tinta);
+}
+
+.sugerir p {
+    margin: 0 0 18px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #6f6580;
+}
+
+.boton-sugerir {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid var(--morado);
+    border-radius: 14px;
+    background-color: #ffffff;
+    color: var(--morado-oscuro);
+    font-size: 19px;
+    font-weight: 800;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.boton-sugerir:hover {
+    background-color: var(--morado);
+    color: #ffffff;
+}
+
+/* ===== TABLET ===== */
+
+@media (max-width: 1100px) {
+    .fila-superior,
+    .fila-principal,
+    .fila-inferior {
+        grid-template-columns: 1fr;
+    }
+
+    .categorias {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .categorias h2 {
+        max-width: none;
+    }
+
+    .categorias-lista {
+        width: 100%;
+    }
+}
+
+/* ===== ADAPTACIÓN A CELULARES ===== */
+
+@media (max-width: 700px) {
+    header {
+        padding: 14px 16px;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    nav {
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    main {
+        gap: 16px;
+        padding: 20px 16px 36px;
+    }
+
+    .progreso {
+        grid-template-columns: 1fr;
+    }
+
+    .progreso article {
+        padding: 14px 16px;
+    }
+
+    .banner-jugar {
+        grid-template-columns: 1fr;
+        min-height: 0;
+        padding: 24px 20px 16px;
+    }
+
+    .banner-jugar p {
+        font-size: 18px;
+        margin-bottom: 22px;
+    }
+
+    .boton-jugar {
+        width: 100%;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .banner-ilustracion {
+        max-width: 340px;
+        margin-top: 8px;
+    }
+
+    .ranking-resumen,
+    .ultimas-partidas {
+        padding: 20px 18px;
+    }
+
+    .ranking-resumen h2,
+    .tarjeta-cabecera h2 {
+        font-size: 26px;
+    }
+
+    .categorias {
+        padding: 18px;
+    }
+
+    .categoria {
+        flex: 0 0 auto;
+        padding-right: 20px;
+        font-size: 16px;
+    }
+
+    .categoria-nombre {
+        flex: none;
+        text-align: left;
+    }
+
+    .tabla-partidas th,
+    .tabla-partidas td {
+        padding: 10px 8px;
+        font-size: 15px;
+    }
+
+    .sugerir {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        padding: 24px 20px;
+        text-align: center;
+    }
+
+    .sugerir-ilustracion {
+        width: 150px;
+    }
+
+    .sugerir-contenido {
+        width: 100%;
+    }
+}
