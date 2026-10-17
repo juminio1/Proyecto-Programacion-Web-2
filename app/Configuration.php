@@ -27,7 +27,7 @@ class Configuration
         );
     }
 
-    public function getLogin(){
+    public function getLoginController(){
         return new LoginController($this->getRender());
     }
     
