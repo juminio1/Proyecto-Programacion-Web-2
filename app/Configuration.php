@@ -23,10 +23,14 @@ class Configuration
     public function getInicioController()
     {
         return new InicioController(
-            $this->gerRender()
+            $this->getRender()
         );
     }
 
+    public function getLogin(){
+        return new LoginController($this->getRender());
+    }
+    
     // Los privados
 
     private function getDatabase()
@@ -40,7 +44,7 @@ class Configuration
         );
     }
 
-    private function gerRender()
+    private function getRender()
     {
         return new MustacheRender();
     }
