@@ -1,0 +1,78 @@
+.pie-pagina,
+.pie-pagina * {
+    box-sizing: border-box;
+}
+
+.pie-pagina {
+    margin-top: 32px;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+    background: linear-gradient(110deg, #ff00dd, #6b18ea);
+    color: #ffffff;
+    font-family: "Nunito", Arial, Helvetica, sans-serif;
+}
+
+.pie-pagina .pie-contenido {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 24px 32px;
+}
+
+.pie-pagina .pie-marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.4px;
+    text-decoration: none;
+}
+
+.pie-pagina .pie-icono {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.12);
+    font-size: 23px;
+    line-height: 1;
+}
+
+.pie-pagina .pie-marca:hover {
+    color: #efe9ff;
+}
+
+.pie-pagina .pie-marca:focus-visible {
+    outline: 3px solid #ffd84a;
+    outline-offset: 5px;
+}
+
+.pie-pagina .pie-creditos {
+    margin: 0;
+    color: #f1ebff;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.6;
+    text-align: right;
+}
+
+@media (max-width: 600px) {
+    .pie-pagina .pie-contenido {
+        flex-direction: column;
+        gap: 12px;
+        padding: 24px 16px;
+        text-align: center;
+    }
+
+    .pie-pagina .pie-creditos {
+        text-align: center;
+    }
+}

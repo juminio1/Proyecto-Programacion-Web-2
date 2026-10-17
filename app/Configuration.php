@@ -11,8 +11,6 @@ use Router;
 
 require_once("helper/Autoloader.php");
 
-
-
 class Configuration
 {
 
