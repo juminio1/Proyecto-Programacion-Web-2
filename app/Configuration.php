@@ -4,6 +4,7 @@ namespace app;
 
 use app\model\EventoModel;
 use app\controller\InicioController;
+use app\controller\LoginController;
 use MustacheRender;
 use MyDatabase;
 use Router;
