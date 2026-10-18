@@ -34,4 +34,9 @@ class MyDatabase
     {
         return $this->conexion->lastInsertId();
     }
+
+    public function getConexion()
+    {
+        return $this->conexion;
+    }
 }
