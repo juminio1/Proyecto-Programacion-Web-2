@@ -3,13 +3,16 @@
 namespace app;
 
 use app\model\EventoModel;
+use app\model\RegistroModel;
 use app\controller\InicioController;
-use app\controller\LoginController;
+use app\controller\RegistroController;
 use MustacheRender;
 use MyDatabase;
 use Router;
 
 require_once("helper/Autoloader.php");
+
+
 
 class Configuration
 {
@@ -21,14 +24,18 @@ class Configuration
     public function getInicioController()
     {
         return new InicioController(
-            $this->getRender()
+            $this->gerRender()
         );
     }
 
-    public function getLoginController(){
-        return new LoginController($this->getRender());
+    public function getRegistroController()
+    {
+        return new RegistroController(
+            new RegistroModel($this->getDatabase()),
+            $this->gerRender()
+        );
     }
-    
+
     // Los privados
 
     private function getDatabase()
@@ -42,7 +49,7 @@ class Configuration
         );
     }
 
-    private function getRender()
+    private function gerRender()
     {
         return new MustacheRender();
     }
