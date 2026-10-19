@@ -1,0 +1,175 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<div class="w3-container w3-padding-32" style="max-width: 750px; margin: 0 auto;">
+    <div class="w3-card-4 card-contenido w3-padding-24">
+        <header class="w3-container w3-center">
+            <h2>Crear Cuenta en Preguntados</h2>
+            <p class="w3-text-grey">Completá tus datos para registrarte y participar del juego</p>
+        </header>
+
+        {{#exito}}
+        <div class="w3-panel w3-pale-green w3-leftbar w3-border-green w3-padding-16 w3-margin">
+            <h4>¡Registro exitoso, <strong>{{nombre_usuario}}</strong>!</h4>
+            <p>
+                Tu cuenta ha sido creada y se encuentra <strong>pendiente de activación por email</strong>.
+                Revisa tu casilla de correo (<strong>{{email}}</strong>) para activar tu cuenta antes de iniciar sesión.
+            </p>
+            <p><a href="/" class="w3-button btn-cancha w3-round">Volver al Inicio</a></p>
+        </div>
+        {{/exito}}
+
+        {{^exito}}
+        {{#hay_errores}}
+        <div class="w3-panel w3-pale-red w3-leftbar w3-border-red w3-padding-16 w3-margin">
+            <h4>Por favor, corregí los siguientes errores:</h4>
+            <ul class="w3-ul">
+                {{#errores}}
+                <li>• {{.}}</li>
+                {{/errores}}
+            </ul>
+        </div>
+        {{/hay_errores}}
+
+        <form action="/registro/registrar" method="POST" enctype="multipart/form-data" class="w3-container">
+            <div class="w3-row-padding w3-margin-top">
+                <div class="w3-twothird">
+                    <label><b>Nombre completo *</b></label>
+                    <input class="w3-input w3-border w3-round" type="text" name="nombre_completo" value="{{nombre_completo}}" placeholder="Ej: Lionel Andrés Messi" required>
+                </div>
+                <div class="w3-third">
+                    <label><b>Año de nacimiento *</b></label>
+                    <input class="w3-input w3-border w3-round" type="number" name="anio_nacimiento" value="{{anio_nacimiento}}" min="1900" max="2026" placeholder="Ej: 1987" required>
+                </div>
+            </div>
+
+            <div class="w3-row-padding w3-margin-top">
+                <div class="w3-half">
+                    <label><b>Sexo *</b></label>
+                    <select class="w3-select w3-border w3-round" name="sexo" required>
+                        <option value="" disabled {{^sexo_masculino}}{{^sexo_femenino}}{{^sexo_no_cargado}}selected{{/sexo_no_cargado}}{{/sexo_femenino}}{{/sexo_masculino}}>Seleccioná una opción</option>
+                        <option value="Masculino" {{#sexo_masculino}}selected{{/sexo_masculino}}>Masculino</option>
+                        <option value="Femenino" {{#sexo_femenino}}selected{{/sexo_femenino}}>Femenino</option>
+                        <option value="Prefiero no cargarlo" {{#sexo_no_cargado}}selected{{/sexo_no_cargado}}>Prefiero no cargarlo</option>
+                    </select>
+                </div>
+                <div class="w3-half">
+                    <label><b>Nombre de usuario *</b></label>
+                    <input class="w3-input w3-border w3-round" type="text" name="nombre_usuario" value="{{nombre_usuario}}" placeholder="Ej: leo10" required>
+                </div>
+            </div>
+
+            <div class="w3-row-padding w3-margin-top">
+                <div class="w3-col s12">
+                    <label><b>Correo electrónico *</b></label>
+                    <input class="w3-input w3-border w3-round" type="email" name="email" value="{{email}}" placeholder="tuemail@ejemplo.com" required>
+                </div>
+            </div>
+
+            <div class="w3-row-padding w3-margin-top">
+                <div class="w3-half">
+                    <label><b>Contraseña *</b></label>
+                    <input class="w3-input w3-border w3-round" type="password" name="password" placeholder="Ingresá tu contraseña" required>
+                </div>
+                <div class="w3-half">
+                    <label><b>Repetir contraseña *</b></label>
+                    <input class="w3-input w3-border w3-round" type="password" name="confirmar_password" placeholder="Repetí tu contraseña" required>
+                </div>
+            </div>
+
+            <div class="w3-row-padding w3-margin-top">
+                <div class="w3-col s12">
+                    <label><b>Ubicación (Hacé clic en el mapa para seleccionar País y Ciudad) *</b></label>
+                    <div id="mapa-registro" style="height: 300px; width: 100%; border-radius: 6px; border: 1px solid #ccc; margin-top: 6px;"></div>
+                    <small id="estado-mapa" class="w3-text-grey">Hacé clic en cualquier punto del mapa para autocompletar tu país y ciudad.</small>
+                </div>
+            </div>
+
+            <div class="w3-row-padding w3-margin-top">
+                <div class="w3-half">
+                    <label><b>País *</b></label>
+                    <input class="w3-input w3-border w3-round w3-light-grey" type="text" id="input-pais" name="pais" value="{{pais}}" placeholder="Seleccioná en el mapa" readonly required>
+                </div>
+                <div class="w3-half">
+                    <label><b>Ciudad *</b></label>
+                    <input class="w3-input w3-border w3-round w3-light-grey" type="text" id="input-ciudad" name="ciudad" value="{{ciudad}}" placeholder="Seleccioná en el mapa" readonly required>
+                </div>
+                <input type="hidden" id="input-latitud" name="latitud" value="{{latitud}}">
+                <input type="hidden" id="input-longitud" name="longitud" value="{{longitud}}">
+            </div>
+
+            <div class="w3-row-padding w3-margin-top">
+                <div class="w3-col s12">
+                    <label><b>Foto de perfil (JPG, JPEG, PNG o WEBP - Máx. 2 MB) *</b></label>
+                    <input class="w3-input w3-border w3-round" type="file" name="foto_perfil" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
+                </div>
+            </div>
+
+            <div class="w3-row-padding w3-margin-top w3-center">
+                <div class="w3-col s12">
+                    <button type="submit" class="w3-button btn-cancha w3-round w3-large w3-block">Registrarse</button>
+                </div>
+            </div>
+        </form>
+        {{/exito}}
+    </div>
+</div>
+
+{{^exito}}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var latInicial = document.getElementById("input-latitud").value || -34.6037;
+    var lngInicial = document.getElementById("input-longitud").value || -58.3816;
+
+    var map = L.map("mapa-registro").setView([parseFloat(latInicial), parseFloat(lngInicial)], 4);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(map);
+
+    var marker = null;
+    if (document.getElementById("input-latitud").value && document.getElementById("input-longitud").value) {
+        marker = L.marker([parseFloat(latInicial), parseFloat(lngInicial)]).addTo(map);
+    }
+
+    map.on("click", function (e) {
+        var lat = e.latlng.lat.toFixed(6);
+        var lng = e.latlng.lng.toFixed(6);
+
+        if (marker) {
+            marker.setLatLng(e.latlng);
+        } else {
+            marker = L.marker(e.latlng).addTo(map);
+        }
+
+        document.getElementById("input-latitud").value = lat;
+        document.getElementById("input-longitud").value = lng;
+        document.getElementById("estado-mapa").textContent = "Buscando país y ciudad...";
+
+        fetch("https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=" + lat + "&lon=" + lng + "&accept-language=es")
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                var address = data.address || {};
+                var pais = address.country || "";
+                var ciudad = address.city || address.town || address.village || address.municipality || address.state || "";
+
+                document.getElementById("input-pais").value = pais;
+                document.getElementById("input-ciudad").value = ciudad;
+
+                if (!pais || !ciudad) {
+                    document.getElementById("input-pais").removeAttribute("readonly");
+                    document.getElementById("input-ciudad").removeAttribute("readonly");
+                    document.getElementById("estado-mapa").textContent = "Ubicación marcada. Completá manualmente si algún dato no fue detectado.";
+                } else {
+                    document.getElementById("estado-mapa").textContent = "Ubicación seleccionada: " + ciudad + ", " + pais;
+                }
+            })
+            .catch(function () {
+                document.getElementById("input-pais").removeAttribute("readonly");
+                document.getElementById("input-ciudad").removeAttribute("readonly");
+                document.getElementById("estado-mapa").textContent = "No se pudo geocodificar automáticamente. Podés escribir el país y ciudad.";
+            });
+    });
+});
+</script>
+{{/exito}}

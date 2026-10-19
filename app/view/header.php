@@ -47,5 +47,6 @@
 <body>
 
 <div class="w3-bar" style="background-color:#2E7D32">
-    <a href="/" class="w3-bar-item w3-button">🏠 Inicio</a>
+    <a href="/" class="w3-bar-item w3-button" style="color:white;">🏠 Inicio</a>
+    <a href="/registro/show" class="w3-bar-item w3-button" style="color:white;">📝 Registrarse</a>
 </div>

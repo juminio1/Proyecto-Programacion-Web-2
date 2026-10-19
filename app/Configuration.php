@@ -3,7 +3,9 @@
 namespace app;
 
 use app\model\EventoModel;
+use app\model\RegistroModel;
 use app\controller\InicioController;
+use app\controller\RegistroController;
 use MustacheRender;
 use MyDatabase;
 use Router;
@@ -22,6 +24,14 @@ class Configuration
     public function getInicioController()
     {
         return new InicioController(
+            $this->gerRender()
+        );
+    }
+
+    public function getRegistroController()
+    {
+        return new RegistroController(
+            new RegistroModel($this->getDatabase()),
             $this->gerRender()
         );
     }
