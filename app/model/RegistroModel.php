@@ -167,7 +167,10 @@ class RegistroModel
     {
         $pdo = $this->database->getConexion();
         $tokenActivacion = bin2hex(random_bytes(16));
-        $passwordHasheada = md5($datos['password']);
+        $passwordHasheada = password_hash(
+            $datos['password'],
+            PASSWORD_DEFAULT
+        );
 
         $latitud = isset($datos['latitud']) && $datos['latitud'] !== '' ? (float)$datos['latitud'] : null;
         $longitud = isset($datos['longitud']) && $datos['longitud'] !== '' ? (float)$datos['longitud'] : null;

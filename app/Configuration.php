@@ -6,6 +6,8 @@ use app\model\EventoModel;
 use app\model\RegistroModel;
 use app\controller\InicioController;
 use app\controller\RegistroController;
+use app\controller\LoginController;
+use app\model\LoginModel;
 use MustacheRender;
 use MyDatabase;
 use Router;
@@ -24,7 +26,7 @@ class Configuration
     public function getInicioController()
     {
         return new InicioController(
-            $this->gerRender()
+            $this->getRender()
         );
     }
 
@@ -32,7 +34,14 @@ class Configuration
     {
         return new RegistroController(
             new RegistroModel($this->getDatabase()),
-            $this->gerRender()
+            $this->getRender()
+        );
+    }
+
+    public function getLoginController(){
+        return new LoginController(
+            new LoginModel($this->getDatabase()),
+            $this->getRender()
         );
     }
 
@@ -40,7 +49,14 @@ class Configuration
 
     private function getDatabase()
     {
-        $config = parse_ini_file("config/config.ini");
+        //$config = parse_ini_file("config/config.ini");
+        $archivoConfig = "config/config.ini";
+
+        if (file_exists("config/config.local.ini")) {
+            $archivoConfig = "config/config.local.ini";
+        }
+
+        $config = parse_ini_file($archivoConfig);
 
         return new MyDatabase($config["db_host"],
             $config["db_user"],
@@ -49,7 +65,7 @@ class Configuration
         );
     }
 
-    private function gerRender()
+    private function getRender()
     {
         return new MustacheRender();
     }

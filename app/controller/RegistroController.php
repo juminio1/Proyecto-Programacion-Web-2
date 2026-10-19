@@ -3,6 +3,7 @@
 namespace app\controller;
 
 use Request;
+use Redirect;
 
 class RegistroController
 {
@@ -60,6 +61,10 @@ class RegistroController
             'nombre_usuario' => $datos['nombre_usuario'],
             'email'          => $datos['email']
         ]);
+
+        $this->model->crearUsuario($datos, $rutaFoto);
+
+        Redirect::to('/index.php?controller=login&method=show');
     }
 
     private function renderizarConErrores(array $datos, array $errores)
