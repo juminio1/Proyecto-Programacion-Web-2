@@ -21,7 +21,7 @@ class InicioController
     ];
 
         $datosHome = [
-            'nombre' => 'Dorian',
+            'nombre' => $_SESSION['usuario'] ?? 'Jugador',
             'puntaje' => 350,
             'posicion' => 12,
             'partidasJugadas' => 18,

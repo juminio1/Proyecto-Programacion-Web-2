@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     latitud DECIMAL(10, 8) DEFAULT NULL,
     longitud DECIMAL(11, 8) DEFAULT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
-    password VARCHAR(32) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
     foto_perfil VARCHAR(255) NOT NULL,
     activo TINYINT(1) NOT NULL DEFAULT 0,

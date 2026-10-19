@@ -5,7 +5,7 @@
 .barra-superior {
     background-color: #ffffff;
     border-bottom: 1px solid #ece8f3;
-    box-shadow: 0 2px 10px rgba(33, 16, 79, 0.04);
+    box-shadow: 0 2px 12px rgba(33, 16, 79, 0.04);
     font-family: "Nunito", Arial, Helvetica, sans-serif;
 }
 
@@ -18,11 +18,11 @@
 .barra-contenido {
     display: flex;
     align-items: center;
-    gap: 44px;
+    gap: 32px;
     max-width: 1450px;
-    min-height: 72px;
+    min-height: 84px;
     margin: 0 auto;
-    padding: 10px 32px;
+    padding: 14px 32px;
 }
 
 /* ===== LOGO ===== */
@@ -33,12 +33,14 @@
     gap: 12px;
     color: #1d1050;
     text-decoration: none;
+    flex-shrink: 0;
 }
 
 .logo-icono {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     width: 46px;
     height: 46px;
     border-radius: 50%;
@@ -46,13 +48,13 @@
     color: #ffffff;
     font-size: 28px;
     font-weight: 900;
-    box-shadow: 0 3px 8px rgba(91, 47, 217, 0.3);
+    box-shadow: 0 3px 8px rgba(91, 47, 217, 0.22);
 }
 
 .logo-texto {
-    font-size: 28px;
+    font-size: 27px;
     font-weight: 900;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     white-space: nowrap;
 }
 
@@ -61,16 +63,21 @@
 .barra-nav {
     display: flex;
     align-items: center;
-    gap: 36px;
+    flex-shrink: 0;
+    gap: 28px;
 }
 
 .barra-nav a {
-    padding: 8px 0;
-    border-bottom: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 10px 0;
+    border-bottom: 2px solid transparent;
     color: #6d6785;
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 17px;
+    font-weight: 800;
     text-decoration: none;
+    white-space: nowrap;
     transition: color 0.2s;
 }
 
@@ -79,22 +86,31 @@
 }
 
 .barra-nav a.activo {
-    color: #3d1fb3;
+    color: #5b2fd9;
     border-bottom-color: #5b2fd9;
 }
 
-/* ===== USUARIO (AVATAR + NOMBRE) ===== */
+/* ===== JUGADOR Y BOTÓN ===== */
+
+.acciones-usuario {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: auto;
+    min-width: 0;
+}
 
 .usuario {
     position: relative;
-    margin-left: auto;
+    min-width: 0;
 }
 
 .usuario summary {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 4px 8px 4px 4px;
+    min-height: 48px;
+    padding: 4px 10px 4px 4px;
     border-radius: 999px;
     list-style: none;
     cursor: pointer;
@@ -114,24 +130,31 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 46px;
-    height: 46px;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
     border-radius: 50%;
     background: linear-gradient(180deg, #7a4af0, #4d25c6);
     color: #ffffff;
-    font-size: 21px;
+    font-size: 20px;
     font-weight: 800;
 }
 
 .usuario-nombre {
-    font-size: 18px;
-    font-weight: 700;
+    min-width: 0;
+    max-width: 136px;
+    overflow: hidden;
     color: #1d1050;
+    font-size: 16px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .usuario-flecha {
-    width: 18px;
-    height: 18px;
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
     fill: none;
     stroke: #6d6785;
     stroke-width: 2.5;
@@ -148,21 +171,23 @@
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    z-index: 10;
-    min-width: 180px;
+    z-index: 50;
+    width: 190px;
+    max-width: calc(100vw - 32px);
     padding: 8px;
     background-color: #ffffff;
     border: 1px solid #ece8f3;
-    border-radius: 14px;
-    box-shadow: 0 10px 28px rgba(33, 16, 79, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 12px 32px rgba(33, 16, 79, 0.12);
 }
 
 .usuario-menu a {
     display: block;
-    padding: 10px 14px;
+    min-height: 44px;
+    padding: 11px 14px;
     border-radius: 10px;
     color: #1d1050;
-    font-weight: 700;
+    font-weight: 800;
     text-decoration: none;
 }
 
@@ -171,23 +196,86 @@
     color: #5b2fd9;
 }
 
+.boton-login {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-height: 46px;
+    padding: 11px 22px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background-color: #5b2fd9;
+    color: #ffffff;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.boton-login:hover {
+    background-color: #4620b3;
+    box-shadow: 0 4px 12px rgba(91, 47, 217, 0.18);
+}
+
+.barra-superior a:focus-visible,
+.usuario summary:focus-visible {
+    outline: 3px solid #b9a2f4;
+    outline-offset: 4px;
+}
+
+/* ===== TABLETS Y PANTALLAS MEDIANAS ===== */
+
+@media (max-width: 1100px) {
+    .barra-contenido {
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        padding: 14px 24px 0;
+    }
+
+    .barra-nav {
+        order: 3;
+        flex: 0 0 100%;
+        min-width: 0;
+        justify-content: center;
+        gap: 36px;
+    }
+}
+
 /* ===== CELULARES ===== */
 
 @media (max-width: 700px) {
     .barra-contenido {
-        flex-wrap: wrap;
-        gap: 6px 12px;
-        padding: 10px 16px 0;
+        gap: 12px;
+        padding: 14px 16px 0;
+    }
+
+    .logo {
+        flex: 0 0 100%;
+        justify-content: center;
     }
 
     .logo-icono {
         width: 40px;
         height: 40px;
-        font-size: 24px;
+        font-size: 25px;
     }
 
     .logo-texto {
-        font-size: 23px;
+        font-size: 24px;
+    }
+
+    .acciones-usuario {
+        flex: 0 0 100%;
+        gap: 12px;
+        margin-left: 0;
+        justify-content: space-between;
+    }
+
+    .usuario {
+        flex: 1;
     }
 
     .avatar {
@@ -197,20 +285,37 @@
     }
 
     .usuario-nombre {
-        font-size: 16px;
+        max-width: 160px;
+        font-size: 15px;
     }
 
-    /* El menú pasa a una segunda línea, con scroll si no entra */
+    .usuario-menu {
+        right: auto;
+        left: 0;
+    }
+
+    .boton-login {
+        min-height: 44px;
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+
     .barra-nav {
-        order: 3;
-        width: 100%;
-        gap: 28px;
+        justify-content: space-around;
+        gap: 12px;
         overflow-x: auto;
     }
 
     .barra-nav a {
-        padding: 10px 0;
-        font-size: 17px;
-        white-space: nowrap;
+        flex-shrink: 0;
+        min-height: 48px;
+        font-size: 15px;
     }
 }
+
+@media (prefers-reduced-motion: reduce) {
+    .barra-superior * {
+        transition: none;
+    }
+}
+
