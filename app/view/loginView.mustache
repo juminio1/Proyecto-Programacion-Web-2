@@ -1,16 +1,29 @@
-<h2>Iniciar sesión</h2>
+<div class="container py-5" style="max-width: 480px;">
+    <div class="card shadow-sm p-4">
+        <h2 class="mb-4 text-center">Iniciar sesión</h2>
 
-<form method="post" action="/index.php?controller=login&method=login">
+        {{#error}}
+        <div class="alert alert-danger" role="alert">
+            {{error}}
+        </div>
+        {{/error}}
 
-    <div class="mb-3">
-        <label for="usuario" class="form-label">Usuario</label>
-        <input type="text" id="usuario" name="usuario" class="form-control" required>
+        <form method="post" action="/index.php?controller=login&method=login">
+            <div class="mb-3">
+                <label for="usuario" class="form-label">Usuario o correo electrónico</label>
+                <input type="text" id="usuario" name="usuario" value="{{usuario}}" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Contraseña</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Ingresar</button>
+        </form>
+
+        <p class="mt-3 mb-0 text-center text-muted">
+            ¿No tenés cuenta? <a href="/index.php?controller=registro&method=show">Registrate acá</a>
+        </p>
     </div>
-
-    <div class="mb-3">
-        <label for="password" class="form-label">Contraseña</label>
-        <input type="password" id="password" name="password" class="form-control" required>
-    </div>
-
-    <button type="submit" class="btn btn-primary"> Ingresar</button>
-</form>
+</div>
