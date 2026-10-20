@@ -15,10 +15,10 @@ class InicioController
     {
 
         $ultimasPartidas = [
-        ['numero' => 12, 'fecha' => '10/10/2026', 'puntaje' => 80],
-        ['numero' => 11, 'fecha' => '08/10/2026', 'puntaje' => 60],
-        ['numero' => 10, 'fecha' => '05/10/2026', 'puntaje' => 100],
-    ];
+            ['numero' => 12, 'fecha' => '10/10/2026', 'puntaje' => 80],
+            ['numero' => 11, 'fecha' => '08/10/2026', 'puntaje' => 60],
+            ['numero' => 10, 'fecha' => '05/10/2026', 'puntaje' => 100],
+        ];
 
         $datosHome = [
             'nombre' => $_SESSION['usuario'] ?? 'Jugador',

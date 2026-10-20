@@ -3,8 +3,10 @@
 namespace app;
 
 use app\model\EventoModel;
+use app\model\LoginModel;
 use app\model\RegistroModel;
 use app\controller\InicioController;
+use app\controller\LoginController;
 use app\controller\RegistroController;
 use app\controller\LoginController;
 use app\model\LoginModel;
@@ -13,8 +15,6 @@ use MyDatabase;
 use Router;
 
 require_once("helper/Autoloader.php");
-
-
 
 class Configuration
 {
@@ -58,7 +58,8 @@ class Configuration
 
         $config = parse_ini_file($archivoConfig);
 
-        return new MyDatabase($config["db_host"],
+        return new MyDatabase(
+            $config["db_host"],
             $config["db_user"],
             $config["db_pass"],
             $config["db_name"]

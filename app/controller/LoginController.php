@@ -7,6 +7,9 @@ use Redirect;
 
 class LoginController{
 
+class LoginController
+{
+    private $model;
     private $render;
     private $loginModel;
 
@@ -15,7 +18,8 @@ class LoginController{
         $this->render = $render;
     }
 
-    public function show() {
+    public function show()
+    {
         $this->render->renderiza("login");
     }
 
