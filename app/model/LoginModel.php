@@ -46,13 +46,13 @@ class LoginModel{
 
         if (!password_verify($password, $usuarioEncontrado['password'])) {
             $errores[] = "Usuario o contraseña incorrectos.";
+            $errores[] = "Diagnóstico: hash de "
+                . strlen($usuarioEncontrado['password'])
+                . " caracteres; prefijo "
+                . substr($usuarioEncontrado['password'], 0, 4);
             return $errores;
         }
 
-        $errores[] = "Diagnóstico: hash de "
-            . strlen($usuarioEncontrado['password'])
-            . " caracteres; prefijo "
-            . substr($usuarioEncontrado['password'], 0, 4);
 
         if ((int)$usuarioEncontrado['activo'] !== 1) {
             $errores[] = "Tenés que activar tu cuenta antes de iniciar sesión.";
