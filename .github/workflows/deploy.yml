@@ -25,5 +25,10 @@ jobs:
           protocol: ftp
           port: 21
           server-dir: /unlampreguntados.infinityfreeapp.com/htdocs/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            config/config.local.ini
           retries: 3
           retryDelay: 10
