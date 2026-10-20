@@ -29,7 +29,8 @@ class LoginModel{
         return $consulta->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function iniciarSesion($identificador, $password){
+    public function iniciarSesion($identificador, $password)
+    {
         $errores = [];
 
         if ($identificador === '' || $password === '') {
@@ -46,20 +47,22 @@ class LoginModel{
 
         if (!password_verify($password, $usuarioEncontrado['password'])) {
             $errores[] = "Usuario o contraseña incorrectos.";
+
+            // Diagnóstico temporal: solamente si falla la contraseña.
             $errores[] = "Diagnóstico: hash de "
                 . strlen($usuarioEncontrado['password'])
                 . " caracteres; prefijo "
                 . substr($usuarioEncontrado['password'], 0, 4);
+
             return $errores;
         }
-
 
         if ((int)$usuarioEncontrado['activo'] !== 1) {
             $errores[] = "Tenés que activar tu cuenta antes de iniciar sesión.";
             return $errores;
         }
 
-        return $errores;
+        return [];
     }
 
 }
