@@ -15,11 +15,8 @@ use Mailer;
 
 require_once("helper/Autoloader.php");
 
-
-
 class Configuration
 {
-
     public function __construct()
     {
     }
@@ -41,14 +38,25 @@ class Configuration
         );
     }
 
-    public function getLoginController(){
+    public function getLoginController()
+    {
         return new LoginController(
             new LoginModel($this->getDatabase()),
             $this->getRender()
         );
     }
 
-    // Los privados
+    private function getConfig()
+    {
+        $archivoConfig = dirname(__DIR__) . "/config/config.ini";
+        $archivoConfigLocal = dirname(__DIR__) . "/config/config.local.ini";
+
+        if (file_exists($archivoConfigLocal)) {
+            $archivoConfig = $archivoConfigLocal;
+        }
+
+        return parse_ini_file($archivoConfig);
+    }
 
     private function getDatabase()
     {
@@ -71,17 +79,4 @@ class Configuration
     {
         return new Router($this, "inicio", "show");
     }
-
-    private function getConfig()
-    {
-        $archivoConfig = dirname(__DIR__) . "/config/config.ini";
-        $archivoConfigLocal = dirname(__DIR__) . "/config/config.local.ini";
-
-        if (file_exists($archivoConfigLocal)) {
-            $archivoConfig = $archivoConfigLocal;
-        }
-
-        return parse_ini_file($archivoConfig);
-    }
-
 }

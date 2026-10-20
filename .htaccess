@@ -45,10 +45,12 @@ Options -Indexes
     # ── CONDICIONES ── (aplican a las dos reglas de abajo)
     # Solo reescribir si la URL NO es un archivo real en disco.
     # Ej: /css/estilo.css NO se reescribe porque el archivo existe.
-    RewriteCond %{REQUEST_FILENAME} !-f
+    # No reescribe archivos ni carpetas existentes.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
 
     # Solo reescribir si la URL NO es un directorio real en disco.
-    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 
     # ── REGLA 1: /controller/method ──────────────────────
     # ^([^/]+)/([^/]+)$  →  captura dos segmentos separados por /

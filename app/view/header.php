@@ -15,9 +15,7 @@ $paginaActiva = $_GET['controller'] ?? 'inicio';
 
 function claseActiva($pagina, $paginaActiva)
 {
-    return $pagina === $paginaActiva
-            ? ' class="activo" aria-current="page"'
-            : '';
+    return $pagina === $paginaActiva ? ' class="activo" aria-current="page"' : '';
 }
 ?>
 <!DOCTYPE html>
@@ -37,52 +35,28 @@ function claseActiva($pagina, $paginaActiva)
 <header class="barra-superior">
     <div class="barra-contenido">
 
-        <a class="logo"
-           href="/index.php?controller=inicio&amp;method=show"
-           aria-label="Preguntados: ir al inicio">
+        <a class="logo" href="/">
             <span class="logo-icono" aria-hidden="true">?</span>
             <span class="logo-texto">Preguntados</span>
         </a>
 
         <nav class="barra-nav" aria-label="Navegación principal">
-            <a href="/index.php?controller=inicio&amp;method=show"
-                    <?= claseActiva('inicio', $paginaActiva) ?>>
-                Inicio
-            </a>
-
-            <a href="/index.php?controller=ranking&amp;method=show"
-                    <?= claseActiva('ranking', $paginaActiva) ?>>
-                Ranking
-            </a>
-
-            <a href="/index.php?controller=perfil&amp;method=show"
-                    <?= claseActiva('perfil', $paginaActiva) ?>>
-                Mi perfil
-            </a>
+            <a href="/"<?= claseActiva('inicio', $paginaActiva) ?>>Inicio</a>
+            <a href="/ranking/show"<?= claseActiva('ranking', $paginaActiva) ?>>Ranking</a>
+            <a href="/perfil/show"<?= claseActiva('perfil', $paginaActiva) ?>>Mi perfil</a>
         </nav>
 
-        <div class="acciones-usuario">
-            <details class="usuario">
-                <summary>
-                    <span class="avatar" aria-hidden="true">
-                        <?= htmlspecialchars($inicial, ENT_QUOTES, 'UTF-8') ?>
-                    </span>
+        <details class="usuario">
+            <summary>
+                <span class="avatar" aria-hidden="true"><?= htmlspecialchars($inicial) ?></span>
+                <span class="usuario-nombre"><?= htmlspecialchars($nombre) ?></span>
+                <svg class="usuario-flecha" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
 
-                    <span class="usuario-nombre">
-                        <?= htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8') ?>
-                    </span>
-
-                    <svg class="usuario-flecha"
-                         viewBox="0 0 24 24"
-                         aria-hidden="true">
-                        <path d="M6 9l6 6 6-6"/>
-                    </svg>
-                </summary>
-
-                <div class="usuario-menu">
-                    <a href="/login/logout">Cerrar sesión</a>
-                </div>
-            </details>
+            <div class="usuario-menu">
+                <a href="/login/logout">Cerrar sesión</a>
+            </div>
+        </details>
 
             <a class="boton-login"
                href="index.php?controller=login&amp;method=show">

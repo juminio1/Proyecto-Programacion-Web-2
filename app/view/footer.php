@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="/css/footer.css">
 <footer class="pie-pagina">
     <div class="pie-contenido">
-        <a class="pie-marca" href="/config.ini/index.php?controller=inicio&amp;method=show">
+        <a class="logo" href="/">
             <span class="pie-icono" aria-hidden="true">?</span>
             <span>Preguntados</span>
         </a>

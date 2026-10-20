@@ -15,7 +15,8 @@ class LoginController{
         $this->render = $render;
     }
 
-    public function show() {
+    public function show()
+    {
         $this->render->renderiza("login");
     }
 
@@ -39,7 +40,7 @@ class LoginController{
             return;
         }
 
-        $usuario = $this->loginModel->iniciarSesion($identificador, $password);
+        $usuario = $this->loginModel->buscarUsuario($identificador);
 
         if ($usuario === false) {
             Redirect::to('index.php?controller=login&method=show');
