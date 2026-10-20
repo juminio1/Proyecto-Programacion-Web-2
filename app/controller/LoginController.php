@@ -2,17 +2,19 @@
 
 namespace app\controller;
 
-use Redirect;
 use Request;
+use Redirect;
+
+class LoginController{
 
 class LoginController
 {
     private $model;
     private $render;
+    private $loginModel;
 
-    public function __construct($model, $render)
-    {
-        $this->model  = $model;
+    public function __construct($loginModel, $render){
+        $this->loginModel = $loginModel;
         $this->render = $render;
     }
 
@@ -21,31 +23,39 @@ class LoginController
         $this->render->renderiza("login");
     }
 
-    public function login()
-    {
-        $nombreUsuario = Request::post('usuario', '');
-        $password      = Request::post('password', '');
+    public function login(){
 
-        $usuario = $this->model->autenticar($nombreUsuario, $password);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Redirect::to('/index.php?controller=login&method=show');
+        }
 
-        if ($usuario === null) {
+        $identificador  = trim(Request::post('usuario', ''));
+        $password = Request::post('password', '');
+
+        $errores = $this->loginModel->iniciarSesion($identificador, $password);
+
+        if (!empty($errores)) {
             $this->render->renderiza("login", [
-                'error'   => 'Usuario o contraseña incorrectos.',
-                'usuario' => $nombreUsuario
+                'hay_errores' => true,
+                'errores' => $errores,
+                'usuario' => $identificador
             ]);
             return;
         }
 
-        $_SESSION['usuario_id']      = $usuario['id'];
-        $_SESSION['usuario']         = $usuario['nombre_usuario'];
-        $_SESSION['nombre_completo'] = $usuario['nombre_completo'] ?? $usuario['nombre_usuario'];
+        $usuario = $this->loginModel->iniciarSesion($identificador, $password);
 
-        Redirect::toIndex();
+        if ($usuario === false) {
+            Redirect::to('/index.php?controller=login&method=show');
+        }
+
+        session_regenerate_id(true);
+
+        $_SESSION['usuario_id'] = $usuario['id'];
+        $_SESSION['usuario'] = $usuario['nombre_usuario'];
+
+        Redirect::to('/index.php?controller=inicio&method=show');
     }
 
-    public function logout()
-    {
-        session_destroy();
-        Redirect::toIndex();
-    }
+
 }

@@ -1,0 +1,212 @@
+/* ===== PÁGINA DE LOGIN ===== */
+
+body.pagina-login {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100svh;
+    background-color: #f7f5fc;
+}
+
+.login-contenedor,
+.login-contenedor *,
+.login-contenedor *::before,
+.login-contenedor *::after {
+    box-sizing: border-box;
+}
+
+.login-contenedor {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 56px 20px 64px;
+    color: #1d1050;
+    font-family: "Nunito", Arial, Helvetica, sans-serif;
+}
+
+.login-tarjeta {
+    padding: 36px;
+    border: 1px solid #e9e2f5;
+    border-radius: 28px;
+    background-color: #ffffff;
+    box-shadow: 0 16px 48px rgba(46, 22, 93, 0.07);
+}
+
+.login-titulo {
+    margin: 0 0 12px;
+    color: #5b2fd9;
+    font-family: inherit;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    text-align: center;
+}
+
+.login-subtitulo {
+    margin: 0 0 28px;
+    color: #6d6785;
+    font-size: 16px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.login-campo {
+    margin-bottom: 20px;
+}
+
+.login-campo label {
+    display: block;
+    margin-bottom: 8px;
+    color: #33245c;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.5;
+}
+
+.login-campo input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 52px;
+    padding: 14px 16px;
+    border: 1px solid #ded7ec;
+    border-radius: 14px;
+    background-color: #fcfbff;
+    color: #1d1050;
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 1.4;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.login-campo input:hover {
+    border-color: #b9a2e8;
+}
+
+.login-campo input:focus {
+    border-color: #5b2fd9;
+    outline: 2px solid #d9ccf9;
+    outline-offset: 2px;
+    background-color: #ffffff;
+}
+
+.login-boton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 50px;
+    margin-top: 8px;
+    padding: 12px 22px;
+    border: none;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #7544ed, #5b2fd9);
+    color: #ffffff;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(91, 47, 217, 0.18);
+    transition: box-shadow 0.2s, background-color 0.2s;
+}
+
+.login-boton:hover {
+    background: #4620b3;
+    box-shadow: 0 8px 20px rgba(91, 47, 217, 0.24);
+}
+
+.login-boton:focus-visible {
+    outline: 3px solid #b9a2f4;
+    outline-offset: 4px;
+}
+
+.login-errores {
+    margin: 0 0 24px;
+    padding: 14px 16px;
+    border: 1px solid #f1c9d1;
+    border-radius: 14px;
+    background-color: #fff3f5;
+    color: #92263e;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.login-errores ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.login-errores li + li {
+    margin-top: 6px;
+}
+
+.login-pie {
+    margin: 24px 0 0;
+    color: #6d6785;
+    font-size: 14px;
+    line-height: 1.7;
+    text-align: center;
+}
+
+.login-pie a {
+    color: #5b2fd9;
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.login-pie a:hover {
+    color: #4620b3;
+}
+
+.login-pie a:focus-visible {
+    outline: 2px solid #b9a2f4;
+    outline-offset: 3px;
+    border-radius: 3px;
+}
+
+/* ===== TABLETS: ENTRE 701 Y 1024 PX ===== */
+
+@media (min-width: 701px) and (max-width: 1024px) {
+    .login-contenedor {
+        padding: 40px 24px 52px;
+    }
+
+    .login-tarjeta {
+        padding: 32px;
+    }
+}
+
+/* ===== CELULARES: HASTA 700 PX ===== */
+
+@media (max-width: 700px) {
+    .login-contenedor {
+        padding: 28px 16px 40px;
+    }
+
+    .login-tarjeta {
+        padding: 26px 20px;
+        border-radius: 22px;
+    }
+
+    .login-titulo {
+        font-size: 27px;
+    }
+
+    .login-subtitulo {
+        margin-bottom: 24px;
+        font-size: 15px;
+    }
+
+    .login-pie {
+        margin-top: 22px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .login-contenedor * {
+        transition: none;
+    }
+}
+

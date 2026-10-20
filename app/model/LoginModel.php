@@ -1,42 +1,60 @@
 <?php
 
 namespace app\model;
-
 use PDO;
 
-class LoginModel
-{
+class LoginModel{
+
     private $database;
 
-    public function __construct($database)
-    {
+    public  function __construct($database){
         $this->database = $database;
     }
 
-    public function autenticar(string $usuario, string $password): ?array
-    {
-        $usuarioLimpio = trim($usuario);
-
-        if ($usuarioLimpio === '' || $password === '') {
-            return null;
-        }
-
-        $passwordHash = md5($password);
+    public function buscarUsuario($identificador){
         $pdo = $this->database->getConexion();
 
-        $sql = "SELECT id, nombre_usuario, nombre_completo, email, foto_perfil, activo
+        $sql = "SELECT id, nombre_usuario, password, activo
                 FROM usuarios
-                WHERE (nombre_usuario = :usuario OR email = :usuario)
-                  AND password = :password
-                LIMIT 1";
+                WHERE nombre_usuario = :username
+                OR email = :email";
 
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindValue(':usuario', $usuarioLimpio, PDO::PARAM_STR);
-        $stmt->bindValue(':password', $passwordHash, PDO::PARAM_STR);
-        $stmt->execute();
+        $consulta = $pdo->prepare($sql);
 
-        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+        $consulta->execute([
+            'username' => $identificador,
+            'email' => $identificador
+        ]);
 
-        return $fila === false ? null : $fila;
+        return $consulta->fetch(PDO::FETCH_ASSOC);
     }
+
+    public function iniciarSesion($identificador, $password){
+        $errores = [];
+
+        if ($identificador === '' || $password === '') {
+            $errores[] = "Los campos son obligatorios";
+            return $errores;
+        }
+
+        $usuarioEncontrado = $this->buscarUsuario($identificador);
+
+        if ($usuarioEncontrado === false) {
+            $errores[] = "El usuario no existe";
+            return $errores;
+        }
+
+        if (!password_verify($password, $usuarioEncontrado['password'])) {
+            $errores[] = "Usuario o contraseña incorrectos.";
+            return $errores;
+        }
+
+       /* if ((int)$usuarioEncontrado['activo'] !== 1) {
+            $errores[] = "Tenés que activar tu cuenta antes de iniciar sesión.";
+            return $errores;
+        } DESCOMENTAR CUANDO ESTE LA VALIDACIÓN DEL EMAIL*/
+
+        return $errores;
+    }
+
 }

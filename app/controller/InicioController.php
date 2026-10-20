@@ -13,11 +13,6 @@ class InicioController
 
     public function show()
     {
-        $data = [
-            "titulo" => "Preguntados",
-            "mensaje" => "Hola mundo!",
-            "integrantes" => "Dorian Villalba - Ramiro Bruzón, Lucas García - Julieta Miño"
-        ];
 
         $ultimasPartidas = [
             ['numero' => 12, 'fecha' => '10/10/2026', 'puntaje' => 80],
@@ -26,7 +21,7 @@ class InicioController
         ];
 
         $datosHome = [
-            'nombre' => $_SESSION['usuario'] ?? 'Dorian',
+            'nombre' => $_SESSION['usuario'] ?? 'Jugador',
             'puntaje' => 350,
             'posicion' => 12,
             'partidasJugadas' => 18,

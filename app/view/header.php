@@ -1,72 +1,94 @@
+<?php
+// El controlador de login guarda el nombre de usuario en esta clave.
+$sesionIniciada = isset($_SESSION['usuario_id']);
+$nombre = $_SESSION['usuario'] ?? ($nombre ?? 'Jugador');
+
+if (function_exists('mb_substr')) {
+    $inicial = mb_strtoupper(mb_substr($nombre, 0, 1));
+} else {
+    $inicial = preg_match('/^./u', $nombre, $coincidencia)
+            ? strtoupper($coincidencia[0])
+            : '';
+}
+
+$paginaActiva = $_GET['controller'] ?? 'inicio';
+
+function claseActiva($pagina, $paginaActiva)
+{
+    return $pagina === $paginaActiva
+            ? ' class="activo" aria-current="page"'
+            : '';
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Preguntados (Provisional) </title>
+    <title>Preguntados (Provisional)</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&amp;display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
-    <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-            integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
-            crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="/css/header.css">
-    <link rel="stylesheet" href="/css/footer.css">
-    <style>
-        .card-contenido {
-            background-color: #FFFFFF;
-            border-radius: 8px;
-            border-top: 6px solid #5b2fd9;
-        }
-
-        .btn-cancha {
-            background-color: #5b2fd9 !important;
-            color: #FFFFFF !important;
-        }
-
-        .btn-cancha:hover {
-            background-color: #3d1fb3 !important;
-        }
-    </style>
+    <link rel="stylesheet" href="/css/login.css">
 </head>
-<body>
+<body<?= $paginaActiva === 'login' ? ' class="pagina-login"' : '' ?>>
 
-<header class="encabezado">
-    <div class="encabezado-contenido">
-        <a class="marca" href="/index.php?controller=inicio&amp;method=show"
-           aria-label="Preguntados, ir al inicio">
-            <span class="marca-icono" aria-hidden="true">?</span>
-            <span class="marca-nombre">Preguntados</span>
+<header class="barra-superior">
+    <div class="barra-contenido">
+
+        <a class="logo"
+           href="/index.php?controller=inicio&amp;method=show"
+           aria-label="Preguntados: ir al inicio">
+            <span class="logo-icono" aria-hidden="true">?</span>
+            <span class="logo-texto">Preguntados</span>
         </a>
 
-        <nav class="acciones-header" aria-label="Navegación principal">
-            <a class="enlace-inicio" href="/index.php?controller=inicio&amp;method=show">
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="m3 10 9-7 9 7M5 9v11h5v-6h4v6h5V9"/>
-                </svg>
-                <span>Inicio</span>
+        <nav class="barra-nav" aria-label="Navegación principal">
+            <a href="/index.php?controller=inicio&amp;method=show"
+                    <?= claseActiva('inicio', $paginaActiva) ?>>
+                Inicio
             </a>
 
-            <?php if (!empty($_SESSION['usuario'])): ?>
-                <span class="enlace-inicio">👤 <?= htmlspecialchars($_SESSION['usuario'], ENT_QUOTES, 'UTF-8') ?></span>
-                <a class="btn boton-login" href="/index.php?controller=login&amp;method=logout">
-                    <span>Cerrar sesión</span>
-                </a>
-            <?php else: ?>
-                <a class="enlace-inicio" href="/index.php?controller=registro&amp;method=show">
-                    <span>Registrarse</span>
-                </a>
-                <a class="btn boton-login" href="/index.php?controller=login&amp;method=show">
-                    <span>Iniciar sesión</span>
-                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5M4 12h11m-4-4 4 4-4 4"/>
-                    </svg>
-                </a>
-            <?php endif; ?>
+            <a href="/index.php?controller=ranking&amp;method=show"
+                    <?= claseActiva('ranking', $paginaActiva) ?>>
+                Ranking
+            </a>
+
+            <a href="/index.php?controller=perfil&amp;method=show"
+                    <?= claseActiva('perfil', $paginaActiva) ?>>
+                Mi perfil
+            </a>
         </nav>
+
+        <div class="acciones-usuario">
+            <details class="usuario">
+                <summary>
+                    <span class="avatar" aria-hidden="true">
+                        <?= htmlspecialchars($inicial, ENT_QUOTES, 'UTF-8') ?>
+                    </span>
+
+                    <span class="usuario-nombre">
+                        <?= htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8') ?>
+                    </span>
+
+                    <svg class="usuario-flecha"
+                         viewBox="0 0 24 24"
+                         aria-hidden="true">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </summary>
+
+                <div class="usuario-menu">
+                    <a href="/login/logout">Cerrar sesión</a>
+                </div>
+            </details>
+
+            <a class="boton-login"
+               href="/index.php?controller=login&amp;method=show">
+                Iniciar sesión
+            </a>
+        </div>
     </div>
 </header>
+
