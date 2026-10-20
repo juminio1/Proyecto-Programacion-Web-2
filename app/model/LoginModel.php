@@ -49,10 +49,10 @@ class LoginModel{
             return $errores;
         }
 
-       /* if ((int)$usuarioEncontrado['activo'] !== 1) {
+        /*if ((int)$usuarioEncontrado['activo'] !== 1) {
             $errores[] = "Tenés que activar tu cuenta antes de iniciar sesión.";
             return $errores;
-        } DESCOMENTAR CUANDO ESTE LA VALIDACIÓN DEL EMAIL*/
+        }*/
 
         return $errores;
     }
