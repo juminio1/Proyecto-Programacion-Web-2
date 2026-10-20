@@ -22,7 +22,7 @@ class LoginController{
     public function login(){
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            Redirect::to('/index.php?controller=login&method=show');
+            Redirect::to('index.php?controller=login&method=show');
         }
 
         $identificador  = trim(Request::post('usuario', ''));
@@ -42,7 +42,7 @@ class LoginController{
         $usuario = $this->loginModel->iniciarSesion($identificador, $password);
 
         if ($usuario === false) {
-            Redirect::to('/index.php?controller=login&method=show');
+            Redirect::to('index.php?controller=login&method=show');
         }
 
         session_regenerate_id(true);
@@ -50,7 +50,7 @@ class LoginController{
         $_SESSION['usuario_id'] = $usuario['id'];
         $_SESSION['usuario'] = $usuario['nombre_usuario'];
 
-        Redirect::to('/index.php?controller=inicio&method=show');
+        Redirect::to('index.php?controller=inicio&method=show');
     }
 
 

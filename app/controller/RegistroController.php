@@ -9,11 +9,15 @@ class RegistroController
 {
     private $model;
     private $render;
+    private $mailer;
+    private $config;
 
-    public function __construct($model, $render)
+    public function __construct($model, $render, $mailer, $config)
     {
-        $this->model  = $model;
+        $this->model = $model;
         $this->render = $render;
+        $this->mailer = $mailer;
+        $this->config = $config;
     }
 
     public function show()
@@ -54,17 +58,26 @@ class RegistroController
             return;
         }
 
-        $this->model->crearUsuario($datos, $rutaFoto);
+        $tokenActivacion = $this->model->crearUsuario($datos, $rutaFoto);
+
+        $baseUrl = rtrim($this->config['base_url'], '/');
+
+        $enlaceActivacion = $baseUrl
+            . '/index.php?controller=registro&method=activar&token='
+            . urlencode($tokenActivacion);
+
+        $correoEnviado = $this->mailer->enviarActivacion(
+            $datos['email'],
+            $this->config['smtp_user'],
+            $this->config['smtp_password'],
+            $enlaceActivacion
+        );
 
         $this->render->renderiza("registro", [
             'exito'          => true,
             'nombre_usuario' => $datos['nombre_usuario'],
             'email'          => $datos['email']
         ]);
-
-        $this->model->crearUsuario($datos, $rutaFoto);
-
-        Redirect::to('/index.php?controller=login&method=show');
     }
 
     private function renderizarConErrores(array $datos, array $errores)
@@ -85,4 +98,32 @@ class RegistroController
             'sexo_no_cargado' => $datos['sexo'] === 'Prefiero no cargarlo'
         ]);
     }
+    public function activar()
+    {
+        $token = Request::get('token', '');
+
+        if (empty($token)) {
+            $this->render->renderiza("activacion", [
+                'mensaje' => 'El enlace de activación no es válido.',
+                'activada' => false
+            ]);
+
+            return;
+        }
+
+        $activado = $this->model->activarUsuario($token);
+
+        if ($activado) {
+            $this->render->renderiza("activacion", [
+                'mensaje' => 'Tu cuenta fue activada correctamente.',
+                'activada' => true
+            ]);
+        } else {
+            $this->render->renderiza("activacion", [
+                'mensaje' => 'El enlace es inválido o ya fue utilizado.',
+                'activada' => false
+            ]);
+        }
+    }
+
 }

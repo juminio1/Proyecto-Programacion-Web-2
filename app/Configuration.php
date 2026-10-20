@@ -11,6 +11,7 @@ use app\model\LoginModel;
 use MustacheRender;
 use MyDatabase;
 use Router;
+use Mailer;
 
 require_once("helper/Autoloader.php");
 
@@ -34,7 +35,9 @@ class Configuration
     {
         return new RegistroController(
             new RegistroModel($this->getDatabase()),
-            $this->getRender()
+            $this->getRender(),
+            new Mailer(),
+            $this->getConfig()
         );
     }
 
@@ -49,16 +52,10 @@ class Configuration
 
     private function getDatabase()
     {
-        //$config = parse_ini_file("config/config.ini");
-        $archivoConfig = "config/config.ini";
+        $config = $this->getConfig();
 
-        if (file_exists("config/config.local.ini")) {
-            $archivoConfig = "config/config.local.ini";
-        }
-
-        $config = parse_ini_file($archivoConfig);
-
-        return new MyDatabase($config["db_host"],
+        return new MyDatabase(
+            $config["db_host"],
             $config["db_user"],
             $config["db_pass"],
             $config["db_name"]
@@ -74,4 +71,17 @@ class Configuration
     {
         return new Router($this, "inicio", "show");
     }
+
+    private function getConfig()
+    {
+        $archivoConfig = dirname(__DIR__) . "/config/config.ini";
+        $archivoConfigLocal = dirname(__DIR__) . "/config/config.local.ini";
+
+        if (file_exists($archivoConfigLocal)) {
+            $archivoConfig = $archivoConfigLocal;
+        }
+
+        return parse_ini_file($archivoConfig);
+    }
+
 }

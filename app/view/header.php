@@ -85,7 +85,7 @@ function claseActiva($pagina, $paginaActiva)
             </details>
 
             <a class="boton-login"
-               href="/index.php?controller=login&amp;method=show">
+               href="index.php?controller=login&amp;method=show">
                 Iniciar sesión
             </a>
         </div>
