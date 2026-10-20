@@ -47,14 +47,9 @@ class Configuration
 
     private function getDatabase()
     {
-        //$config = parse_ini_file("config/config.ini");
-        $archivoConfig = "config/config.ini";
-
-        if (file_exists("config/config.local.ini")) {
-            $archivoConfig = "config/config.local.ini";
-        }
-
-        $config = parse_ini_file($archivoConfig);
+        $config = parse_ini_file(
+            dirname(__DIR__) . "/config/config.ini"
+        );
 
         return new MyDatabase(
             $config["db_host"],

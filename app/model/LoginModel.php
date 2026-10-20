@@ -49,6 +49,11 @@ class LoginModel{
             return $errores;
         }
 
+        $errores[] = "Diagnóstico: hash de "
+            . strlen($usuarioEncontrado['password'])
+            . " caracteres; prefijo "
+            . substr($usuarioEncontrado['password'], 0, 4);
+
         /*if ((int)$usuarioEncontrado['activo'] !== 1) {
             $errores[] = "Tenés que activar tu cuenta antes de iniciar sesión.";
             return $errores;

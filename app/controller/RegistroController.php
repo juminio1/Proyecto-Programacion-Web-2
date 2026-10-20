@@ -56,14 +56,6 @@ class RegistroController
 
         $this->model->crearUsuario($datos, $rutaFoto);
 
-        $this->render->renderiza("registro", [
-            'exito'          => true,
-            'nombre_usuario' => $datos['nombre_usuario'],
-            'email'          => $datos['email']
-        ]);
-
-        $this->model->crearUsuario($datos, $rutaFoto);
-
         Redirect::to('/index.php?controller=login&method=show');
     }
 
