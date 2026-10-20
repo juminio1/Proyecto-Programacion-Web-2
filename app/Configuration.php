@@ -58,27 +58,6 @@ class Configuration
             $config["db_name"]
         );
 
-        // INICIO REPARACION TEMPORAL
-        $pdo = $database->getConexion();
-
-        $pdo->exec(
-            "ALTER TABLE usuarios
-         MODIFY COLUMN password VARCHAR(255) NOT NULL"
-        );
-
-        $consulta = $pdo->prepare(
-            "UPDATE usuarios
-         SET password = :hash, activo = 1
-         WHERE nombre_usuario = :usuario
-           AND CHAR_LENGTH(password) = 32"
-        );
-
-        $consulta->execute([
-            'hash' => '$2y$12$wAN/3P/1HaBdqSuztVJJUeWOm7aJha7cMo1DyMpxGJQvSncIZWD0u',
-            'usuario' => 'ricardito'
-        ]);
-        // FIN REPARACION TEMPORAL
-
         return $database;
     }
 

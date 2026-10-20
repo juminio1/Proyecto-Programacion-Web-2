@@ -47,13 +47,6 @@ class LoginModel{
 
         if (!password_verify($password, $usuarioEncontrado['password'])) {
             $errores[] = "Usuario o contraseña incorrectos.";
-
-            // Diagnóstico temporal: solamente si falla la contraseña.
-            $errores[] = "Diagnóstico: hash de "
-                . strlen($usuarioEncontrado['password'])
-                . " caracteres; prefijo "
-                . substr($usuarioEncontrado['password'], 0, 4);
-
             return $errores;
         }
 
