@@ -8,8 +8,6 @@ use app\model\RegistroModel;
 use app\controller\InicioController;
 use app\controller\LoginController;
 use app\controller\RegistroController;
-use app\controller\LoginController;
-use app\model\LoginModel;
 use MustacheRender;
 use MyDatabase;
 use Router;

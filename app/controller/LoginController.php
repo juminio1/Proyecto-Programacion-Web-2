@@ -7,8 +7,6 @@ use Redirect;
 
 class LoginController{
 
-class LoginController
-{
     private $model;
     private $render;
     private $loginModel;

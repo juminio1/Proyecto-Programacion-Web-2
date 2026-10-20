@@ -41,7 +41,7 @@ function claseActiva($pagina, $paginaActiva)
         </a>
 
         <nav class="barra-nav" aria-label="Navegación principal">
-            <a href="/config.ini/index.php?controller=inicio&amp;method=show"<?= claseActiva('inicio', $paginaActiva) ?>>Inicio</a>
+            <a href="/"<?= claseActiva('inicio', $paginaActiva) ?>>Inicio</a>
             <a href="/ranking/show"<?= claseActiva('ranking', $paginaActiva) ?>>Ranking</a>
             <a href="/perfil/show"<?= claseActiva('perfil', $paginaActiva) ?>>Mi perfil</a>
         </nav>
