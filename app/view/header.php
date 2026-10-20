@@ -37,7 +37,7 @@ function claseActiva($pagina, $paginaActiva)
 <header class="barra-superior">
     <div class="barra-contenido">
 
-        <a class="logo" href="/config.ini/index.php?controller=inicio&amp;method=show">
+        <a class="logo" href="/">
             <span class="logo-icono" aria-hidden="true">?</span>
             <span class="logo-texto">Preguntados</span>
         </a>
