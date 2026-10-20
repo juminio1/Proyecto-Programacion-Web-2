@@ -1,22 +1,17 @@
 <?php
-$nombre  = $nombre ?? ($_SESSION['nombre'] ?? 'Jugador');
+// El controlador de login guarda el nombre de usuario en esta clave.
+$sesionIniciada = isset($_SESSION['usuario_id']);
+$nombre = $_SESSION['usuario'] ?? ($nombre ?? 'Jugador');
+
 if (function_exists('mb_substr')) {
     $inicial = mb_strtoupper(mb_substr($nombre, 0, 1));
 } else {
-    // Sin la extensión mbstring: toma el primer carácter (UTF-8) con una regex
-    $inicial = preg_match('/^./u', $nombre, $coincidencia) ? strtoupper($coincidencia[0]) : '';
+    $inicial = preg_match('/^./u', $nombre, $coincidencia)
+            ? strtoupper($coincidencia[0])
+            : '';
 }
 
-/* Página activa según la URL */
-$ruta = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-
-if (strpos($ruta, '/ranking') === 0) {
-    $paginaActiva = 'ranking';
-} elseif (strpos($ruta, '/perfil') === 0) {
-    $paginaActiva = 'perfil';
-} else {
-    $paginaActiva = 'inicio';
-}
+$paginaActiva = $_GET['controller'] ?? 'inicio';
 
 function claseActiva($pagina, $paginaActiva)
 {
@@ -28,11 +23,14 @@ function claseActiva($pagina, $paginaActiva)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Preguntados (Provisional) </title>
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <title>Preguntados (Provisional)</title>
+
+    <link rel="stylesheet"
+          href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/login.css">
 </head>
-<body>
+<body<?= $paginaActiva === 'login' ? ' class="pagina-login"' : '' ?>>
 
 <header class="barra-superior">
     <div class="barra-contenido">
@@ -60,5 +58,11 @@ function claseActiva($pagina, $paginaActiva)
             </div>
         </details>
 
+            <a class="boton-login"
+               href="/index.php?controller=login&amp;method=show">
+                Iniciar sesión
+            </a>
+        </div>
     </div>
 </header>
+
