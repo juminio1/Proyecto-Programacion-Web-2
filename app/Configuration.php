@@ -3,20 +3,20 @@
 namespace app;
 
 use app\model\EventoModel;
-use app\model\LoginModel;
 use app\model\RegistroModel;
 use app\controller\InicioController;
-use app\controller\LoginController;
 use app\controller\RegistroController;
+use app\controller\LoginController;
+use app\model\LoginModel;
 use MustacheRender;
 use MyDatabase;
 use Router;
+use Mailer;
 
 require_once("helper/Autoloader.php");
 
 class Configuration
 {
-
     public function __construct()
     {
     }
@@ -32,33 +32,42 @@ class Configuration
     {
         return new RegistroController(
             new RegistroModel($this->getDatabase()),
-            $this->getRender()
+            $this->getRender(),
+            new Mailer(),
+            $this->getConfig()
         );
     }
 
-    public function getLoginController(){
+    public function getLoginController()
+    {
         return new LoginController(
             new LoginModel($this->getDatabase()),
             $this->getRender()
         );
     }
 
-    // Los privados
+    private function getConfig()
+    {
+        $archivoConfig = dirname(__DIR__) . "/config/config.ini";
+        $archivoConfigLocal = dirname(__DIR__) . "/config/config.local.ini";
+
+        if (file_exists($archivoConfigLocal)) {
+            $archivoConfig = $archivoConfigLocal;
+        }
+
+        return parse_ini_file($archivoConfig);
+    }
 
     private function getDatabase()
     {
-        $config = parse_ini_file(
-            dirname(__DIR__) . "/config/config.ini"
-        );
+        $config = $this->getConfig();
 
-        $database = new MyDatabase(
+        return new MyDatabase(
             $config["db_host"],
             $config["db_user"],
             $config["db_pass"],
             $config["db_name"]
         );
-
-        return $database;
     }
 
     private function getRender()

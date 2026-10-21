@@ -228,4 +228,31 @@ class RegistroModel
 
         return $tokenActivacion;
     }
+
+    public function activarUsuario(string $token): bool
+    {
+        $pdo = $this->database->getConexion();
+
+        $sql = "UPDATE usuarios
+            SET activo = 1,
+                token_activacion = NULL
+            WHERE token_activacion = :token
+            AND activo = 0";
+
+        $stmt = $pdo->prepare($sql);
+
+        $stmt->bindValue(
+            ':token',
+            $token,
+            PDO::PARAM_STR
+        );
+
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+
+
+
+
 }

@@ -1,1 +1,5 @@
-/config/config.local.ini
+config/config.ini
+config/config.local.ini
+prueba_mail.php
+log/*.log
+public/uploads/perfiles/*

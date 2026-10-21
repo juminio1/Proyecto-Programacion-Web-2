@@ -1,4 +1,3 @@
-
 name: Deploy Preguntados to InfinityFree
 
 on:
@@ -15,6 +14,22 @@ jobs:
     steps:
       - name: Get repository files
         uses: actions/checkout@v4
+
+      - name: Create production config
+        run: |
+          cat > config/config.ini <<'EOF'
+          db_host = "${{ secrets.DB_HOST }}"
+          db_user = "${{ secrets.DB_USER }}"
+          db_pass = "${{ secrets.DB_PASS }}"
+          db_name = "${{ secrets.DB_NAME }}"
+
+          base_url = "https://unlampreguntados.infinityfreeapp.com"
+
+          smtp_host = "smtp.gmail.com"
+          smtp_port = 587
+          smtp_user = "${{ secrets.SMTP_USER }}"
+          smtp_password = "${{ secrets.SMTP_PASSWORD }}"
+          EOF
 
       - name: Deploy through FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
