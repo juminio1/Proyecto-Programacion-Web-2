@@ -1,3 +1,4 @@
+config/config.ini
 config/config.local.ini
 prueba_mail.php
 log/*.log
