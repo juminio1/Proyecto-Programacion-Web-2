@@ -17,6 +17,8 @@ jobs:
 
       - name: Create production config
         run: |
+          mkdir -p config
+
           cat > config/config.ini <<'EOF'
           db_host = "${{ secrets.DB_HOST }}"
           db_user = "${{ secrets.DB_USER }}"
