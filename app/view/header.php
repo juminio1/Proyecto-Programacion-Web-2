@@ -57,11 +57,12 @@ function claseActiva($pagina, $paginaActiva)
                 <a href="/login/logout">Cerrar sesión</a>
             </div>
         </details>
-
+        <?php if (empty($_SESSION['usuario_id'])): ?>
             <a class="boton-login"
                href="index.php?controller=login&amp;method=show">
                 Iniciar sesión
             </a>
+        <?php endif; ?>
         </div>
     </div>
 </header>
