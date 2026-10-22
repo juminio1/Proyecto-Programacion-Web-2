@@ -2,7 +2,7 @@
 
 namespace app;
 
-use app\model\EventoModel;
+use app\model\InicioModel;
 use app\model\RegistroModel;
 use app\controller\InicioController;
 use app\controller\RegistroController;
@@ -24,6 +24,7 @@ class Configuration
     public function getInicioController()
     {
         return new InicioController(
+            new InicioModel($this->getDatabase()),
             $this->getRender()
         );
     }
@@ -46,6 +47,7 @@ class Configuration
         );
     }
 
+
     private function getConfig()
     {
         $archivoConfig = dirname(__DIR__) . "/config/config.ini";
@@ -55,8 +57,23 @@ class Configuration
             $archivoConfig = $archivoConfigLocal;
         }
 
-        return parse_ini_file($archivoConfig);
+        if (!file_exists($archivoConfig)) {
+            throw new \RuntimeException(
+                "No se encontró el archivo de configuración: " . $archivoConfig
+            );
+        }
+
+        $config = parse_ini_file($archivoConfig);
+
+        if ($config === false) {
+            throw new \RuntimeException(
+                "No se pudo leer el archivo de configuración."
+            );
+        }
+
+        return $config;
     }
+
 
     private function getDatabase()
     {

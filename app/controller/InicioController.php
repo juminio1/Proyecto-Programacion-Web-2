@@ -2,40 +2,47 @@
 
 namespace app\controller;
 
+use Redirect;
 class InicioController
 {
+    private $model;
     private $render;
 
-    public function __construct($render)
+    public function __construct($model, $render)
     {
+        $this->model = $model;
         $this->render = $render;
     }
 
     public function show()
     {
+        $idUsuario = $_SESSION['usuario_id'] ?? null;
 
-        $ultimasPartidas = [
-            ['numero' => 12, 'fecha' => '10/10/2026', 'puntaje' => 80],
-            ['numero' => 11, 'fecha' => '08/10/2026', 'puntaje' => 60],
-            ['numero' => 10, 'fecha' => '05/10/2026', 'puntaje' => 100],
-        ];
+        $usuario = null;
+
+        if ($idUsuario !== null) {
+            $usuario = $this->model->buscarUsuarioPorId($idUsuario);
+        }
+
+        if (!$usuario) {
+            \Redirect::to('index.php?controller=login&method=show');
+            return;
+        }
 
         $datosHome = [
-            'nombre' => $_SESSION['usuario'] ?? 'Jugador',
-            'puntaje' => 350,
-            'posicion' => 12,
-            'partidasJugadas' => 18,
+            'usuarioEncontrado' => true,
+            'nombre' => $usuario['nombre_completo'],
+            'nombreUsuario' => $usuario['nombre_usuario'],
 
-            'ranking' => [
-                ['nombre' => 'Mateo', 'puntaje' => 620],
-                ['nombre' => 'Sofía', 'puntaje' => 580],
-                ['nombre' => 'Lucas', 'puntaje' => 540]
-            ],
-
-            'ultimasPartidas' => $ultimasPartidas,
-            'tienePartidas' => !empty($ultimasPartidas),
+            // Hay que crear la tabla partidas para poder traer estos datos
+            'puntaje' => 0,
+            'posicion' => '-',
+            'partidasJugadas' => 0,
+            'ranking' => [],
+            'ultimasPartidas' => [],
+            'tienePartidas' => false
         ];
 
-        $this->render->renderiza("inicio", $datosHome);
+        $this->render->renderiza('inicio', $datosHome);
     }
 }
