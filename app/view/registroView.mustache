@@ -15,7 +15,7 @@
                 Tu cuenta ha sido creada y se encuentra <strong>pendiente de activación por email</strong>.
                 Revisa tu casilla de correo (<strong>{{email}}</strong>) para activar tu cuenta antes de iniciar sesión.
             </p>
-            <p><a href="/" class="w3-button btn-cancha w3-round">Volver al Inicio</a></p>
+            <p><a href="/inicio/show" class="w3-button btn-cancha w3-round">Volver al Inicio</a></p>
         </div>
         {{/exito}}
 
@@ -31,7 +31,7 @@
         </div>
         {{/hay_errores}}
 
-            <form action="index.php?controller=registro&amp;method=registrar" method="post" enctype="multipart/form-data" class="w3-container">
+            <form action="/registro/registrar" method="post" enctype="multipart/form-data" class="w3-container">
             <div class="w3-row-padding w3-margin-top">
                 <div class="w3-twothird">
                     <label><b>Nombre completo *</b></label>

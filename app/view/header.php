@@ -41,7 +41,7 @@ function claseActiva($pagina, $paginaActiva)
         </a>
 
         <nav class="barra-nav" aria-label="Navegación principal">
-            <a href="/"<?= claseActiva('inicio', $paginaActiva) ?>>Inicio</a>
+            <a href="/inicio/show"<?= claseActiva('inicio', $paginaActiva) ?>>Inicio</a>
             <a href="/ranking/show"<?= claseActiva('ranking', $paginaActiva) ?>>Ranking</a>
             <a href="/perfil/show"<?= claseActiva('perfil', $paginaActiva) ?>>Mi perfil</a>
         </nav>
@@ -59,7 +59,7 @@ function claseActiva($pagina, $paginaActiva)
         </details>
         <?php if (empty($_SESSION['usuario_id'])): ?>
             <a class="boton-login"
-               href="index.php?controller=login&amp;method=show">
+               href="/login/show">
                 Iniciar sesión
             </a>
         <?php endif; ?>

@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="/css/footer.css">
 <footer class="pie-pagina">
     <div class="pie-contenido">
-        <a class="logo" href="/">
+        <a class="logo" href="/inicio/show">
             <span class="pie-icono" aria-hidden="true">?</span>
             <span>Preguntados</span>
         </a>

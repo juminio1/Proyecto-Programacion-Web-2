@@ -25,7 +25,7 @@ class InicioController
         }
 
         if (!$usuario) {
-            \Redirect::to('index.php?controller=login&method=show');
+            \Redirect::to('/login/show');
             return;
         }
 

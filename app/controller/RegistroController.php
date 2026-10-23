@@ -62,8 +62,8 @@ class RegistroController
 
         $baseUrl = rtrim($this->config['base_url'], '/');
 
-        $enlaceActivacion = $baseUrl
-            . '/index.php?controller=registro&method=activar&token='
+        $enlaceActivacion =$baseUrl
+            . '/registro/activar?token='
             . urlencode($tokenActivacion);
 
         $correoEnviado = $this->mailer->enviarActivacion(
