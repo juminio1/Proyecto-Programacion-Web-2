@@ -5,6 +5,7 @@ namespace app;
 use app\controller\InicioController;
 use app\controller\LoginController;
 use app\controller\RegistroController;
+use app\controller\PartidaController;
 use app\model\InicioModel;
 use app\model\LoginModel;
 use app\model\PartidaModel;
@@ -48,8 +49,12 @@ class Configuration
         );
     }
 
-    public function getPartidaController(){
-        return new PartidaModel($this->getDatabase()), $this->getRender() ;
+    public function getPartidaController()
+    {
+        return new PartidaController(
+            new PartidaModel($this->getDatabase()),
+            $this->getRender()
+        );
     }
 
 

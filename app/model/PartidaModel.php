@@ -1,6 +1,8 @@
 <?php
 
 namespace app\model;
+
+use app\model\enums\EstadoPartida;
 use PDO;
 
 class PartidaModel{
@@ -16,13 +18,13 @@ class PartidaModel{
         $errores = [];
 
         if (!$this->validarUsuarioExistente($idUsuario)) {
-            $errores = ["El usuario no existe."];
+            return ["El usuario no existe."];
         }
 
         if ($this->validarPartidaExistente($idUsuario)) {
-            $errores = ["Ya tenés una partida creada o en curso."];
+            return ["Ya tenés una partida creada o en curso."];
         }
-        $pdo = $this->database-getConexion(); //Se crea la partida
+        $pdo = $this->database->getConexion(); //Se crea la partida
 
         $estadoInicial = EstadoPartida::CREADA;
 

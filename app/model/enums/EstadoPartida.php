@@ -1,4 +1,7 @@
 <?php
+
+namespace app\model\enums;
+
 enum EstadoPartida: string {
 
     case  CREADA = "creada";
