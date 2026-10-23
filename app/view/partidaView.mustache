@@ -1,0 +1,151 @@
+<link rel="stylesheet" href="/css/partida.css">
+
+<main class="partida-pagina">
+    <a class="partida-volver" href="/inicio/show">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M19 12H5m6-6-6 6 6 6"/>
+        </svg>
+        Volver al inicio
+    </a>
+
+    <div class="partida-encabezado">
+        <h1>Partida en curso</h1>
+        <p>¡Elegí la respuesta correcta!</p>
+    </div>
+
+    <div class="partida-columnas">
+        <section class="partida-tarjeta partida-pregunta"
+                 aria-labelledby="partida-enunciado">
+
+            <div class="partida-pregunta-datos">
+                <span class="partida-globo" aria-hidden="true">
+                    <svg viewBox="0 0 48 48">
+                        <circle cx="24" cy="24" r="21" fill="#2c91e8"/>
+                        <path d="M13 7l10-3 7 4-4 6-8 1-1 6-8-3-4 2 2-9z
+                                 M29 22l9-5 6 8-5 8-5 9-8-4 2-7-5-4z
+                                 M10 28l8-3 5 5-3 9-5-2z"
+                              fill="#68c97b"/>
+                        <path d="M12 10c-5 8-5 18 1 26"
+                              fill="none" stroke="#ffffff"
+                              stroke-opacity=".3" stroke-width="3"
+                              stroke-linecap="round"/>
+                    </svg>
+                </span>
+
+                <span class="partida-categoria">{{categoria}}</span>
+                <span class="partida-numero">Pregunta {{numeroPregunta}}</span>
+            </div>
+
+            <h2 id="partida-enunciado">{{pregunta}}</h2>
+
+            <form id="partida-formulario">
+                <fieldset class="partida-opciones"
+                          aria-describedby="partida-mensaje">
+                    <legend class="partida-solo-lectores">
+                        Elegí una respuesta
+                    </legend>
+
+                    {{#opciones}}
+                        <label class="partida-opcion">
+                            <input class="partida-radio"
+                                   type="radio"
+                                   name="respuesta"
+                                   value="{{letra}}"
+                                   data-texto="{{texto}}"
+                                   required>
+
+                            <span class="partida-opcion-contenido">
+                                <span class="partida-letra" aria-hidden="true">
+                                    {{letra}}
+                                </span>
+                                <span class="partida-opcion-texto">
+                                    {{texto}}
+                                </span>
+                            </span>
+                        </label>
+                    {{/opciones}}
+                </fieldset>
+
+                <p id="partida-mensaje"
+                   class="partida-mensaje"
+                   role="status"
+                   aria-live="polite">
+                    Seleccioná una opción para responder.
+                </p>
+
+                <button class="partida-confirmar"
+                        type="submit"
+                        disabled>
+                    Confirmar respuesta
+                </button>
+            </form>
+        </section>
+
+        <aside class="partida-tarjeta partida-resumen"
+               aria-labelledby="partida-resumen-titulo">
+
+            <h2 id="partida-resumen-titulo">Tu partida</h2>
+
+            <div class="partida-tiempo">
+                <p class="partida-tiempo-etiqueta">Tiempo restante</p>
+
+                <div class="partida-reloj"
+                     role="img"
+                     aria-label="{{tiempoRestante}} segundos restantes">
+                    <svg viewBox="0 0 160 160" aria-hidden="true">
+                        <circle class="partida-reloj-fondo"
+                                cx="80" cy="80" r="68"/>
+                        <circle class="partida-reloj-progreso"
+                                cx="80" cy="80" r="68"/>
+                    </svg>
+
+                    <div class="partida-reloj-texto" aria-hidden="true">
+                        <strong>{{tiempoRestante}}</strong>
+                        <span>segundos</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="partida-estadisticas">
+                <div class="partida-dato">
+                    <span class="partida-dato-icono partida-icono-puntaje"
+                          aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8
+                                     -6.2-3.3-6.2 3.3L7 14.2 2 9.3l6.9-1z"/>
+                        </svg>
+                    </span>
+
+                    <div>
+                        <p class="partida-dato-etiqueta">Puntaje</p>
+                        <p class="partida-dato-valor">{{puntaje}} puntos</p>
+                    </div>
+                </div>
+
+                <div class="partida-dato">
+                    <span class="partida-dato-icono partida-icono-aciertos"
+                          aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <path d="m5 12 4 4L19 6"/>
+                        </svg>
+                    </span>
+
+                    <div>
+                        <p class="partida-dato-etiqueta">Respuestas correctas</p>
+                        <p class="partida-dato-valor">{{respuestasCorrectas}}</p>
+                    </div>
+                </div>
+            </div>
+
+            <a class="partida-abandonar" href="/inicio/show">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M10 4h8v16h-8m-6-8h10m-4-4 4 4-4 4"/>
+                </svg>
+                Abandonar partida
+            </a>
+        </aside>
+    </div>
+</main>
+
+<script src="/js/partida.js" defer></script>
+

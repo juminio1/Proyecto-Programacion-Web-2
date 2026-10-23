@@ -2,16 +2,17 @@
 
 namespace app;
 
-use app\model\InicioModel;
-use app\model\RegistroModel;
 use app\controller\InicioController;
-use app\controller\RegistroController;
 use app\controller\LoginController;
+use app\controller\RegistroController;
+use app\model\InicioModel;
 use app\model\LoginModel;
+use app\model\PartidaModel;
+use app\model\RegistroModel;
+use Mailer;
 use MustacheRender;
 use MyDatabase;
 use Router;
-use Mailer;
 
 require_once("helper/Autoloader.php");
 
@@ -45,6 +46,10 @@ class Configuration
             new LoginModel($this->getDatabase()),
             $this->getRender()
         );
+    }
+
+    public function getPartidaController(){
+        return new PartidaModel($this->getDatabase()), $this->getRender() ;
     }
 
 
