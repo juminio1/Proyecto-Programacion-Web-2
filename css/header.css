@@ -319,3 +319,26 @@
     }
 }
 
+.usuario-menu form {
+    margin: 0;
+}
+
+.usuario-boton-salir {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #1d1050;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+
+.usuario-boton-salir:hover {
+    background: #f3f0f8;
+    color: #5b2fd9;
+}

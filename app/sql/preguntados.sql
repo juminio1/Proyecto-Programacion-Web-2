@@ -22,10 +22,11 @@ CREATE TABLE IF NOT EXISTS usuarios (
     fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE partidas (
- id INT AUTO_INCREMENT PRIMARY KEY,
- usuario_id INT NOT NULL,
- estado VARCHAR(20) NOT NULL DEFAULT 'creada',
- puntaje INT NOT NULL DEFAULT 0,
- fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS partidas ( id INT AUTO_INCREMENT PRIMARY KEY,
+                                      usuario_id INT NOT NULL,
+                                      estado VARCHAR(20) NOT NULL DEFAULT 'creada',
+                                      puntaje INT NOT NULL DEFAULT 0,
+                                      fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+

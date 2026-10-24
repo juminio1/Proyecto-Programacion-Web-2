@@ -1,6 +1,15 @@
 <link rel="stylesheet" href="/css/inicio.css">
 <main>
-
+    {{#hayErroresPartida}}
+        <div class="w3-panel w3-pale-red w3-leftbar w3-border-red"
+             role="alert">
+            <ul>
+                {{#erroresPartida}}
+                    <li>{{.}}</li>
+                {{/erroresPartida}}
+            </ul>
+        </div>
+    {{/hayErroresPartida}}
     <!-- ===== FILA SUPERIOR: SALUDO + PROGRESO ===== -->
     <div class="fila-superior">
 
@@ -64,12 +73,14 @@
                 <h2>¿Cuánto sabés?</h2>
                 <p>Respondé, sumá puntos y subí en el ranking.</p>
 
-                <a href="/partida/show" class="boton-jugar">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M7 4.5v15a1 1 0 0 0 1.5.9l12-7.5a1 1 0 0 0 0-1.8l-12-7.5A1 1 0 0 0 7 4.5z"/>
-                    </svg>
-                    Jugar
-                </a>
+                <form method="post" action="/partida/crear">
+                    <button type="submit" class="boton-jugar">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7 4.5v15a1 1 0 0 0 1.5.9l12-7.5a1 1 0 0 0 0-1.8l-12-7.5A1 1 0 0 0 7 4.5z"/>
+                        </svg>
+                        Jugar
+                    </button>
+                </form>
             </div>
 
             <!-- Ilustración: trofeo, mundo, foco y signos de pregunta -->

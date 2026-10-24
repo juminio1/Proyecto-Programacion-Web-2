@@ -45,7 +45,8 @@ class Configuration
     {
         return new LoginController(
             new LoginModel($this->getDatabase()),
-            $this->getRender()
+            $this->getRender(),
+            new PartidaModel($this->getDatabase())
         );
     }
 

@@ -634,3 +634,33 @@ body {
     }
 }
 
+.partida-formulario-salida {
+    margin: 0;
+}
+
+.partida-volver {
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.partida-abandonar {
+    width: 100%;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.partida-volver:focus-visible,
+.partida-abandonar:focus-visible {
+    outline: 3px solid #b9a2f4;
+    outline-offset: 4px;
+}
+
+@media (max-width: 1100px) {
+    .partida-formulario-abandonar {
+        grid-column: 1 / -1;
+    }
+}
+

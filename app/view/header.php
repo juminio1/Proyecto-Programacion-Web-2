@@ -46,6 +46,8 @@ function claseActiva($pagina, $paginaActiva)
             <a href="/perfil/show"<?= claseActiva('perfil', $paginaActiva) ?>>Mi perfil</a>
         </nav>
 
+        <?php if ($sesionIniciada): ?>
+
         <details class="usuario">
             <summary>
                 <span class="avatar" aria-hidden="true"><?= htmlspecialchars($inicial) ?></span>
@@ -54,9 +56,14 @@ function claseActiva($pagina, $paginaActiva)
             </summary>
 
             <div class="usuario-menu">
-                <a href="/login/logout">Cerrar sesión</a>
+                <form method="post" action="/login/logout">
+                    <button type="submit" class="usuario-boton-salir">
+                        Cerrar sesión
+                    </button>
+                </form>
             </div>
         </details>
+        <?php endif; ?>
         <?php if (empty($_SESSION['usuario_id'])): ?>
             <a class="boton-login"
                href="/login/show">
@@ -66,4 +73,3 @@ function claseActiva($pagina, $paginaActiva)
         </div>
     </div>
 </header>
-

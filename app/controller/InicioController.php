@@ -3,6 +3,7 @@
 namespace app\controller;
 
 use Redirect;
+
 class InicioController
 {
     private $model;
@@ -29,11 +30,16 @@ class InicioController
             return;
         }
 
+        $erroresPartida = $_SESSION['errores_partida'] ?? [];
+
+        unset($_SESSION['errores_partida']);
+
         $datosHome = [
             'usuarioEncontrado' => true,
             'nombre' => $usuario['nombre_completo'],
             'nombreUsuario' => $usuario['nombre_usuario'],
-
+            'hayErroresPartida' => !empty($erroresPartida),
+            'erroresPartida' => $erroresPartida,
             // Hay que crear la tabla partidas para poder traer estos datos
             'puntaje' => 0,
             'posicion' => '-',

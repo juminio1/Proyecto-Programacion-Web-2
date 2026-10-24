@@ -41,6 +41,24 @@ class PartidaModel{
         return $errores;
     }
 
+    public function abandonarPartida($idUsuario){
+        $pdo = $this->database->getConexion();
+
+        $sql = 'UPDATE partidas
+            SET estado = :abandonada
+            WHERE usuario_id = :usuario_id
+              AND estado IN (:creada, :en_curso)';
+
+        $consulta = $pdo->prepare($sql);
+
+        $consulta->execute([
+            'abandonada' => EstadoPartida::ABANDONADA->value,
+            'usuario_id' => $idUsuario,
+            'creada' => EstadoPartida::CREADA->value,
+            'en_curso' => EstadoPartida::EN_CURSO->value
+        ]);
+    }
+
     private function validarPartidaExistente($idUsuario){
         $pdo = $this->database->getConexion();
 
