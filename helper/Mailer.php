@@ -10,10 +10,11 @@ require_once __DIR__ . '/PHPMailer/src/SMTP.php';
 class Mailer
 {
     public function enviarPrueba(
-            string $destinatario,
-            string $smtpUsuario,
-            string $smtpPassword
-    ): bool {
+        string $destinatario,
+        string $smtpUsuario,
+        string $smtpPassword
+    ): bool
+    {
         $mail = new PHPMailer(true);
 
         try {
@@ -44,16 +45,21 @@ class Mailer
             return true;
 
         } catch (Exception $e) {
+            Log::error(
+                'Error al enviar correo de activación: ' . $mail->ErrorInfo
+            );
+
             return false;
         }
     }
 
     public function enviarActivacion(
-            string $destinatario,
-            string $smtpUsuario,
-            string $smtpPassword,
-            string $enlaceActivacion
-    ): bool {
+        string $destinatario,
+        string $smtpUsuario,
+        string $smtpPassword,
+        string $enlaceActivacion
+    ): bool
+    {
         $mail = new PHPMailer(true);
 
         try {
@@ -96,6 +102,8 @@ class Mailer
             return true;
 
         } catch (Exception $e) {
+            Log::error('Error al enviar correo de activación: ' . $mail->ErrorInfo);
+
             return false;
         }
     }

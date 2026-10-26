@@ -28,17 +28,17 @@ class RegistroController
     public function registrar()
     {
         $datos = [
-            'nombre_completo'    => Request::post('nombre_completo', ''),
-            'anio_nacimiento'    => Request::post('anio_nacimiento', ''),
-            'sexo'               => Request::post('sexo', ''),
-            'pais'               => Request::post('pais', ''),
-            'ciudad'             => Request::post('ciudad', ''),
-            'latitud'            => Request::post('latitud', ''),
-            'longitud'           => Request::post('longitud', ''),
-            'email'              => Request::post('email', ''),
-            'password'           => Request::post('password', ''),
+            'nombre_completo' => Request::post('nombre_completo', ''),
+            'anio_nacimiento' => Request::post('anio_nacimiento', ''),
+            'sexo' => Request::post('sexo', ''),
+            'pais' => Request::post('pais', ''),
+            'ciudad' => Request::post('ciudad', ''),
+            'latitud' => Request::post('latitud', ''),
+            'longitud' => Request::post('longitud', ''),
+            'email' => Request::post('email', ''),
+            'password' => Request::post('password', ''),
             'confirmar_password' => Request::post('confirmar_password', ''),
-            'nombre_usuario'     => Request::post('nombre_usuario', '')
+            'nombre_usuario' => Request::post('nombre_usuario', '')
         ];
 
         $archivoFoto = $_FILES['foto_perfil'] ?? null;
@@ -62,7 +62,7 @@ class RegistroController
 
         $baseUrl = rtrim($this->config['base_url'], '/');
 
-        $enlaceActivacion =$baseUrl
+        $enlaceActivacion = $baseUrl
             . '/registro/activar?token='
             . urlencode($tokenActivacion);
 
@@ -73,31 +73,40 @@ class RegistroController
             $enlaceActivacion
         );
 
+        if (!$correoEnviado) {
+            $this->renderizarConErrores($datos, [
+                'La cuenta fue creada, pero no se pudo enviar el correo de activación.'
+            ]);
+
+            return;
+        }
+
         $this->render->renderiza("registro", [
-            'exito'          => true,
+            'exito' => true,
             'nombre_usuario' => $datos['nombre_usuario'],
-            'email'          => $datos['email']
+            'email' => $datos['email']
         ]);
     }
 
     private function renderizarConErrores(array $datos, array $errores)
     {
         $this->render->renderiza("registro", [
-            'hay_errores'     => true,
-            'errores'         => $errores,
+            'hay_errores' => true,
+            'errores' => $errores,
             'nombre_completo' => $datos['nombre_completo'],
             'anio_nacimiento' => $datos['anio_nacimiento'],
-            'pais'            => $datos['pais'],
-            'ciudad'          => $datos['ciudad'],
-            'latitud'         => $datos['latitud'],
-            'longitud'        => $datos['longitud'],
-            'email'           => $datos['email'],
-            'nombre_usuario'  => $datos['nombre_usuario'],
-            'sexo_masculino'  => $datos['sexo'] === 'Masculino',
-            'sexo_femenino'   => $datos['sexo'] === 'Femenino',
+            'pais' => $datos['pais'],
+            'ciudad' => $datos['ciudad'],
+            'latitud' => $datos['latitud'],
+            'longitud' => $datos['longitud'],
+            'email' => $datos['email'],
+            'nombre_usuario' => $datos['nombre_usuario'],
+            'sexo_masculino' => $datos['sexo'] === 'Masculino',
+            'sexo_femenino' => $datos['sexo'] === 'Femenino',
             'sexo_no_cargado' => $datos['sexo'] === 'Prefiero no cargarlo'
         ]);
     }
+
     public function activar()
     {
         $token = Request::get('token', '');
