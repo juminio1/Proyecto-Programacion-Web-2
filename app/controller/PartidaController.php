@@ -48,10 +48,12 @@ class PartidaController
 
         if ($idUsuario <= 0) {
             Redirect::to('/login/show');
+            return;
         }
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
             Redirect::to('/inicio/show');
+            return;
         }
 
         try {
@@ -65,6 +67,7 @@ class PartidaController
         if (!empty($errores)) {
             $_SESSION['errores_partida'] = $errores;
             Redirect::to('/inicio/show');
+            return;
         }
 
         Redirect::to('/partida/show');
@@ -79,33 +82,39 @@ class PartidaController
             return;
         }
 
-        $partida = $this->partidaModel->obtenerPartidaActiva($idUsuario);
+        try {
+            $partida = $this->partidaModel->obtenerPartidaActiva($idUsuario);
 
-        if (!$partida) {
+            if (!$partida) {
+                Redirect::to('/inicio/show');
+                return;
+            }
+
+            // Obtener la pregunta actual pendiente o seleccionar la siguiente
+            $pregunta = $this->partidaModel->obtenerPreguntaActual($partida['id']);
+
+            if (!$pregunta) {
+                $pregunta = $this->partidaModel->obtenerSiguientePregunta($partida['id']);
+            }
+
+            $datos = [
+                'idPartida' => $partida['id'],
+                'puntaje' => (int) $partida['puntaje'],
+                'respuestasCorrectas' => (int) $partida['puntaje'],
+                'tiempoRestante' => 15,
+                'categoria' => $pregunta['categoria'] ?? 'General',
+                'numeroPregunta' => $pregunta['numeroPregunta'] ?? 1,
+                'pregunta' => $pregunta['pregunta'] ?? 'Sin preguntas disponibles',
+                'idPregunta' => $pregunta['id'] ?? 0,
+                'opciones' => $pregunta['opciones'] ?? []
+            ];
+
+            $this->render->renderiza('partida', $datos);
+        } catch (PDOException $error) {
+            error_log('Error al cargar la partida: ' . $error->getMessage());
+            $_SESSION['errores_partida'] = ['Hubo un problema al cargar la partida. Por favor, intentá nuevamente.'];
             Redirect::to('/inicio/show');
-            return;
         }
-
-        // Obtener la pregunta actual pendiente o seleccionar la siguiente
-        $pregunta = $this->partidaModel->obtenerPreguntaActual($partida['id']);
-
-        if (!$pregunta) {
-            $pregunta = $this->partidaModel->obtenerSiguientePregunta($partida['id']);
-        }
-
-        $datos = [
-            'idPartida' => $partida['id'],
-            'puntaje' => (int) $partida['puntaje'],
-            'respuestasCorrectas' => (int) $partida['puntaje'],
-            'tiempoRestante' => 15,
-            'categoria' => $pregunta['categoria'] ?? 'General',
-            'numeroPregunta' => $pregunta['numeroPregunta'] ?? 1,
-            'pregunta' => $pregunta['pregunta'] ?? 'Sin preguntas disponibles',
-            'idPregunta' => $pregunta['id'] ?? 0,
-            'opciones' => $pregunta['opciones'] ?? []
-        ];
-
-        $this->render->renderiza('partida', $datos);
     }
 
     public function responder()
@@ -127,46 +136,59 @@ class PartidaController
             return;
         }
 
-        $partida = $this->partidaModel->obtenerPartidaActiva($idUsuario);
+        try {
+            $partida = $this->partidaModel->obtenerPartidaActiva($idUsuario);
 
-        if (!$partida) {
+            if (!$partida) {
+                if ($this->esPeticionAjax()) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['error' => 'No tenés una partida activa en este momento.']);
+                    exit();
+                }
+                Redirect::to('/inicio/show');
+                return;
+            }
+
+            $idPregunta = (int) (Request::post('id_pregunta', 0));
+            $respuesta = trim((string) Request::post('respuesta', ''));
+
+            if ($idPregunta <= 0 || $respuesta === '') {
+                $resultado = [
+                    'error' => 'Debe seleccionar una respuesta para continuar.',
+                    'correcta' => false
+                ];
+            } else {
+                $resultado = $this->partidaModel->responderPregunta(
+                    $partida['id'],
+                    $idUsuario,
+                    $idPregunta,
+                    $respuesta
+                );
+            }
+
             if ($this->esPeticionAjax()) {
                 header('Content-Type: application/json');
-                echo json_encode(['error' => 'No tenés una partida activa en este momento.']);
+                echo json_encode($resultado);
                 exit();
             }
-            Redirect::to('/inicio/show');
-            return;
+
+            if (!empty($resultado['error'])) {
+                $_SESSION['errores_partida'] = [$resultado['error']];
+            }
+
+            Redirect::to('/partida/show');
+        } catch (PDOException $error) {
+            error_log('Error al responder pregunta: ' . $error->getMessage());
+
+            if ($this->esPeticionAjax()) {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Ocurrió un error al procesar tu respuesta en el servidor.']);
+                exit();
+            }
+
+            $_SESSION['errores_partida'] = ['Ocurrió un error al registrar tu respuesta.'];
+            Redirect::to('/partida/show');
         }
-
-        $idPregunta = (int) (Request::post('id_pregunta', 0));
-        $respuesta = trim((string) Request::post('respuesta', ''));
-
-        if ($idPregunta <= 0 || $respuesta === '') {
-            $resultado = [
-                'error' => 'Debe seleccionar una respuesta para continuar.',
-                'correcta' => false
-            ];
-        } else {
-            $resultado = $this->partidaModel->responderPregunta(
-                $partida['id'],
-                $idUsuario,
-                $idPregunta,
-                $respuesta
-            );
-        }
-
-        if ($this->esPeticionAjax()) {
-            header('Content-Type: application/json');
-            echo json_encode($resultado);
-            exit();
-        }
-
-        if (!empty($resultado['error'])) {
-            $_SESSION['errores_partida'] = [$resultado['error']];
-        }
-
-        Redirect::to('/partida/show');
     }
 
     private function esPeticionAjax(): bool
