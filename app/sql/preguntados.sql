@@ -30,3 +30,32 @@ CREATE TABLE IF NOT EXISTS partidas ( id INT AUTO_INCREMENT PRIMARY KEY,
 );
 
 
+CREATE TABLE categorias (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            nombre VARCHAR(50) NOT NULL UNIQUE,
+                            color VARCHAR(7) NOT NULL
+);
+
+CREATE TABLE preguntas (
+                           id INT AUTO_INCREMENT PRIMARY KEY,
+                           enunciado TEXT NOT NULL,
+                           categoria_id INT NOT NULL,
+
+                           CONSTRAINT fk_preguntas_categorias
+                               FOREIGN KEY (categoria_id)
+                                   REFERENCES categorias(id)
+);
+
+
+INSERT INTO categorias (nombre, color) VALUES
+                                           ('Historia', '#8B5CF6'),
+                                           ('Ciencia', '#16A34A'),
+                                           ('Deportes', '#DC2626'),
+                                           ('Arte', '#EA580C');
+
+
+INSERT INTO preguntas (enunciado, categoria_id) VALUES
+                                                    ('¿En qué año ocurrió la Revolución de Mayo?', 1),
+                                                    ('¿Cuál es el planeta más cercano al Sol?', 2),
+                                                    ('¿Cuántos jugadores tiene un equipo de fútbol en cancha?', 3),
+                                                    ('¿Quién pintó la Mona Lisa?', 4);

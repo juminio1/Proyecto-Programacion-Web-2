@@ -1,0 +1,16 @@
+
+.pregunta {
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+}
+
+.categoria {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
