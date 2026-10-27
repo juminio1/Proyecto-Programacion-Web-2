@@ -2,8 +2,6 @@
 
 namespace app\controller;
 
-use app\model\PreguntaModel;
-
 class PreguntaController
 {
     private $preguntaModel;
@@ -19,7 +17,7 @@ class PreguntaController
     {
         $preguntas = $this->preguntaModel->obtenerPreguntas();
 
-        $this->render->render("pregunta", [
+        $this->render->renderiza("Pregunta", [
             "preguntas" => $preguntas
         ]);
     }
