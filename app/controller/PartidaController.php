@@ -103,6 +103,7 @@ class PartidaController
                 'respuestasCorrectas' => (int) $partida['puntaje'],
                 'tiempoRestante' => 15,
                 'categoria' => $pregunta['categoria'] ?? 'General',
+                'colorCategoria' => $pregunta['color'] ?? '#777777',
                 'numeroPregunta' => $pregunta['numeroPregunta'] ?? 1,
                 'pregunta' => $pregunta['pregunta'] ?? 'Sin preguntas disponibles',
                 'idPregunta' => $pregunta['id'] ?? 0,

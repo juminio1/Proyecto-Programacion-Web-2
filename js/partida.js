@@ -14,6 +14,7 @@
     const elementoNumero = document.querySelector('.partida-numero');
     const elementoEnunciado = document.getElementById('partida-enunciado');
     const fieldsetOpciones = formulario.querySelector('.partida-opciones');
+    const tarjetaPregunta = document.querySelector('.partida-pregunta');
 
     let enviando = false;
 
@@ -131,14 +132,22 @@
     });
 
     function actualizarPregunta(nuevaPregunta) {
+        if (tarjetaPregunta && nuevaPregunta.color) {
+            tarjetaPregunta.style.setProperty('--color-categoria', nuevaPregunta.color);
+        }
+
         if (elementoCategoria && nuevaPregunta.categoria) {
             elementoCategoria.textContent = nuevaPregunta.categoria;
         }
+
+        if (tarjetaPregunta) {
+            tarjetaPregunta.classList.remove('animar');
+            void tarjetaPregunta.offsetWidth;
+            tarjetaPregunta.classList.add('animar');
+        }
+
         if (elementoNumero && nuevaPregunta.numeroPregunta) {
             elementoNumero.textContent = `Pregunta ${nuevaPregunta.numeroPregunta}`;
-        }
-        if (elementoEnunciado && nuevaPregunta.pregunta) {
-            elementoEnunciado.textContent = nuevaPregunta.pregunta;
         }
         if (inputPregunta && nuevaPregunta.id) {
             inputPregunta.value = nuevaPregunta.id;

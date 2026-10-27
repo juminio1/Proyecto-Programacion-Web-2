@@ -91,17 +91,18 @@ class PartidaModel
         $pdo = $this->database->getConexion();
 
         $sql = "SELECT pp.id AS partida_pregunta_id,
-                       pp.numero_pregunta,
-                       p.id AS pregunta_id,
-                       p.pregunta,
-                       c.nombre AS categoria
-                FROM partida_preguntas pp
-                INNER JOIN preguntas p ON pp.pregunta_id = p.id
-                INNER JOIN categorias c ON p.categoria_id = c.id
-                WHERE pp.partida_id = :partida_id
-                  AND pp.fecha_respuesta IS NULL
-                ORDER BY pp.id DESC
-                LIMIT 1";
+               pp.numero_pregunta,
+               p.id AS pregunta_id,
+               p.pregunta,
+               c.nombre AS categoria,
+               c.color AS color
+        FROM partida_preguntas pp
+        INNER JOIN preguntas p ON pp.pregunta_id = p.id
+        INNER JOIN categorias c ON p.categoria_id = c.id
+        WHERE pp.partida_id = :partida_id
+          AND pp.fecha_respuesta IS NULL
+        ORDER BY pp.id DESC
+        LIMIT 1";
 
         $consulta = $pdo->prepare($sql);
         $consulta->execute(['partida_id' => $partidaId]);
@@ -115,6 +116,7 @@ class PartidaModel
             'id' => (int) $pregunta['pregunta_id'],
             'pregunta' => $pregunta['pregunta'],
             'categoria' => $pregunta['categoria'],
+            'color' => $pregunta['color'],
             'numeroPregunta' => (int) $pregunta['numero_pregunta'],
             'opciones' => $this->obtenerOpcionesDePregunta($pregunta['pregunta_id'])
         ];
@@ -125,7 +127,7 @@ class PartidaModel
         $pdo = $this->database->getConexion();
 
         // Backend: Seleccionar la siguiente pregunta (que no haya sido respondida ni entregada aún en esta partida)
-        $sql = "SELECT p.id, p.pregunta, c.nombre AS categoria
+        $sql = "SELECT p.id, p.pregunta, c.nombre AS categoria, c.color AS color
                 FROM preguntas p
                 INNER JOIN categorias c ON p.categoria_id = c.id
                 WHERE p.id NOT IN (
@@ -165,6 +167,7 @@ class PartidaModel
             'id' => (int) $pregunta['id'],
             'pregunta' => $pregunta['pregunta'],
             'categoria' => $pregunta['categoria'],
+            'color' => $pregunta['color'],
             'numeroPregunta' => $numeroPregunta,
             'opciones' => $this->obtenerOpcionesDePregunta($pregunta['id'])
         ];

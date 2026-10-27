@@ -71,23 +71,18 @@ CREATE TABLE IF NOT EXISTS partida_preguntas (
 
 -- Inserción de categorías iniciales
 INSERT IGNORE INTO categorias (id, nombre, color) VALUES
-(1, 'Historia', '#f4a100'),
-(2, 'Geografía', '#2c91e8'),
-(3, 'Ciencia', '#40b36c'),
-(4, 'Arte', '#ef4b4b'),
-(5, 'Deportes', '#ff7a00'),
-(6, 'Entretenimiento', '#8338ec');
+                                                      (1, 'Historia', '#f4a100'),
+                                                      (2, 'Geografía', '#2c91e8'),
+                                                      (3, 'Ciencia', '#40b36c'),
+                                                      (4, 'Deportes', '#ff7a00');
 
 -- Inserción de preguntas iniciales
 INSERT IGNORE INTO preguntas (id, categoria_id, pregunta) VALUES
 (1, 1, '¿En qué año llegó el ser humano a la Luna?'),
-(2, 2, '¿Cuál es el río más largo del mundo?'),
 (3, 3, '¿Cuál es el elemento químico con símbolo "O"?'),
 (4, 4, '¿Quién pintó la Mona Lisa?'),
 (5, 5, '¿Cada cuántos años se celebran los Juegos Olímpicos?'),
-(6, 6, '¿Quién es el protagonista de la saga de videojuegos The Legend of Zelda?'),
 (7, 1, '¿En qué año comenzó la Segunda Guerra Mundial?'),
-(8, 2, '¿Cuál es la capital de Francia?'),
 (9, 3, '¿Qué planeta del sistema solar es conocido como el Planeta Rojo?'),
 (10, 5, '¿Qué selección ganó la Copa del Mundo de fútbol en Qatar 2022?');
 
@@ -98,11 +93,6 @@ INSERT IGNORE INTO opciones (id, pregunta_id, letra, texto, es_correcta) VALUES
 (2, 1, 'B', '1969', 1),
 (3, 1, 'C', '1971', 0),
 (4, 1, 'D', '1959', 0),
--- Pregunta 2
-(5, 2, 'A', 'Nilo', 0),
-(6, 2, 'B', 'Amazonas', 1),
-(7, 2, 'C', 'Yangtsé', 0),
-(8, 2, 'D', 'Misisipi', 0),
 -- Pregunta 3
 (9, 3, 'A', 'Oro', 0),
 (10, 3, 'B', 'Osmio', 0),
