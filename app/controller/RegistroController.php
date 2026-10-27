@@ -73,6 +73,14 @@ class RegistroController
             $enlaceActivacion
         );
 
+        if (!$correoEnviado) {
+            $this->renderizarConErrores($datos, [
+                'La cuenta fue creada, pero no se pudo enviar el correo de activación.'
+            ]);
+
+            return;
+        }
+
         $this->render->renderiza("registro", [
             'exito'          => true,
             'nombre_usuario' => $datos['nombre_usuario'],

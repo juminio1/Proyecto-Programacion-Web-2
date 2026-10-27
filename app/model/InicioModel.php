@@ -1,6 +1,7 @@
 <?php
 
 namespace app\model;
+
 use PDO;
 
 class InicioModel
@@ -11,7 +12,6 @@ class InicioModel
     {
         $this->database = $database;
     }
-
 
     public function buscarUsuarioPorId($id)
     {
@@ -28,5 +28,33 @@ class InicioModel
         return $consulta->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerPuntajeAcumulado($idUsuario)
+    {
+        $pdo = $this->database->getConexion();
 
+        $sql = "SELECT COALESCE(SUM(puntaje), 0) AS total
+                FROM partidas
+                WHERE usuario_id = :id";
+
+        $consulta = $pdo->prepare($sql);
+        $consulta->execute(['id' => $idUsuario]);
+        $fila = $consulta->fetch(PDO::FETCH_ASSOC);
+
+        return $fila ? (int) $fila['total'] : 0;
+    }
+
+    public function obtenerPartidasJugadas($idUsuario)
+    {
+        $pdo = $this->database->getConexion();
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM partidas
+                WHERE usuario_id = :id";
+
+        $consulta = $pdo->prepare($sql);
+        $consulta->execute(['id' => $idUsuario]);
+        $fila = $consulta->fetch(PDO::FETCH_ASSOC);
+
+        return $fila ? (int) $fila['total'] : 0;
+    }
 }
