@@ -663,3 +663,30 @@ body {
         grid-column: 1 / -1;
     }
 }
+
+.partida-pregunta {
+    /* Tinte suave permanente con el color de la categoría */
+    background-color: color-mix(in srgb, var(--color-categoria) 10%, white);
+    border-top: 6px solid var(--color-categoria);
+}
+
+.partida-pregunta.animar {
+    animation: partida-nueva-pregunta 0.8s ease-out;
+}
+
+@keyframes partida-nueva-pregunta {
+    0% {
+        background-color: color-mix(in srgb, var(--color-categoria) 40%, white);
+        transform: scale(0.97);
+        opacity: 0.6;
+    }
+    100% {
+        background-color: color-mix(in srgb, var(--color-categoria) 10%, white);
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+.partida-pagina {
+    background-color: color-mix(in srgb, var(--color-categoria, #2c91e8) 12%, white);
+    transition: background-color 0.6s ease;
+}
