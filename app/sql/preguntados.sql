@@ -70,22 +70,25 @@ CREATE TABLE IF NOT EXISTS partida_preguntas (
 );
 
 -- Inserción de categorías iniciales
-INSERT IGNORE INTO categorias (id, nombre, color) VALUES
-                                                      (1, 'Historia', '#f4a100'),
-                                                      (2, 'Geografía', '#2c91e8'),
-                                                      (3, 'Ciencia', '#40b36c'),
-                                                      (4, 'Deportes', '#ff7a00');
+INSERT INTO categorias (id, nombre, color) VALUES
+                                               (1, 'Historia', '#e0403b'),
+                                               (2, 'Geografía', '#14b8c9'),
+                                               (3, 'Ciencia', '#7c4ee6'),
+                                               (4, 'Deportes', '#2fa866'),
+                                               (5, 'Cultura', '#f2b100'),
+                                               (6, 'Entretenimiento', '#f0605a');
 
 -- Inserción de preguntas iniciales
-INSERT IGNORE INTO preguntas (id, categoria_id, pregunta) VALUES
-(1, 1, '¿En qué año llegó el ser humano a la Luna?'),
-(3, 3, '¿Cuál es el elemento químico con símbolo "O"?'),
-(4, 4, '¿Quién pintó la Mona Lisa?'),
-(5, 5, '¿Cada cuántos años se celebran los Juegos Olímpicos?'),
-(7, 1, '¿En qué año comenzó la Segunda Guerra Mundial?'),
-(9, 3, '¿Qué planeta del sistema solar es conocido como el Planeta Rojo?'),
-(10, 5, '¿Qué selección ganó la Copa del Mundo de fútbol en Qatar 2022?');
-
+INSERT INTO preguntas (id, categoria_id, pregunta) VALUES
+                                                       (1, 1, '¿En qué año llegó el ser humano a la Luna?'),
+                                                       (3, 3, '¿Cuál es el elemento químico con símbolo "O"?'),
+                                                       (4, 5, '¿Quién pintó la Mona Lisa?'),
+                                                       (5, 4, '¿Cada cuántos años se celebran los Juegos Olímpicos?'),
+                                                       (6, 6, '¿Quién es el protagonista de The Legend of Zelda?'),
+                                                       (7, 1, '¿En qué año comenzó la Segunda Guerra Mundial?'),
+                                                       (8, 2, '¿Cuál es la capital de Francia?'),
+                                                       (9, 3, '¿Qué planeta del sistema solar es conocido como el Planeta Rojo?'),
+                                                       (10, 4, '¿Qué selección ganó la Copa del Mundo de fútbol en Qatar 2022?');
 -- Inserción de opciones para cada pregunta
 INSERT IGNORE INTO opciones (id, pregunta_id, letra, texto, es_correcta) VALUES
 -- Pregunta 1

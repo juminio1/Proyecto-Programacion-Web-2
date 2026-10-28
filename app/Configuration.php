@@ -6,12 +6,10 @@ use app\controller\InicioController;
 use app\controller\LoginController;
 use app\controller\RegistroController;
 use app\controller\PartidaController;
-use app\controller\PreguntaController;
 use app\model\InicioModel;
 use app\model\LoginModel;
 use app\model\PartidaModel;
 use app\model\RegistroModel;
-use app\model\PreguntaModel;
 use Mailer;
 use MustacheRender;
 use MyDatabase;
@@ -59,16 +57,6 @@ class Configuration
             $this->getRender()
         );
     }
-
-
-    public function getPreguntaController()
-    {
-        return new PreguntaController(
-            new PreguntaModel($this->getDatabase()),
-            $this->getRender()
-        );
-    }
-
 
 
     private function getConfig()
