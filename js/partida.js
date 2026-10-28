@@ -15,6 +15,7 @@
     const elementoEnunciado = document.getElementById('partida-enunciado');
     const fieldsetOpciones = formulario.querySelector('.partida-opciones');
     const tarjetaPregunta = document.querySelector('.partida-pregunta');
+    const pagina = document.querySelector('.partida-pagina');
 
     let enviando = false;
 
@@ -135,9 +136,19 @@
         if (tarjetaPregunta && nuevaPregunta.color) {
             tarjetaPregunta.style.setProperty('--color-categoria', nuevaPregunta.color);
         }
+        if (pagina && nuevaPregunta.color) {
+            pagina.style.setProperty('--color-categoria', nuevaPregunta.color);
+        }
 
         if (elementoCategoria && nuevaPregunta.categoria) {
             elementoCategoria.textContent = nuevaPregunta.categoria;
+        }
+
+        if (elementoEnunciado) {
+            const textoPregunta = nuevaPregunta.pregunta || nuevaPregunta.enunciado;
+            if (textoPregunta) {
+                elementoEnunciado.textContent = textoPregunta;
+            }
         }
 
         if (tarjetaPregunta) {
