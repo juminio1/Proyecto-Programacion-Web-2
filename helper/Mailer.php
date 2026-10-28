@@ -45,6 +45,10 @@ class Mailer
             return true;
 
         } catch (Exception $e) {
+            Log::error(
+                'Error al enviar correo de activación: ' . $mail->ErrorInfo
+            );
+
             return false;
         }
     }
@@ -98,9 +102,7 @@ class Mailer
             return true;
 
         } catch (Exception $e) {
-            Log::error(
-                'Error al enviar correo de activación: ' . $mail->ErrorInfo
-            );
+            Log::error('Error al enviar correo de activación: ' . $mail->ErrorInfo);
 
             return false;
         }
