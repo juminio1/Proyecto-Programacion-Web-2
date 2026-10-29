@@ -42,6 +42,9 @@ Options -Indexes
     # nunca pasan por index.php ni por el router.
     RewriteRule ^public/ - [L]
 
+    # Permitir archivos de verificación de Google
+    RewriteRule ^google.*\.html$ - [L]
+
     # ── CONDICIONES ── (aplican a las dos reglas de abajo)
     # Solo reescribir si la URL NO es un archivo real en disco.
     # Ej: /css/estilo.css NO se reescribe porque el archivo existe.
