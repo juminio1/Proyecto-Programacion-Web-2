@@ -42,6 +42,9 @@ Options -Indexes
     # nunca pasan por index.php ni por el router.
     RewriteRule ^public/ - [L]
 
+    # Permitir archivos de verificación de Google
+    RewriteRule ^google.*\.html$ - [L]
+
     # ── CONDICIONES ── (aplican a las dos reglas de abajo)
     # Solo reescribir si la URL NO es un archivo real en disco.
     # Ej: /css/estilo.css NO se reescribe porque el archivo existe.
@@ -51,6 +54,14 @@ Options -Indexes
     # Solo reescribir si la URL NO es un directorio real en disco.
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
+
+    # ── ACTIVACIÓN DE CUENTA ──────────────────────────
+    # URL visible:
+    # /activar-cuenta?token=ABC123
+    #
+    # Internamente:
+    # index.php?controller=registro&method=activar&token=ABC123
+    RewriteRule ^activar-cuenta/?$ index.php?controller=registro&method=activar [L,QSA]
 
     # ── REGLA 1: /controller/method ──────────────────────
     # ^([^/]+)/([^/]+)$  →  captura dos segmentos separados por /
