@@ -100,11 +100,8 @@ class Mailer
             $mail->send();
 
             return true;
-
         } catch (Exception $e) {
-            Log::error('Error al enviar correo de activación: ' . $mail->ErrorInfo);
-
-            return false;
+            die('ERROR SMTP: ' . $mail->ErrorInfo);
         }
     }
 }
