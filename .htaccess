@@ -52,6 +52,14 @@ Options -Indexes
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
+    # ── ACTIVACIÓN DE CUENTA ──────────────────────────
+    # URL visible:
+    # /activar-cuenta?token=ABC123
+    #
+    # Internamente:
+    # index.php?controller=registro&method=activar&token=ABC123
+    RewriteRule ^activar-cuenta/?$ index.php?controller=registro&method=activar [L,QSA]
+
     # ── REGLA 1: /controller/method ──────────────────────
     # ^([^/]+)/([^/]+)$  →  captura dos segmentos separados por /
     #   $1 = primer segmento  (controller)
