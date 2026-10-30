@@ -151,7 +151,6 @@ class Mailer
                             text-align: center;
                             margin: 30px 0;
                         '>
-
                             <a
                                 href='$enlaceActivacion'
                                 style='
@@ -167,24 +166,15 @@ class Mailer
                             >
                                 Confirmar mi cuenta
                             </a>
-
                         </div>
 
                         <p style='
-                            font-size: 14px;
-                            line-height: 1.6;
-                            color: #555555;
-                        '>
-                            Si el botón no funciona, también podés copiar
-                            y pegar el siguiente enlace en tu navegador:
-                        </p>
-
-                        <p style='
                             font-size: 13px;
-                            word-break: break-all;
-                            color: #5b32d6;
+                            line-height: 1.6;
+                            color: #777777;
                         '>
-                            $enlaceActivacion
+                            Si no creaste una cuenta en Preguntados,
+                            podés ignorar este mensaje.
                         </p>
 
                         <hr style='
@@ -192,15 +182,6 @@ class Mailer
                             border-top: 1px solid #eeeeee;
                             margin: 30px 0;
                         '>
-
-                        <p style='
-                            font-size: 13px;
-                            line-height: 1.6;
-                            color: #777777;
-                        '>
-                            Si no creaste una cuenta en Preguntados UNLaM,
-                            podés ignorar este mensaje.
-                        </p>
 
                         <p style='
                             font-size: 12px;
