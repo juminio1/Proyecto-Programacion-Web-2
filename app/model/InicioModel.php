@@ -57,4 +57,34 @@ class InicioModel
 
         return $fila ? (int) $fila['total'] : 0;
     }
+
+    public function obtenerHistorialPartidas($idUsuario, $limite = null)
+    {
+        $pdo = $this->database->getConexion();
+
+        $sql = "SELECT
+                id AS numero,
+                estado AS resultado,
+                puntaje,
+                DATE_FORMAT(fecha_creacion, '%d/%m/%Y %H:%i') AS fecha
+            FROM partidas
+            WHERE usuario_id = :id
+            ORDER BY fecha_creacion DESC, id DESC";
+
+        if ($limite !== null) {
+            $sql .= " LIMIT :limite";
+        }
+
+        $consulta = $pdo->prepare($sql);
+        $consulta->bindValue(':id', $idUsuario, PDO::PARAM_INT);
+
+        if ($limite !== null) {
+            // LIMIT necesita un entero real, si no MySQL lo rechaza
+            $consulta->bindValue(':limite', (int) $limite, PDO::PARAM_INT);
+        }
+
+        $consulta->execute();
+
+        return $consulta->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
