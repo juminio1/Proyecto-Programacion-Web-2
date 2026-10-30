@@ -72,23 +72,20 @@ CREATE TABLE IF NOT EXISTS partida_preguntas (
 -- Inserción de categorías iniciales
 INSERT INTO categorias (id, nombre, color) VALUES
                                                (1, 'Historia', '#e0403b'),
-                                               (2, 'Geografía', '#14b8c9'),
                                                (3, 'Ciencia', '#7c4ee6'),
                                                (4, 'Deportes', '#2fa866'),
-                                               (5, 'Cultura', '#f2b100'),
                                                (6, 'Entretenimiento', '#f0605a');
 
 -- Inserción de preguntas iniciales
 INSERT INTO preguntas (id, categoria_id, pregunta) VALUES
                                                        (1, 1, '¿En qué año llegó el ser humano a la Luna?'),
                                                        (3, 3, '¿Cuál es el elemento químico con símbolo "O"?'),
-                                                       (4, 5, '¿Quién pintó la Mona Lisa?'),
                                                        (5, 4, '¿Cada cuántos años se celebran los Juegos Olímpicos?'),
                                                        (6, 6, '¿Quién es el protagonista de The Legend of Zelda?'),
                                                        (7, 1, '¿En qué año comenzó la Segunda Guerra Mundial?'),
-                                                       (8, 2, '¿Cuál es la capital de Francia?'),
                                                        (9, 3, '¿Qué planeta del sistema solar es conocido como el Planeta Rojo?'),
                                                        (10, 4, '¿Qué selección ganó la Copa del Mundo de fútbol en Qatar 2022?');
+
 -- Inserción de opciones para cada pregunta
 INSERT IGNORE INTO opciones (id, pregunta_id, letra, texto, es_correcta) VALUES
 -- Pregunta 1
@@ -101,11 +98,6 @@ INSERT IGNORE INTO opciones (id, pregunta_id, letra, texto, es_correcta) VALUES
 (10, 3, 'B', 'Osmio', 0),
 (11, 3, 'C', 'Oxígeno', 1),
 (12, 3, 'D', 'Plata', 0),
--- Pregunta 4
-(13, 4, 'A', 'Leonardo da Vinci', 1),
-(14, 4, 'B', 'Vincent van Gogh', 0),
-(15, 4, 'C', 'Pablo Picasso', 0),
-(16, 4, 'D', 'Miguel Ángel', 0),
 -- Pregunta 5
 (17, 5, 'A', '2 años', 0),
 (18, 5, 'B', '3 años', 0),
@@ -121,11 +113,6 @@ INSERT IGNORE INTO opciones (id, pregunta_id, letra, texto, es_correcta) VALUES
 (26, 7, 'B', '1939', 1),
 (27, 7, 'C', '1945', 0),
 (28, 7, 'D', '1929', 0),
--- Pregunta 8
-(29, 8, 'A', 'Berlín', 0),
-(30, 8, 'B', 'Roma', 0),
-(31, 8, 'C', 'Madrid', 0),
-(32, 8, 'D', 'París', 1),
 -- Pregunta 9
 (33, 9, 'A', 'Venus', 0),
 (34, 9, 'B', 'Júpiter', 0),
