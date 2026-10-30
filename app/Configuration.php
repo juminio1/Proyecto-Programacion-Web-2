@@ -7,6 +7,7 @@ use app\controller\LoginController;
 use app\controller\RegistroController;
 use app\controller\PartidaController;
 use app\controller\PreguntaController;
+use app\controller\HistorialController;
 use app\model\InicioModel;
 use app\model\LoginModel;
 use app\model\PartidaModel;
@@ -69,7 +70,13 @@ class Configuration
         );
     }
 
-
+    public function getHistorialController()
+    {
+        return new HistorialController(
+            new InicioModel($this->getDatabase()),
+            $this->getRender()
+        );
+    }
 
     private function getConfig()
     {
