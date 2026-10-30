@@ -6,7 +6,14 @@ class MyDatabase
 
     public function __construct($host, $user, $pass, $db)
     {
-        $this->conexion = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+        $this->conexion = new PDO(
+            "mysql:host=$host;dbname=$db;charset=utf8mb4",
+            $user,
+            $pass,
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            ]
+        );
     }
 
     public function queryOne(string $sql)
