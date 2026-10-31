@@ -76,6 +76,12 @@
             const data = await respuestaHttp.json();
 
             if (data.error) {
+                // HU-09: Si la partida ya finalizó, mostrar estado final
+                if (data.finalizada) {
+                    mostrarFinalizacion(data);
+                    return;
+                }
+
                 mensaje.textContent = data.error;
 
                 if (data.ya_respondida) {
@@ -115,10 +121,8 @@
                     boton.textContent = 'Partida completada';
                 }
             } else {
-                // Respuesta incorrecta
-                mensaje.textContent = data.mensaje || 'Respuesta incorrecta. Fin de la partida.';
-                boton.textContent = 'Partida finalizada';
-                boton.disabled = true;
+                // HU-09: Respuesta incorrecta — mostrar pantalla de finalización
+                mostrarFinalizacion(data);
             }
         } catch (error) {
             console.error('Error al responder:', error);
@@ -131,6 +135,94 @@
             enviando = false;
         }
     });
+
+    /**
+     * HU-09: Muestra la pantalla de finalización por respuesta incorrecta.
+     * Reemplaza el contenido de la tarjeta de pregunta con el resultado final.
+     */
+    function mostrarFinalizacion(data) {
+        if (elementoPuntaje) {
+            elementoPuntaje.textContent = `${data.puntaje} puntos`;
+        }
+        if (elementoAciertos) {
+            elementoAciertos.textContent = `${data.respuestasCorrectas}`;
+        }
+
+        // Cambiar el encabezado de la página
+        const encabezado = document.querySelector('.partida-encabezado');
+        if (encabezado) {
+            encabezado.querySelector('h1').textContent = 'Partida finalizada';
+            encabezado.querySelector('p').textContent = 'Respondiste incorrectamente.';
+        }
+
+        // Reemplazar el contenido de la tarjeta de pregunta con el resultado
+        if (tarjetaPregunta) {
+            tarjetaPregunta.classList.remove('animar');
+            tarjetaPregunta.style.setProperty('--color-categoria', '#e0403b');
+
+            let htmlResultado = '<div class="partida-fin">';
+            htmlResultado += '<div class="partida-fin-icono" aria-hidden="true">';
+            htmlResultado += '<svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+            htmlResultado += '</div>';
+            htmlResultado += '<h2 class="partida-fin-titulo">¡Respuesta incorrecta!</h2>';
+            htmlResultado += '<p class="partida-fin-mensaje">';
+            htmlResultado += data.mensaje || 'La partida ha finalizado.';
+            htmlResultado += '</p>';
+
+            if (data.respuestaCorrecta) {
+                htmlResultado += '<div class="partida-fin-correcta">';
+                htmlResultado += '<p class="partida-fin-correcta-etiqueta">La respuesta correcta era:</p>';
+                htmlResultado += '<div class="partida-fin-correcta-opcion">';
+                htmlResultado += '<span class="partida-letra">' + escapeHtml(data.respuestaCorrecta.letra) + '</span>';
+                htmlResultado += '<span class="partida-opcion-texto">' + escapeHtml(data.respuestaCorrecta.texto) + '</span>';
+                htmlResultado += '</div>';
+                htmlResultado += '</div>';
+            }
+
+            htmlResultado += '<p class="partida-fin-puntaje">Puntaje final: <strong>' + data.puntaje + ' punto' + (data.puntaje !== 1 ? 's' : '') + '</strong></p>';
+            htmlResultado += '<a href="/inicio/show" class="partida-fin-volver">';
+            htmlResultado += '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12l2-2m-2 2l2 2m-2-2h18"/></svg>';
+            htmlResultado += 'Volver al inicio';
+            htmlResultado += '</a>';
+            htmlResultado += '</div>';
+
+            tarjetaPregunta.innerHTML = htmlResultado;
+        }
+
+        // Ocultar el botón de abandonar (la partida ya finalizó)
+        const formAbandonar = document.querySelector('.partida-formulario-abandonar');
+        if (formAbandonar) {
+            formAbandonar.style.display = 'none';
+        }
+
+        // Ocultar el reloj
+        const tiempo = document.querySelector('.partida-tiempo');
+        if (tiempo) {
+            tiempo.style.display = 'none';
+        }
+
+        // Cambiar título del resumen
+        const tituloResumen = document.getElementById('partida-resumen-titulo');
+        if (tituloResumen) {
+            tituloResumen.textContent = 'Resultado';
+        }
+
+        // Cambiar el botón superior de "Volver" para que sea un enlace directo, no POST a abandonar
+        const formSalida = document.querySelector('.partida-pagina > .partida-formulario-salida');
+        if (formSalida) {
+            const enlace = document.createElement('a');
+            enlace.href = '/inicio/show';
+            enlace.className = 'partida-volver';
+            enlace.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg> Volver al inicio';
+            formSalida.replaceWith(enlace);
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
 
     function actualizarPregunta(nuevaPregunta) {
         if (tarjetaPregunta && nuevaPregunta.color) {

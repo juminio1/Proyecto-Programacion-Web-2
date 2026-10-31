@@ -71,14 +71,14 @@ CREATE TABLE IF NOT EXISTS partida_preguntas (
 );
 
 -- Inserción de categorías iniciales
-INSERT INTO categorias (id, nombre, color) VALUES
+INSERT IGNORE INTO categorias (id, nombre, color) VALUES
                                                (1, 'Historia', '#e0403b'),
                                                (3, 'Ciencia', '#7c4ee6'),
                                                (4, 'Deportes', '#2fa866'),
                                                (6, 'Entretenimiento', '#f0605a');
 
 -- Inserción de preguntas iniciales
-INSERT INTO preguntas (id, categoria_id, pregunta) VALUES
+INSERT IGNORE INTO preguntas (id, categoria_id, pregunta) VALUES
                                                        (1, 1, '¿En qué año llegó el ser humano a la Luna?'),
                                                        (3, 3, '¿Cuál es el elemento químico con símbolo "O"?'),
                                                        (5, 4, '¿Cada cuántos años se celebran los Juegos Olímpicos?'),
