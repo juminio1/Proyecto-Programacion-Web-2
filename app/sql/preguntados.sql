@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS preguntas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     categoria_id INT NOT NULL,
     pregunta TEXT NOT NULL,
+    habilitada TINYINT(1) NOT NULL DEFAULT 1,
     FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
 );
 
