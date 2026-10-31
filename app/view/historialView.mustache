@@ -1,0 +1,40 @@
+<link rel="stylesheet" href="/css/inicio.css">
+<main>
+    <section class="ultimas-partidas">
+        <div class="tarjeta-cabecera">
+            <h2>Historial de partidas</h2>
+            <a href="/inicio/show" class="enlace-boton">Volver al inicio</a>
+        </div>
+
+        {{#tienePartidas}}
+            <p>{{totalPartidas}} partidas jugadas</p>
+
+            <table class="tabla-partidas">
+                <thead>
+                <tr>
+                    <th>Partida</th>
+                    <th>Fecha</th>
+                    <th>Resultado</th>
+                    <th>Puntaje</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#partidas}}
+                    <tr>
+                        <td>#{{numero}}</td>
+                        <td>{{fecha}}</td>
+                        <td>{{resultado}}</td>
+                        <td>{{puntaje}} puntos</td>
+                    </tr>
+                {{/partidas}}
+                </tbody>
+            </table>
+        {{/tienePartidas}}
+
+        {{^tienePartidas}}
+            <p class="mensaje-vacio">
+                Todavía no jugaste ninguna partida. ¡Animate a jugar tu primera!
+            </p>
+        {{/tienePartidas}}
+    </section>
+</main>

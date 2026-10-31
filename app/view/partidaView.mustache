@@ -19,7 +19,8 @@
     </div>
 
     <div class="partida-columnas">
-        <section class="partida-tarjeta partida-pregunta"
+        <section class="partida-tarjeta partida-pregunta animar"
+                 style="--color-categoria: {{colorCategoria}};"
                  aria-labelledby="partida-enunciado">
 
             <div class="partida-pregunta-datos">
@@ -43,7 +44,9 @@
 
             <h2 id="partida-enunciado">{{pregunta}}</h2>
 
-            <form id="partida-formulario">
+            <form id="partida-formulario" method="post" action="/partida/responder">
+                <input type="hidden" name="id_pregunta" id="partida-id-pregunta" value="{{idPregunta}}">
+
                 <fieldset class="partida-opciones"
                           aria-describedby="partida-mensaje">
                     <legend class="partida-solo-lectores">
@@ -123,7 +126,7 @@
 
                     <div>
                         <p class="partida-dato-etiqueta">Puntaje</p>
-                        <p class="partida-dato-valor">{{puntaje}} puntos</p>
+                        <p class="partida-dato-valor" id="partida-puntaje-valor">{{puntaje}} puntos</p>
                     </div>
                 </div>
 
@@ -137,7 +140,7 @@
 
                     <div>
                         <p class="partida-dato-etiqueta">Respuestas correctas</p>
-                        <p class="partida-dato-valor">{{respuestasCorrectas}}</p>
+                        <p class="partida-dato-valor" id="partida-aciertos-valor">{{respuestasCorrectas}}</p>
                     </div>
                 </div>
             </div>
@@ -158,4 +161,3 @@
 </main>
 
 <script src="/js/partida.js" defer></script>
-

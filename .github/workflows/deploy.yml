@@ -25,7 +25,7 @@ jobs:
           db_pass = "${{ secrets.DB_PASS }}"
           db_name = "${{ secrets.DB_NAME }}"
 
-          base_url = "https://unlampreguntados.infinityfreeapp.com"
+          base_url = "https://preguntadospw2.infinityfreeapp.com"
 
           smtp_host = "smtp.gmail.com"
           smtp_port = 587
@@ -41,7 +41,7 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftp
           port: 21
-          server-dir: /unlampreguntados.infinityfreeapp.com/htdocs/
+          server-dir: /preguntadospw2.infinityfreeapp.com/htdocs/
           exclude: |
             **/.git*
             **/.git*/**

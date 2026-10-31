@@ -70,6 +70,5 @@ function claseActiva($pagina, $paginaActiva)
                 Iniciar sesión
             </a>
         <?php endif; ?>
-        </div>
     </div>
 </header>

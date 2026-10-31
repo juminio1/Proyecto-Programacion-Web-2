@@ -26,7 +26,7 @@ class InicioController
         }
 
         if (!$usuario) {
-            \Redirect::to('/login/show');
+            Redirect::to('/login/show');
             return;
         }
 
@@ -34,19 +34,22 @@ class InicioController
 
         unset($_SESSION['errores_partida']);
 
+        $puntajeAcumulado = $this->model->obtenerPuntajeAcumulado($idUsuario);
+        $partidasJugadas = $this->model->obtenerPartidasJugadas($idUsuario);
+        $ultimasPartidas = $this->model->obtenerHistorialPartidas($idUsuario, 3);
+
         $datosHome = [
             'usuarioEncontrado' => true,
             'nombre' => $usuario['nombre_completo'],
             'nombreUsuario' => $usuario['nombre_usuario'],
             'hayErroresPartida' => !empty($erroresPartida),
             'erroresPartida' => $erroresPartida,
-            // Hay que crear la tabla partidas para poder traer estos datos
-            'puntaje' => 0,
+            'puntaje' => $puntajeAcumulado,
             'posicion' => '-',
-            'partidasJugadas' => 0,
+            'partidasJugadas' => $partidasJugadas,
             'ranking' => [],
-            'ultimasPartidas' => [],
-            'tienePartidas' => false
+            'ultimasPartidas' => $ultimasPartidas,
+            'tienePartidas' => !empty($ultimasPartidas)
         ];
 
         $this->render->renderiza('inicio', $datosHome);

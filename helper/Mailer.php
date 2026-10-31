@@ -29,17 +29,23 @@ class Mailer
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = 587;
 
+            $mail->CharSet = 'UTF-8';
+
             $mail->setFrom($smtpUsuario, 'Preguntados UNLaM');
             $mail->addAddress($destinatario);
 
             $mail->isHTML(true);
 
             $mail->Subject = 'Prueba de correo - Preguntados';
-            $mail->Body = "
-    <h2>Bienvenido a Preguntados</h2>
-    <p>Tu cuenta fue creada correctamente.</p>
-    <p>Correo de prueba de activación.</p>
-";
+
+            $mail->Body = '
+                <h2>Correo de prueba</h2>
+                <p>El envío de correos funciona correctamente.</p>
+            ';
+
+            $mail->AltBody =
+                "Correo de prueba\n\n" .
+                "El envío de correos funciona correctamente.";
 
             $mail->send();
 
@@ -47,7 +53,7 @@ class Mailer
 
         } catch (Exception $e) {
             Log::error(
-                'Error al enviar correo de activación: ' . $mail->ErrorInfo
+                'Error al enviar correo de prueba: ' . $mail->ErrorInfo
             );
 
             return false;
@@ -75,35 +81,32 @@ class Mailer
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = 587;
 
+            $mail->CharSet = 'UTF-8';
+
             $mail->setFrom($smtpUsuario, 'Preguntados UNLaM');
             $mail->addAddress($destinatario);
 
-            $mail->isHTML(true);
+            // Para esta prueba enviamos texto plano, sin HTML.
+            $mail->isHTML(false);
 
-            $mail->Subject = 'Activa tu cuenta de Preguntados';
+            $mail->Subject = 'Activación de cuenta - Preguntados';
 
-            $mail->Body = "
-                <h2>Bienvenido a Preguntados</h2>
-
-                <p>Tu cuenta fue creada correctamente.</p>
-
-                <p>Para activarla, hacé clic en el siguiente enlace:</p>
-
-                <p>
-                    <a href='$enlaceActivacion'>
-                        Activar mi cuenta
-                    </a>
-                </p>
-
-                <p>Si no creaste esta cuenta, podés ignorar este correo.</p>
-            ";
+            $mail->Body =
+                "Bienvenido a Preguntados.\n\n" .
+                "Recibiste este correo porque se creó una cuenta utilizando esta dirección de correo electrónico.\n\n" .
+                "Para activar tu cuenta, ingresá al siguiente enlace:\n\n" .
+                $enlaceActivacion . "\n\n" .
+                "Si no creaste esta cuenta, podés ignorar este mensaje.\n\n" .
+                "Preguntados - Proyecto académico de Programación Web II.";
 
             $mail->send();
 
             return true;
 
         } catch (Exception $e) {
-            Log::error('Error al enviar correo de activación: ' . $mail->ErrorInfo);
+            Log::error(
+                'Error al enviar correo de activación: ' . $mail->ErrorInfo
+            );
 
             return false;
         }
