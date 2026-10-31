@@ -126,18 +126,25 @@ class PartidaModel
     {
         $pdo = $this->database->getConexion();
 
-        // Backend: Seleccionar la siguiente pregunta (que no haya sido respondida ni entregada aún en esta partida)
+        // Backend: Seleccionar una pregunta habilitada
+        // que no haya sido respondida ni entregada aún en esta partida
         $sql = "SELECT p.id, p.pregunta, c.nombre AS categoria, c.color AS color
-                FROM preguntas p
-                INNER JOIN categorias c ON p.categoria_id = c.id
-                WHERE p.id NOT IN (
-                    SELECT pregunta_id FROM partida_preguntas WHERE partida_id = :partida_id
-                )
-                ORDER BY RAND()
-                LIMIT 1";
+            FROM preguntas p
+            INNER JOIN categorias c ON p.categoria_id = c.id
+            WHERE p.habilitada = 1
+              AND p.id NOT IN (
+                  SELECT pregunta_id
+                  FROM partida_preguntas
+                  WHERE partida_id = :partida_id
+              )
+            ORDER BY RAND()
+            LIMIT 1";
 
         $consulta = $pdo->prepare($sql);
-        $consulta->execute(['partida_id' => $partidaId]);
+        $consulta->execute([
+            'partida_id' => $partidaId
+        ]);
+
         $pregunta = $consulta->fetch(PDO::FETCH_ASSOC);
 
         if (!$pregunta) {
@@ -147,16 +154,30 @@ class PartidaModel
         }
 
         // Obtener correlativo de número de pregunta en la partida
-        $sqlCount = "SELECT COUNT(*) AS total FROM partida_preguntas WHERE partida_id = :partida_id";
+        $sqlCount = "SELECT COUNT(*) AS total
+                 FROM partida_preguntas
+                 WHERE partida_id = :partida_id";
+
         $consultaCount = $pdo->prepare($sqlCount);
-        $consultaCount->execute(['partida_id' => $partidaId]);
-        $totalAnteriores = (int) ($consultaCount->fetch(PDO::FETCH_ASSOC)['total'] ?? 0);
+
+        $consultaCount->execute([
+            'partida_id' => $partidaId
+        ]);
+
+        $totalAnteriores = (int) (
+            $consultaCount->fetch(PDO::FETCH_ASSOC)['total'] ?? 0
+        );
+
         $numeroPregunta = $totalAnteriores + 1;
 
         // Registrar la asignación de la pregunta a la partida
-        $sqlInsert = "INSERT INTO partida_preguntas (partida_id, pregunta_id, numero_pregunta)
-                      VALUES (:partida_id, :pregunta_id, :numero_pregunta)";
+        $sqlInsert = "INSERT INTO partida_preguntas
+                    (partida_id, pregunta_id, numero_pregunta)
+                  VALUES
+                    (:partida_id, :pregunta_id, :numero_pregunta)";
+
         $consultaInsert = $pdo->prepare($sqlInsert);
+
         $consultaInsert->execute([
             'partida_id' => $partidaId,
             'pregunta_id' => $pregunta['id'],
