@@ -244,10 +244,10 @@
         <section class="ultimas-partidas">
             <div class="tarjeta-cabecera">
                 <h2>Mis últimas partidas</h2>
-                <button type="button" class="enlace-boton">
+                <a href="/historial/show" class="enlace-boton">
                     Ver todas
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
-                </button>
+                </a>
             </div>
 
             {{#tienePartidas}}
@@ -256,14 +256,17 @@
                     <tr>
                         <th>Partida</th>
                         <th>Fecha</th>
+                        <th>Resultado</th>
                         <th>Puntaje</th>
                     </tr>
                     </thead>
+
                     <tbody>
                     {{#ultimasPartidas}}
                         <tr>
                             <td>#{{numero}}</td>
                             <td>{{fecha}}</td>
+                            <td>{{resultado}}</td>
                             <td>{{puntaje}} puntos</td>
                         </tr>
                     {{/ultimasPartidas}}

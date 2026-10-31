@@ -36,6 +36,7 @@ class InicioController
 
         $puntajeAcumulado = $this->model->obtenerPuntajeAcumulado($idUsuario);
         $partidasJugadas = $this->model->obtenerPartidasJugadas($idUsuario);
+        $ultimasPartidas = $this->model->obtenerHistorialPartidas($idUsuario, 3);
 
         $datosHome = [
             'usuarioEncontrado' => true,
@@ -47,8 +48,8 @@ class InicioController
             'posicion' => '-',
             'partidasJugadas' => $partidasJugadas,
             'ranking' => [],
-            'ultimasPartidas' => [],
-            'tienePartidas' => $partidasJugadas > 0
+            'ultimasPartidas' => $ultimasPartidas,
+            'tienePartidas' => !empty($ultimasPartidas)
         ];
 
         $this->render->renderiza('inicio', $datosHome);
