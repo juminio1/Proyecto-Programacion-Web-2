@@ -180,7 +180,7 @@
                 input.className = 'partida-radio';
                 input.type = 'radio';
                 input.name = 'respuesta';
-                input.value = opcion.letra;
+                input.value = opcion.id;
                 input.dataset.texto = opcion.texto;
                 input.required = true;
 

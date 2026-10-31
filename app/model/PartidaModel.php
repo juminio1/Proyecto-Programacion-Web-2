@@ -246,14 +246,16 @@ class PartidaModel
 
         // 3. Backend: Comparar la opción elegida con la respuesta correcta.
         $sqlOpcion = "SELECT id, letra, texto, es_correcta
-                      FROM opciones
-                      WHERE pregunta_id = :pregunta_id
-                        AND (id = :respuesta OR letra = :respuesta)
-                      LIMIT 1";
+              FROM opciones
+              WHERE pregunta_id = :pregunta_id
+                AND id = :opcion_id
+              LIMIT 1";
+
         $consultaOpcion = $pdo->prepare($sqlOpcion);
+
         $consultaOpcion->execute([
             'pregunta_id' => $preguntaId,
-            'respuesta' => $respuesta
+            'opcion_id' => (int) $respuesta
         ]);
         $opcionElegida = $consultaOpcion->fetch(PDO::FETCH_ASSOC);
 
