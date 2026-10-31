@@ -35,10 +35,11 @@ class Mailer
             $mail->isHTML(true);
 
             $mail->Subject = 'Prueba de correo - Preguntados';
-            $mail->Body = '
-                <h2>Correo de prueba</h2>
-                <p>El envío de correos funciona correctamente.</p>
-            ';
+            $mail->Body = "
+    <h2>Bienvenido a Preguntados</h2>
+    <p>Tu cuenta fue creada correctamente.</p>
+    <p>Correo de prueba de activación.</p>
+";
 
             $mail->send();
 
