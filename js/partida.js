@@ -92,6 +92,13 @@
                 return;
             }
 
+            if (data.ya_respondida) {
+                mensaje.textContent = data.error || 'Esta pregunta ya fue respondida en esta partida.';
+                boton.textContent = 'Ya respondida';
+                boton.disabled = true;
+                return;
+            }
+
             if (data.correcta) {
                 // 1 - Cada respuesta correcta suma exactamente un punto a la partida.
                 // 2 - El puntaje actualizado se muestra en pantalla.
@@ -111,14 +118,14 @@
                         enviando = false;
                     }, 700);
                 } else {
-                    mensaje.textContent = '¡Excelente! Has respondido correctamente todas las preguntas disponibles.';
-                    boton.textContent = 'Partida completada';
-                }
+                mostrarFinalizacion(data, true);
+            }
             } else {
-                // Respuesta incorrecta
-                mensaje.textContent = data.mensaje || 'Respuesta incorrecta. Fin de la partida.';
-                boton.textContent = 'Partida finalizada';
-                boton.disabled = true;
+                mostrarFinalizacion(data);
+                if (pagina) {
+                    pagina.classList.add('partida-finalizada');
+                }
+
             }
         } catch (error) {
             console.error('Error al responder:', error);
@@ -131,6 +138,272 @@
             enviando = false;
         }
     });
+
+    function mostrarFinalizacion(data, completada = false) {
+        const puntaje = Number(data.puntaje) || 0;
+        const aciertos = Number(data.respuestasCorrectas ?? data.puntaje) || 0;
+
+        // Provisorio: todavía no se mide la duración real.
+        const tiempoDemo = '01:30';
+
+        const titulo = completada
+            ? '¡Partida completada!'
+            : 'Partida finalizada';
+
+        const descripcion = completada
+            ? 'Respondiste todas las preguntas disponibles.'
+            : 'La partida terminó al responder incorrectamente.';
+
+        const puntosTexto = `${puntaje} ${puntaje === 1 ? 'punto' : 'puntos'}`;
+
+        const icono = `
+        <svg viewBox="0 0 24 24"
+             width="28"
+             height="28"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2.5"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+            <path d="${
+            completada
+                ? 'm5 12 4 4L19 6'
+                : 'm6 6 12 12M18 6 6 18'
+        }"/>
+        </svg>
+    `;
+
+        if (pagina) {
+            pagina.classList.add('partida-finalizada');
+            pagina.classList.toggle('partida-completada', completada);
+        }
+
+        if (elementoPuntaje) {
+            elementoPuntaje.textContent = puntosTexto;
+        }
+
+        if (elementoAciertos) {
+            elementoAciertos.textContent = String(aciertos);
+        }
+
+        const encabezado = document.querySelector('.partida-encabezado');
+
+        if (encabezado) {
+            encabezado.querySelector('h1').textContent = completada
+                ? 'Partida completada'
+                : 'Partida finalizada';
+
+            encabezado.querySelector('p').textContent = descripcion;
+        }
+
+        let respuestaTarjeta = '';
+        let respuestaModal = '';
+
+        if (!completada && data.respuestaCorrecta) {
+            const letra = escapeHtml(data.respuestaCorrecta.letra ?? '');
+            const texto = escapeHtml(data.respuestaCorrecta.texto ?? '');
+
+            respuestaTarjeta = `
+            <div class="partida-fin-correcta">
+                <p class="partida-fin-correcta-etiqueta">
+                    La respuesta correcta era:
+                </p>
+
+                <div class="partida-fin-correcta-opcion">
+                    <span class="partida-fin-correcta-letra">
+                        ${letra}
+                    </span>
+
+                    <span class="partida-fin-correcta-texto">
+                        ${texto}
+                    </span>
+                </div>
+            </div>
+        `;
+
+            respuestaModal = `
+            <div class="partida-modal-correcta">
+                <span>La respuesta correcta era:</span>
+                <strong>${letra} · ${texto}</strong>
+            </div>
+        `;
+        }
+
+        if (tarjetaPregunta) {
+            tarjetaPregunta.classList.remove('animar');
+            tarjetaPregunta.style.removeProperty('--color-categoria');
+
+            tarjetaPregunta.setAttribute(
+                'aria-labelledby',
+                'partida-fin-titulo'
+            );
+
+            tarjetaPregunta.innerHTML = `
+            <div class="partida-fin">
+                <div class="partida-fin-icono" aria-hidden="true">
+                    ${icono}
+                </div>
+
+                <h2 id="partida-fin-titulo" class="partida-fin-titulo">
+                    ${completada ? titulo : '¡Respuesta incorrecta!'}
+                </h2>
+
+                <p class="partida-fin-mensaje">
+                    ${descripcion}
+                </p>
+
+                ${respuestaTarjeta}
+
+                <div class="partida-fin-puntaje-contenedor">
+                    <span class="partida-fin-puntaje-etiqueta">
+                        Puntaje final:
+                    </span>
+
+                    <strong class="partida-fin-puntaje-valor">
+                        ${puntosTexto}
+                    </strong>
+                </div>
+
+                <button type="button"
+                        id="partida-ver-estadisticas"
+                        class="partida-fin-boton">
+                    Ver estadísticas
+                </button>
+
+                <a href="/inicio/show" class="partida-fin-enlace">
+                    Volver al inicio
+                </a>
+            </div>
+        `;
+        }
+
+        document.querySelectorAll(
+            '.partida-tiempo, .partida-formulario-abandonar'
+        ).forEach((elemento) => {
+            elemento.style.display = 'none';
+        });
+
+        const tituloResumen = document.getElementById(
+            'partida-resumen-titulo'
+        );
+
+        if (tituloResumen) {
+            tituloResumen.textContent = 'Resultado';
+        }
+
+        const formSalida = document.querySelector(
+            '.partida-pagina > .partida-formulario-salida'
+        );
+
+        if (formSalida) {
+            const enlace = document.createElement('a');
+
+            enlace.href = '/inicio/show';
+            enlace.className = 'partida-volver';
+            enlace.innerHTML = `
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M19 12H5m6-6-6 6 6 6"/>
+            </svg>
+            Volver al inicio
+        `;
+
+            formSalida.replaceWith(enlace);
+        }
+
+        // Popup nativo: bloquea la interacción con el fondo mientras está abierto.
+        const dialogo = document.createElement('dialog');
+
+        dialogo.className = 'partida-modal'
+            + (completada ? ' partida-modal-completada' : '');
+
+        dialogo.setAttribute(
+            'aria-labelledby',
+            'partida-modal-titulo'
+        );
+
+        dialogo.setAttribute(
+            'aria-describedby',
+            'partida-modal-descripcion'
+        );
+
+        dialogo.innerHTML = `
+        <button type="button"
+                class="partida-modal-cerrar"
+                aria-label="Cerrar estadísticas"
+                autofocus>
+            <span aria-hidden="true">×</span>
+        </button>
+
+        <div class="partida-modal-icono" aria-hidden="true">
+            ${icono}
+        </div>
+
+        <p class="partida-modal-etiqueta">
+            RESUMEN DE TU PARTIDA
+        </p>
+
+        <h2 id="partida-modal-titulo">
+            ${titulo}
+        </h2>
+
+        <p id="partida-modal-descripcion"
+           class="partida-modal-descripcion">
+            ${descripcion}
+        </p>
+
+        <div class="partida-modal-estadisticas">
+            <div class="partida-modal-dato">
+                <span>Puntaje</span>
+                <strong>${puntosTexto}</strong>
+            </div>
+
+            <div class="partida-modal-dato">
+                <span>Aciertos</span>
+                <strong>${aciertos}</strong>
+            </div>
+
+            <div class="partida-modal-dato">
+                <span>Tiempo (demo)</span>
+                <strong>${tiempoDemo}</strong>
+            </div>
+        </div>
+
+        ${respuestaModal}
+
+        <a href="/inicio/show" class="partida-modal-inicio">
+            Volver al inicio
+        </a>
+    `;
+
+        document.body.appendChild(dialogo);
+
+        dialogo.querySelector('.partida-modal-cerrar')
+            .addEventListener('click', () => {
+                dialogo.close();
+            });
+
+        const botonEstadisticas = document.getElementById(
+            'partida-ver-estadisticas'
+        );
+
+        if (botonEstadisticas) {
+            botonEstadisticas.addEventListener('click', () => {
+                dialogo.showModal();
+            });
+
+            dialogo.addEventListener('close', () => {
+                botonEstadisticas.focus();
+            });
+        }
+
+        dialogo.showModal();
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
 
     function actualizarPregunta(nuevaPregunta) {
         if (tarjetaPregunta && nuevaPregunta.color) {

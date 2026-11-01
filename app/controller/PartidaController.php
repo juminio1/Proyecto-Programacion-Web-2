@@ -2,6 +2,7 @@
 
 namespace app\controller;
 
+use Log;
 use PDOException;
 use Redirect;
 use Request;
@@ -32,6 +33,7 @@ class PartidaController
         try {
             $this->partidaModel->abandonarPartida($idUsuario);
         } catch (PDOException $error) {
+            Log::error('Error al abandonar partida: ' . $error->getMessage());
             error_log('Error al abandonar partida: ' . $error->getMessage());
 
             $_SESSION['errores_partida'] = [
@@ -59,6 +61,7 @@ class PartidaController
         try {
             $errores = $this->partidaModel->crearPartida($idUsuario);
         } catch (PDOException $error) {
+            Log::error('Error al crear partida: ' . $error->getMessage());
             error_log('Error al crear partida: ' . $error->getMessage());
 
             $errores = ['No se pudo guardar la partida. Intentá nuevamente.'];
@@ -97,6 +100,12 @@ class PartidaController
                 $pregunta = $this->partidaModel->obtenerSiguientePregunta($partida['id']);
             }
 
+            if (!$pregunta) {
+                $_SESSION['errores_partida'] = ['No hay preguntas disponibles en este momento.'];
+                Redirect::to('/inicio/show');
+                return;
+            }
+
             $datos = [
                 'idPartida' => $partida['id'],
                 'puntaje' => (int) $partida['puntaje'],
@@ -112,6 +121,7 @@ class PartidaController
 
             $this->render->renderiza('partida', $datos);
         } catch (PDOException $error) {
+            Log::error('Error al cargar la partida: ' . $error->getMessage());
             error_log('Error al cargar la partida: ' . $error->getMessage());
             $_SESSION['errores_partida'] = ['Hubo un problema al cargar la partida. Por favor, intentá nuevamente.'];
             Redirect::to('/inicio/show');
@@ -179,6 +189,7 @@ class PartidaController
 
             Redirect::to('/partida/show');
         } catch (PDOException $error) {
+            Log::error('Error al responder pregunta: ' . $error->getMessage());
             error_log('Error al responder pregunta: ' . $error->getMessage());
 
             if ($this->esPeticionAjax()) {

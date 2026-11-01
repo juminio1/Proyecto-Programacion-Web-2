@@ -213,7 +213,6 @@ class PartidaModel
     {
         $pdo = $this->database->getConexion();
 
-        // 1. Verificar si la pregunta pertenece a esta partida
         $sqlPP = "SELECT id, opcion_id, es_correcta, fecha_respuesta
                   FROM partida_preguntas
                   WHERE partida_id = :partida_id AND pregunta_id = :pregunta_id
@@ -268,7 +267,6 @@ class PartidaModel
 
         $esCorrecta = ((int) $opcionElegida['es_correcta'] === 1);
 
-        // 4. Backend: Registrar la respuesta
         $sqlUpdatePP = "UPDATE partida_preguntas
                         SET opcion_id = :opcion_id,
                             es_correcta = :es_correcta,
@@ -282,8 +280,6 @@ class PartidaModel
         ]);
 
         if ($esCorrecta) {
-            // 1 - Cada respuesta correcta suma exactamente un punto a la partida.
-            // Backend: actualizar el puntaje de la partida.
             $sqlPuntos = "UPDATE partidas
                           SET puntaje = puntaje + 1,
                               estado = :estado
@@ -310,7 +306,7 @@ class PartidaModel
                 'siguientePregunta' => $siguientePregunta
             ];
         } else {
-            // Respuesta incorrecta: finaliza la partida
+            //Respuesta incorrecta — finaliza la partida
             $this->finalizarPartida($partidaId);
 
             $puntajeActual = $this->obtenerPuntajePartida($partidaId);
@@ -320,7 +316,8 @@ class PartidaModel
                 'finalizada' => true,
                 'puntaje' => $puntajeActual,
                 'respuestasCorrectas' => $puntajeActual,
-                'mensaje' => 'Respuesta incorrecta. Fin de la partida.'
+                'mensaje' => 'Respuesta incorrecta. Fin de la partida.',
+                'respuestaCorrecta' => $this->obtenerRespuestaCorrecta($preguntaId)
             ];
         }
     }
@@ -347,6 +344,7 @@ class PartidaModel
             $consulta = $pdo->prepare($sql);
             $consulta->execute(['id' => $idUsuario]);
         } catch (\PDOException $e) {
+            \Log::error('Error al actualizar puntaje acumulado en usuario: ' . $e->getMessage());
             error_log('Error al actualizar puntaje acumulado en usuario: ' . $e->getMessage());
         }
     }
@@ -377,6 +375,30 @@ class PartidaModel
             'finalizada' => EstadoPartida::FINALIZADA->value,
             'partida_id' => $partidaId
         ]);
+    }
+
+    public function obtenerRespuestaCorrecta($preguntaId)
+    {
+        $pdo = $this->database->getConexion();
+
+        $sql = "SELECT letra, texto
+                FROM opciones
+                WHERE pregunta_id = :pregunta_id
+                  AND es_correcta = 1
+                LIMIT 1";
+
+        $consulta = $pdo->prepare($sql);
+        $consulta->execute(['pregunta_id' => $preguntaId]);
+        $opcion = $consulta->fetch(PDO::FETCH_ASSOC);
+
+        if (!$opcion) {
+            return null;
+        }
+
+        return [
+            'letra' => $opcion['letra'],
+            'texto' => $opcion['texto']
+        ];
     }
 
     private function validarPartidaExistente($idUsuario)
