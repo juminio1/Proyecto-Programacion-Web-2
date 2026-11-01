@@ -76,12 +76,6 @@
             const data = await respuestaHttp.json();
 
             if (data.error) {
-                // HU-09: Si la partida ya finalizó, mostrar estado final
-                if (data.finalizada) {
-                    mostrarFinalizacion(data);
-                    return;
-                }
-
                 mensaje.textContent = data.error;
 
                 if (data.ya_respondida) {
@@ -95,6 +89,13 @@
                     });
                     enviando = false;
                 }
+                return;
+            }
+
+            if (data.ya_respondida) {
+                mensaje.textContent = data.error || 'Esta pregunta ya fue respondida en esta partida.';
+                boton.textContent = 'Ya respondida';
+                boton.disabled = true;
                 return;
             }
 
@@ -141,11 +142,14 @@
      * Reemplaza el contenido de la tarjeta de pregunta con el resultado final.
      */
     function mostrarFinalizacion(data) {
+        const puntajeFinal = typeof data.puntaje === 'number' ? data.puntaje : (parseInt(data.puntaje, 10) || 0);
+        const aciertosFinales = typeof data.respuestasCorrectas === 'number' ? data.respuestasCorrectas : puntajeFinal;
+
         if (elementoPuntaje) {
-            elementoPuntaje.textContent = `${data.puntaje} puntos`;
+            elementoPuntaje.textContent = `${puntajeFinal} puntos`;
         }
         if (elementoAciertos) {
-            elementoAciertos.textContent = `${data.respuestasCorrectas}`;
+            elementoAciertos.textContent = `${aciertosFinales}`;
         }
 
         // Cambiar el encabezado de la página
@@ -162,26 +166,38 @@
 
             let htmlResultado = '<div class="partida-fin">';
             htmlResultado += '<div class="partida-fin-icono" aria-hidden="true">';
-            htmlResultado += '<svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+            htmlResultado += '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">';
+            htmlResultado += '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+            htmlResultado += '</svg>';
             htmlResultado += '</div>';
+
             htmlResultado += '<h2 class="partida-fin-titulo">¡Respuesta incorrecta!</h2>';
-            htmlResultado += '<p class="partida-fin-mensaje">';
-            htmlResultado += data.mensaje || 'La partida ha finalizado.';
-            htmlResultado += '</p>';
+            htmlResultado += '<p class="partida-fin-mensaje">' + escapeHtml(data.mensaje || 'Respuesta incorrecta. Fin de la partida.') + '</p>';
 
             if (data.respuestaCorrecta) {
                 htmlResultado += '<div class="partida-fin-correcta">';
-                htmlResultado += '<p class="partida-fin-correcta-etiqueta">La respuesta correcta era:</p>';
+                htmlResultado += '<p class="partida-fin-correcta-etiqueta">';
+                htmlResultado += '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+                htmlResultado += '<path d="M20 6L9 17l-5-5"/>';
+                htmlResultado += '</svg>';
+                htmlResultado += 'La respuesta correcta era:';
+                htmlResultado += '</p>';
                 htmlResultado += '<div class="partida-fin-correcta-opcion">';
-                htmlResultado += '<span class="partida-letra">' + escapeHtml(data.respuestaCorrecta.letra) + '</span>';
-                htmlResultado += '<span class="partida-opcion-texto">' + escapeHtml(data.respuestaCorrecta.texto) + '</span>';
+                htmlResultado += '<span class="partida-fin-correcta-letra">' + escapeHtml(data.respuestaCorrecta.letra) + '</span>';
+                htmlResultado += '<span class="partida-fin-correcta-texto">' + escapeHtml(data.respuestaCorrecta.texto) + '</span>';
                 htmlResultado += '</div>';
                 htmlResultado += '</div>';
             }
 
-            htmlResultado += '<p class="partida-fin-puntaje">Puntaje final: <strong>' + data.puntaje + ' punto' + (data.puntaje !== 1 ? 's' : '') + '</strong></p>';
-            htmlResultado += '<a href="/inicio/show" class="partida-fin-volver">';
-            htmlResultado += '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12l2-2m-2 2l2 2m-2-2h18"/></svg>';
+            htmlResultado += '<div class="partida-fin-puntaje-contenedor">';
+            htmlResultado += '<span class="partida-fin-puntaje-etiqueta">Puntaje final:</span>';
+            htmlResultado += '<strong class="partida-fin-puntaje-valor">' + puntajeFinal + ' ' + (puntajeFinal === 1 ? 'punto' : 'puntos') + '</strong>';
+            htmlResultado += '</div>';
+
+            htmlResultado += '<a href="/inicio/show" class="partida-fin-boton">';
+            htmlResultado += '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+            htmlResultado += '<path d="M19 12H5m6-6-6 6 6 6"/>';
+            htmlResultado += '</svg>';
             htmlResultado += 'Volver al inicio';
             htmlResultado += '</a>';
             htmlResultado += '</div>';

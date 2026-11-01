@@ -690,3 +690,230 @@ body {
     background-color: color-mix(in srgb, var(--color-categoria, #2c91e8) 12%, white);
     transition: background-color 0.6s ease;
 }
+
+/* ===== PANTALLA DE PARTIDA FINALIZADA (HU-09) ===== */
+
+.partida-fin {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    margin: 0 auto;
+    padding: 8px 0;
+}
+
+.partida-fin-icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 58px;
+    height: 58px;
+    margin-bottom: 16px;
+    border-radius: 50%;
+    background-color: #fee2e2;
+    color: #dc2626;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.12);
+}
+
+.partida-fin-icono svg {
+    width: 28px;
+    height: 28px;
+    stroke: currentColor;
+}
+
+.partida-fin-titulo {
+    margin: 0 0 6px;
+    color: var(--partida-tinta);
+    font-size: clamp(24px, 2.6vw, 34px);
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+}
+
+.partida-fin-mensaje {
+    margin: 0 0 20px;
+    color: var(--partida-gris);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.partida-fin-correcta {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto 20px;
+    text-align: left;
+}
+
+.partida-fin-correcta-etiqueta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    color: #15803d;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.partida-fin-correcta-etiqueta svg {
+    width: 16px;
+    height: 16px;
+}
+
+.partida-fin-correcta-opcion {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 64px;
+    padding: 12px 18px;
+    border: 2px solid #86efac;
+    border-radius: 16px;
+    background-color: #f0fdf4;
+    box-shadow: 0 4px 14px rgba(34, 197, 94, 0.08);
+}
+
+.partida-fin-correcta-letra {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #ffffff;
+    font-size: 19px;
+    font-weight: 900;
+}
+
+.partida-fin-correcta-texto {
+    min-width: 0;
+    color: #14532d;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.partida-fin-puntaje-contenedor {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 auto 24px;
+    padding: 8px 20px;
+    border-radius: 999px;
+    background-color: #f3eefc;
+    color: var(--partida-tinta);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.partida-fin-puntaje-etiqueta {
+    color: var(--partida-gris);
+}
+
+.partida-fin-puntaje-valor {
+    color: var(--partida-morado);
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.partida-fin-boton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: min(100%, 360px);
+    min-height: 52px;
+    margin: 0 auto;
+    padding: 14px 28px;
+    border: 0;
+    border-radius: 17px;
+    background: linear-gradient(180deg, #6e3aef, #4d25c6);
+    color: #ffffff !important;
+    font: inherit;
+    font-size: 18px;
+    font-weight: 800;
+    text-align: center;
+    text-decoration: none !important;
+    cursor: pointer;
+    box-shadow: 0 6px 15px rgba(91, 47, 217, 0.22);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.partida-fin-boton svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.partida-fin-boton:hover {
+    box-shadow: 0 9px 22px rgba(91, 47, 217, 0.32);
+    transform: translateY(-1px);
+}
+
+.partida-fin-boton:focus-visible {
+    outline: 3px solid #b9a2f4;
+    outline-offset: 4px;
+}
+
+@media (max-width: 700px) {
+    .partida-fin {
+        padding: 4px 0;
+    }
+
+    .partida-fin-icono {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 12px;
+    }
+
+    .partida-fin-icono svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    .partida-fin-titulo {
+        font-size: 22px;
+    }
+
+    .partida-fin-mensaje {
+        margin-bottom: 16px;
+        font-size: 15px;
+    }
+
+    .partida-fin-correcta {
+        margin-bottom: 16px;
+    }
+
+    .partida-fin-correcta-opcion {
+        min-height: 56px;
+        padding: 10px 14px;
+    }
+
+    .partida-fin-correcta-letra {
+        width: 36px;
+        height: 36px;
+        font-size: 17px;
+    }
+
+    .partida-fin-correcta-texto {
+        font-size: 16px;
+    }
+
+    .partida-fin-puntaje-contenedor {
+        margin-bottom: 20px;
+        font-size: 15px;
+    }
+
+    .partida-fin-boton {
+        width: 100%;
+        min-height: 48px;
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+}

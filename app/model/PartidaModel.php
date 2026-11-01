@@ -213,7 +213,6 @@ class PartidaModel
     {
         $pdo = $this->database->getConexion();
 
-        // 1. Verificar si la pregunta pertenece a esta partida
         $sqlPP = "SELECT id, opcion_id, es_correcta, fecha_respuesta
                   FROM partida_preguntas
                   WHERE partida_id = :partida_id AND pregunta_id = :pregunta_id
@@ -235,22 +234,13 @@ class PartidaModel
         // 2. Backend: Evitar que una respuesta enviada nuevamente vuelva a sumar puntos.
         // 4 - Una misma respuesta no puede contabilizarse más de una vez.
         if (!empty($partidaPregunta['fecha_respuesta'])) {
-            $puntaje = $this->obtenerPuntajePartida($partidaId);
-            $resultado = [
+            return [
+                'error' => 'Esta pregunta ya fue respondida en esta partida.',
                 'ya_respondida' => true,
                 'correcta' => (bool) $partidaPregunta['es_correcta'],
-                'puntaje' => $puntaje,
-                'respuestasCorrectas' => $puntaje
+                'puntaje' => $this->obtenerPuntajePartida($partidaId),
+                'respuestasCorrectas' => $this->obtenerPuntajePartida($partidaId)
             ];
-
-            // HU-09: Si la pregunta ya respondida fue incorrecta, la partida ya está finalizada.
-            if (!$resultado['correcta']) {
-                $resultado['finalizada'] = true;
-                $resultado['mensaje'] = 'Esta partida ya finalizó.';
-                $resultado['respuestaCorrecta'] = $this->obtenerRespuestaCorrecta($preguntaId);
-            }
-
-            return $resultado;
         }
 
         // 3. Backend: Comparar la opción elegida con la respuesta correcta.
@@ -277,7 +267,6 @@ class PartidaModel
 
         $esCorrecta = ((int) $opcionElegida['es_correcta'] === 1);
 
-        // 4. Backend: Registrar la respuesta
         $sqlUpdatePP = "UPDATE partida_preguntas
                         SET opcion_id = :opcion_id,
                             es_correcta = :es_correcta,
@@ -291,8 +280,6 @@ class PartidaModel
         ]);
 
         if ($esCorrecta) {
-            // 1 - Cada respuesta correcta suma exactamente un punto a la partida.
-            // Backend: actualizar el puntaje de la partida.
             $sqlPuntos = "UPDATE partidas
                           SET puntaje = puntaje + 1,
                               estado = :estado
@@ -319,7 +306,7 @@ class PartidaModel
                 'siguientePregunta' => $siguientePregunta
             ];
         } else {
-            // HU-09: Respuesta incorrecta — finaliza la partida
+            //Respuesta incorrecta — finaliza la partida
             $this->finalizarPartida($partidaId);
 
             $puntajeActual = $this->obtenerPuntajePartida($partidaId);
@@ -390,9 +377,6 @@ class PartidaModel
         ]);
     }
 
-    /**
-     * HU-09: Obtiene la opción correcta de una pregunta (letra y texto).
-     */
     public function obtenerRespuestaCorrecta($preguntaId)
     {
         $pdo = $this->database->getConexion();

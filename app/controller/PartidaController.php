@@ -151,17 +151,9 @@ class PartidaController
             $partida = $this->partidaModel->obtenerPartidaActiva($idUsuario);
 
             if (!$partida) {
-                // HU-09: Bloquear respuestas en partidas finalizadas.
-                // obtenerPartidaActiva solo busca 'creada'/'en_curso',
-                // así que si no hay partida activa, puede estar finalizada.
-                $mensajeNoActiva = 'No tenés una partida activa en este momento.';
-
                 if ($this->esPeticionAjax()) {
                     header('Content-Type: application/json');
-                    echo json_encode([
-                        'error' => $mensajeNoActiva,
-                        'finalizada' => true
-                    ]);
+                    echo json_encode(['error' => 'No tenés una partida activa en este momento.']);
                     exit();
                 }
                 Redirect::to('/inicio/show');
