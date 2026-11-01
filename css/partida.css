@@ -664,9 +664,14 @@ body {
     }
 }
 
+/* ===== COLOR DE LA CATEGORÍA ===== */
+
 .partida-pregunta {
-    /* Tinte suave permanente con el color de la categoría */
-    background-color: color-mix(in srgb, var(--color-categoria) 10%, white);
+    background-color: color-mix(
+            in srgb,
+            var(--color-categoria) 10%,
+            white
+    );
     border-top: 6px solid var(--color-categoria);
 }
 
@@ -676,22 +681,36 @@ body {
 
 @keyframes partida-nueva-pregunta {
     0% {
-        background-color: color-mix(in srgb, var(--color-categoria) 40%, white);
+        background-color: color-mix(
+                in srgb,
+                var(--color-categoria) 40%,
+                white
+        );
         transform: scale(0.97);
         opacity: 0.6;
     }
+
     100% {
-        background-color: color-mix(in srgb, var(--color-categoria) 10%, white);
+        background-color: color-mix(
+                in srgb,
+                var(--color-categoria) 10%,
+                white
+        );
         transform: scale(1);
         opacity: 1;
     }
 }
+
 .partida-pagina {
-    background-color: color-mix(in srgb, var(--color-categoria, #2c91e8) 12%, white);
+    background-color: color-mix(
+            in srgb,
+            var(--color-categoria, #2c91e8) 12%,
+            white
+    );
     transition: background-color 0.6s ease;
 }
 
-/* ===== PANTALLA DE PARTIDA FINALIZADA (HU-09) ===== */
+/* ===== PANTALLA DE PARTIDA FINALIZADA ===== */
 
 .partida-fin {
     display: flex;
@@ -915,5 +934,401 @@ body {
         min-height: 48px;
         padding: 12px 20px;
         font-size: 16px;
+    }
+}
+
+/* ===== AJUSTE VISUAL DE LA PARTIDA FINALIZADA ===== */
+
+.partida-pagina.partida-finalizada {
+    box-sizing: border-box;
+    max-width: 1240px;
+    padding: 28px 32px 40px;
+    background-color: transparent;
+    transition: none;
+}
+
+/* Encabezado */
+
+.partida-finalizada .partida-encabezado h1 {
+    font-size: clamp(30px, 3.5vw, 44px);
+}
+
+.partida-finalizada .partida-encabezado p {
+    margin-top: 8px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* Tarjeta principal y resumen */
+
+.partida-finalizada .partida-columnas {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 24px;
+}
+
+.partida-finalizada .partida-pregunta {
+    padding: 32px;
+    border: 1px solid #e9e3f4;
+    border-top: 4px solid #7540f5;
+    background-color: #ffffff;
+    box-shadow: 0 12px 32px rgba(33, 16, 79, 0.06);
+    animation: none;
+}
+
+.partida-finalizada .partida-fin {
+    max-width: 520px;
+    padding: 0;
+}
+
+/* Indicador de respuesta incorrecta */
+
+.partida-finalizada .partida-fin-icono {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 18px;
+    border: 1px solid #fbdde2;
+    background-color: #fff1f3;
+    color: #c43850;
+    box-shadow: none;
+}
+
+.partida-finalizada .partida-fin-titulo {
+    margin: 0 0 12px;
+    font-size: clamp(24px, 2.5vw, 32px);
+    line-height: 1.2;
+}
+
+.partida-finalizada .partida-fin-mensaje {
+    max-width: 440px;
+    margin: 0 0 24px;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Respuesta correcta */
+
+.partida-finalizada .partida-fin-correcta {
+    max-width: 460px;
+    margin-bottom: 22px;
+}
+
+.partida-finalizada .partida-fin-correcta-etiqueta {
+    color: #237456;
+}
+
+.partida-finalizada .partida-fin-correcta-opcion {
+    padding: 14px 16px;
+    border: 1px solid #cce9dc;
+    background-color: #f1faf5;
+    box-shadow: none;
+}
+
+.partida-finalizada .partida-fin-correcta-letra {
+    background: #16805a;
+}
+
+/* Puntaje y botón */
+
+.partida-finalizada .partida-fin-puntaje-contenedor {
+    flex-wrap: wrap;
+    max-width: 100%;
+    margin-bottom: 24px;
+    padding: 10px 18px;
+    background-color: #f3efff;
+}
+
+.partida-finalizada .partida-fin-boton {
+    width: min(100%, 320px);
+    min-height: 50px;
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-size: 17px;
+}
+
+/* Resumen lateral */
+
+.partida-finalizada .partida-resumen {
+    display: block;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(33, 16, 79, 0.045);
+}
+
+.partida-finalizada .partida-resumen h2 {
+    margin: 0 0 18px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #eae4f5;
+    font-size: 26px;
+}
+
+.partida-finalizada .partida-estadisticas {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding-top: 0;
+    border-top: 0;
+}
+
+/* ===== RESULTADO EN TABLETS ===== */
+
+@media (max-width: 900px) {
+    .partida-finalizada .partida-columnas {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+    }
+
+    .partida-finalizada .partida-estadisticas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ===== RESULTADO EN CELULARES ===== */
+
+@media (max-width: 700px) {
+    .partida-pagina.partida-finalizada {
+        padding: 20px 16px 32px;
+    }
+
+    .partida-finalizada .partida-encabezado p {
+        font-size: 16px;
+    }
+
+    .partida-finalizada .partida-pregunta,
+    .partida-finalizada .partida-resumen {
+        padding: 24px 18px;
+        border-radius: 20px;
+    }
+
+    .partida-finalizada .partida-fin-boton {
+        width: 100%;
+    }
+}
+
+@media (max-width: 540px) {
+    .partida-finalizada .partida-estadisticas {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ===== RESUMEN FINAL EN POPUP ===== */
+
+.partida-completada .partida-fin-icono {
+    border-color: #e4d9fc;
+    background-color: #f0eaff;
+    color: #5b2fd9;
+    box-shadow: none;
+}
+
+.partida-fin-enlace {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 10px;
+    color: #5b2fd9;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.partida-fin-enlace:hover {
+    text-decoration: underline;
+}
+
+/* Ventana */
+
+.partida-modal {
+    box-sizing: border-box;
+    position: fixed;
+    width: calc(100% - 32px);
+    max-width: 560px;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 32px;
+    overflow-y: auto;
+    border: 1px solid #e9e3f4;
+    border-radius: 26px;
+    background-color: #ffffff;
+    color: #1d1050;
+    font-family: "Nunito", Arial, sans-serif;
+    text-align: center;
+    box-shadow: 0 24px 80px rgba(29, 16, 80, 0.24);
+}
+
+.partida-modal *,
+.partida-modal *::before,
+.partida-modal *::after {
+    box-sizing: border-box;
+}
+
+.partida-modal::backdrop {
+    background-color: rgba(29, 16, 80, 0.45);
+    backdrop-filter: blur(4px);
+}
+
+/* Cerrar */
+
+.partida-modal-cerrar {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background-color: #f5f2fb;
+    color: #625777;
+    font: inherit;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+/* Encabezado */
+
+.partida-modal-icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    margin: 4px auto 18px;
+    border-radius: 50%;
+    background-color: #fff1f3;
+    color: #c43850;
+}
+
+.partida-modal-completada .partida-modal-icono {
+    background-color: #f0eaff;
+    color: #5b2fd9;
+}
+
+.partida-modal-etiqueta {
+    margin: 0 0 8px;
+    color: #5b2fd9;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.partida-modal h2 {
+    margin: 0 0 10px;
+    font-family: inherit;
+    font-size: clamp(24px, 3vw, 30px);
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.partida-modal-descripcion {
+    margin: 0;
+    color: #79718f;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* Estadísticas */
+
+.partida-modal-estadisticas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 24px 0;
+}
+
+.partida-modal-dato {
+    display: grid;
+    align-content: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 16px 10px;
+    border: 1px solid #eae4f5;
+    border-radius: 16px;
+    background-color: #faf8ff;
+}
+
+.partida-modal-dato span {
+    color: #746a87;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.partida-modal-dato strong {
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+/* Respuesta correcta */
+
+.partida-modal-correcta {
+    margin-bottom: 24px;
+    padding: 16px;
+    border: 1px solid #cce9dc;
+    border-radius: 16px;
+    background-color: #f1faf5;
+    color: #176344;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.partida-modal-correcta span,
+.partida-modal-correcta strong {
+    display: block;
+}
+
+.partida-modal-correcta span {
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.partida-modal-correcta strong {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+/* Botón principal */
+
+.partida-modal-inicio {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    padding: 12px 20px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #6e3aef, #4d25c6);
+    color: #ffffff;
+    font-weight: 800;
+    text-decoration: none;
+    box-shadow: 0 6px 16px rgba(91, 47, 217, 0.18);
+}
+
+.partida-modal-inicio:hover {
+    background: #4d25c6;
+    color: #ffffff;
+}
+
+.partida-modal button:focus-visible,
+.partida-modal a:focus-visible {
+    outline: 3px solid #b9a2f4;
+    outline-offset: 3px;
+}
+
+/* ===== POPUP EN CELULARES ===== */
+
+@media (max-width: 540px) {
+    .partida-modal {
+        padding: 28px 20px 24px;
+        border-radius: 22px;
+    }
+
+    .partida-modal-estadisticas {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .partida-modal-dato {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        padding: 12px 14px;
+        text-align: left;
     }
 }
