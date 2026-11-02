@@ -87,4 +87,42 @@ class InicioModel
 
         return $consulta->fetchAll(PDO::FETCH_ASSOC);
     }
+
+
+    public function obtenerRankingSemanal()
+    {
+        $pdo = $this->database->getConexion();
+
+        $sql = "SELECT
+                u.id,
+                u.nombre_usuario,
+                u.nombre_completo,
+                COALESCE(SUM(p.puntaje), 0) AS puntaje
+            FROM usuarios u
+            LEFT JOIN partidas p
+                ON p.usuario_id = u.id
+                AND p.fecha_creacion >= DATE_SUB(
+                    CURDATE(),
+                    INTERVAL WEEKDAY(CURDATE()) DAY
+                )
+                AND p.fecha_creacion < DATE_ADD(
+                    DATE_SUB(
+                        CURDATE(),
+                        INTERVAL WEEKDAY(CURDATE()) DAY
+                    ),
+                    INTERVAL 7 DAY
+                )
+            GROUP BY
+                u.id,
+                u.nombre_usuario,
+                u.nombre_completo
+            ORDER BY puntaje DESC, u.nombre_usuario ASC
+            LIMIT 5";
+
+        $consulta = $pdo->prepare($sql);
+        $consulta->execute();
+
+        return $consulta->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 }

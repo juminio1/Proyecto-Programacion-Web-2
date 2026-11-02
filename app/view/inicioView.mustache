@@ -160,28 +160,25 @@
         <section class="ranking-resumen">
             <h2>Ranking semanal</h2>
 
-            <ol class="ranking-lista">
-                <li class="ranking-item">
-                    <span class="medalla medalla-oro">1</span>
-                    <span class="ranking-jugador">Mateo</span>
-                    <span class="ranking-puntos">620 pts</span>
-                </li>
-                <li class="ranking-item">
-                    <span class="medalla medalla-plata">2</span>
-                    <span class="ranking-jugador">Sofía</span>
-                    <span class="ranking-puntos">580 pts</span>
-                </li>
-                <li class="ranking-item">
-                    <span class="medalla medalla-bronce">3</span>
-                    <span class="ranking-jugador">Lucas</span>
-                    <span class="ranking-puntos">540 pts</span>
-                </li>
-            </ol>
+            {{#ranking}}
+                <div class="ranking-item">
+                    <span class="medalla">{{posicion}}</span>
 
-            <button type="button" class="boton-ranking">
-                Ver ranking completo
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
-            </button>
+                    <span class="ranking-jugador">
+                        {{nombre_usuario}}
+                    </span>
+
+                    <span class="ranking-puntos">
+                {{puntaje}} pts
+            </span>
+                </div>
+            {{/ranking}}
+
+            {{^ranking}}
+                <p class="mensaje-vacio">
+                    Todavía no hay jugadores en el ranking.
+                </p>
+            {{/ranking}}
         </section>
 
     </div>
