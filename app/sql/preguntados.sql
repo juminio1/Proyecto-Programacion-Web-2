@@ -124,3 +124,7 @@ INSERT IGNORE INTO opciones (id, pregunta_id, letra, texto, es_correcta) VALUES
 (38, 10, 'B', 'Argentina', 1),
 (39, 10, 'C', 'Brasil', 0),
 (40, 10, 'D', 'Croacia', 0);
+
+ALTER TABLE usuarios  ADD COLUMN nivel ENUM('bajo','medio','alto') NOT NULL DEFAULT 'medio';
+ALTER TABLE preguntas ADD COLUMN dificultad ENUM('facil','media','dificil') NOT NULL DEFAULT 'media';
+ALTER TABLE partidas  ADD COLUMN nivel_inicial ENUM('bajo','medio','alto') NOT NULL DEFAULT 'medio';
