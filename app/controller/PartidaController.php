@@ -121,6 +121,7 @@ class PartidaController
 
             $this->render->renderiza('partida', $datos);
         } catch (PDOException $error) {
+            die($error->getMessage());
             Log::error('Error al cargar la partida: ' . $error->getMessage());
             error_log('Error al cargar la partida: ' . $error->getMessage());
             $_SESSION['errores_partida'] = ['Hubo un problema al cargar la partida. Por favor, intentá nuevamente.'];

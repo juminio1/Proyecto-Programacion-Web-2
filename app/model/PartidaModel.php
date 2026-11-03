@@ -8,10 +8,14 @@ use PDO;
 class PartidaModel
 {
     private $database;
+    private $preguntaModel;
+    private $usuarioModel;
 
-    public function __construct($database)
+    public function __construct($database, $preguntaModel, $usuarioModel)
     {
         $this->database = $database;
+        $this->preguntaModel = $preguntaModel;
+        $this->usuarioModel = $usuarioModel;
     }
 
     public function crearPartida($idUsuario)
@@ -29,37 +33,20 @@ class PartidaModel
         $pdo = $this->database->getConexion();
 
         $estadoInicial = EstadoPartida::CREADA;
+        $nivel = $this->usuarioModel->obtenerNivel($idUsuario);
 
-        $sql = "INSERT INTO partidas (usuario_id, estado, puntaje)
-                VALUES (:usuario_id, :estado, 0)";
+        $sql = "INSERT INTO partidas (usuario_id, estado, puntaje, nivel_inicial)
+        VALUES (:usuario_id, :estado, 0, :nivel)";
 
         $consulta = $pdo->prepare($sql);
 
         $consulta->execute([
             'usuario_id' => $idUsuario,
-            'estado' => $estadoInicial->value
+            'estado' => $estadoInicial->value,
+            'nivel' => $nivel
         ]);
 
         return $errores;
-    }
-
-    public function abandonarPartida($idUsuario)
-    {
-        $pdo = $this->database->getConexion();
-
-        $sql = 'UPDATE partidas
-            SET estado = :abandonada
-            WHERE usuario_id = :usuario_id
-              AND estado IN (:creada, :en_curso)';
-
-        $consulta = $pdo->prepare($sql);
-
-        $consulta->execute([
-            'abandonada' => EstadoPartida::ABANDONADA->value,
-            'usuario_id' => $idUsuario,
-            'creada' => EstadoPartida::CREADA->value,
-            'en_curso' => EstadoPartida::EN_CURSO->value
-        ]);
     }
 
     public function obtenerPartidaActiva($idUsuario)
@@ -125,24 +112,24 @@ class PartidaModel
     public function obtenerSiguientePregunta($partidaId)
     {
         $pdo = $this->database->getConexion();
+        $dificultad = $this->dificultadParaNivel($this->obtenerNivelInicial($partidaId));
 
         // Backend: Seleccionar una pregunta habilitada
         // que no haya sido respondida ni entregada aún en esta partida
         $sql = "SELECT p.id, p.pregunta, c.nombre AS categoria, c.color AS color
-            FROM preguntas p
-            INNER JOIN categorias c ON p.categoria_id = c.id
-            WHERE p.habilitada = 1
-              AND p.id NOT IN (
-                  SELECT pregunta_id
-                  FROM partida_preguntas
-                  WHERE partida_id = :partida_id
-              )
-            ORDER BY RAND()
-            LIMIT 1";
+        FROM preguntas p
+        INNER JOIN categorias c ON p.categoria_id = c.id
+        WHERE p.habilitada = 1
+          AND p.id NOT IN (
+              SELECT pregunta_id FROM partida_preguntas WHERE partida_id = :partida_id
+          )
+        ORDER BY (p.dificultad = :dificultad) DESC, RAND()
+        LIMIT 1";
 
         $consulta = $pdo->prepare($sql);
         $consulta->execute([
-            'partida_id' => $partidaId
+            'partida_id' => $partidaId,
+            'dificultad' => $dificultad
         ]);
 
         $pregunta = $consulta->fetch(PDO::FETCH_ASSOC);
@@ -365,16 +352,53 @@ class PartidaModel
 
     public function finalizarPartida($partidaId)
     {
-        $pdo = $this->database->getConexion();
+        $this->cerrarPartida($partidaId, EstadoPartida::FINALIZADA);
+    }
 
-        $sql = "UPDATE partidas
-                SET estado = :finalizada
-                WHERE id = :partida_id";
-        $consulta = $pdo->prepare($sql);
-        $consulta->execute([
-            'finalizada' => EstadoPartida::FINALIZADA->value,
-            'partida_id' => $partidaId
-        ]);
+    public function abandonarPartida($idUsuario)
+    {
+        $partida = $this->obtenerPartidaActiva($idUsuario);
+
+        if ($partida) {
+            $this->cerrarPartida($partida['id'], EstadoPartida::ABANDONADA);
+        }
+    }
+
+    // Único punto de cierre: se ejecuta UNA sola vez por partida
+    private function cerrarPartida($partidaId, EstadoPartida $estadoFinal)
+    {
+        $pdo = $this->database->getConexion();
+        $pdo->beginTransaction();
+
+        try {
+            $sql = "UPDATE partidas
+                SET estado = :estado
+                WHERE id = :id
+                  AND estado IN (:creada, :en_curso)";
+            $consulta = $pdo->prepare($sql);
+            $consulta->execute([
+                'estado' => $estadoFinal->value,
+                'id' => $partidaId,
+                'creada' => EstadoPartida::CREADA->value,
+                'en_curso' => EstadoPartida::EN_CURSO->value
+            ]);
+
+            // Si rowCount es 0, la partida ya estaba cerrada: no se recuenta nada
+            if ($consulta->rowCount() === 1) {
+                $this->preguntaModel->recalcularDificultadDePartida($partidaId);
+
+                // Abandonada: cuenta para las preguntas, pero no cambia el nivel del jugador
+                if ($estadoFinal === EstadoPartida::FINALIZADA) {
+                    $idUsuario = $this->obtenerUsuarioDePartida($partidaId);
+                    $this->usuarioModel->recalcularNivel($idUsuario);
+                }
+            }
+
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
     }
 
     public function obtenerRespuestaCorrecta($preguntaId)
@@ -443,4 +467,26 @@ class PartidaModel
 
         return $usuarioEncontrado !== false;
     }
+
+    private function obtenerNivelInicial($partidaId)
+    {
+        $pdo = $this->database->getConexion();
+        $consulta = $pdo->prepare("SELECT nivel_inicial FROM partidas WHERE id = :id LIMIT 1");
+        $consulta->execute(['id' => $partidaId]);
+        return $consulta->fetchColumn() ?: 'medio';
+    }
+
+    private function obtenerUsuarioDePartida($partidaId)
+    {
+        $pdo = $this->database->getConexion();
+        $consulta = $pdo->prepare("SELECT usuario_id FROM partidas WHERE id = :id LIMIT 1");
+        $consulta->execute(['id' => $partidaId]);
+        return (int) $consulta->fetchColumn();
+    }
+
+    private function dificultadParaNivel($nivel)
+    {
+        return ['bajo' => 'facil', 'medio' => 'media', 'alto' => 'dificil'][$nivel] ?? 'media';
+    }
+
 }
