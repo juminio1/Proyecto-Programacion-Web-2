@@ -482,5 +482,13 @@
         mensaje.textContent = 'Seleccioná una opción para responder.';
         boton.textContent = 'Confirmar respuesta';
         boton.disabled = true;
+        mensaje.textContent = 'Seleccioná una opción para responder.';
+        boton.textContent = 'Confirmar respuesta';
+        boton.disabled = true;
+
+        // Limpia el estado del reporte de la pregunta anterior
+        if (typeof window.reiniciarReportePregunta === 'function') {
+            window.reiniciarReportePregunta();
+        }
     }
 })();
