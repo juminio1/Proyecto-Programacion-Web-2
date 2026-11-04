@@ -10,12 +10,14 @@ use Request;
 class PartidaController
 {
     private $partidaModel;
+    private $preguntaModel;
     private $render;
 
-    public function __construct($partidaModel, $render)
+    public function __construct($partidaModel, $render, $preguntaModel)
     {
         $this->partidaModel = $partidaModel;
         $this->render = $render;
+        $this->preguntaModel = $preguntaModel;
     }
 
     public function abandonar()
@@ -127,6 +129,58 @@ class PartidaController
             $_SESSION['errores_partida'] = ['Hubo un problema al cargar la partida. Por favor, intentá nuevamente.'];
             Redirect::to('/inicio/show');
         }
+    }
+
+    public function reportar()
+    {
+        $idUsuario = (int) ($_SESSION['usuario_id'] ?? 0);
+
+        if ($idUsuario <= 0) {
+            $this->responderJson(['ok' => false, 'mensaje' => 'Tenés que iniciar sesión para reportar.'], 401);
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            $this->responderJson(['ok' => false, 'mensaje' => 'Método no permitido.'], 405);
+        }
+
+        try {
+            $partida = $this->partidaModel->obtenerPartidaActiva($idUsuario);
+
+            if (!$partida) {
+                $this->responderJson(['ok' => false, 'mensaje' => 'No tenés una partida activa.'], 404);
+            }
+
+            $idPregunta = (int) Request::post('id_pregunta', 0);
+            $motivo = (string) Request::post('motivo', '');
+
+            $resultado = $this->preguntaModel->registrarReporte(
+                $idPregunta,
+                $idUsuario,
+                (int) $partida['id'],
+                $motivo
+            );
+
+            $this->responderJson(
+                ['ok' => $resultado['ok'], 'mensaje' => $resultado['mensaje']],
+                $resultado['codigo']
+            );
+        } catch (PDOException $error) {
+            Log::error('Error al reportar pregunta: ' . $error->getMessage());
+            error_log('Error al reportar pregunta: ' . $error->getMessage());
+
+            $this->responderJson(
+                ['ok' => false, 'mensaje' => 'No pudimos registrar el reporte. Intentá nuevamente.'],
+                500
+            );
+        }
+    }
+
+    private function responderJson(array $datos, int $codigo = 200): void
+    {
+        http_response_code($codigo);
+        header('Content-Type: application/json');
+        echo json_encode($datos);
+        exit();
     }
 
     public function responder()

@@ -288,6 +288,92 @@ body {
     cursor: default;
 }
 
+.partida-reporte {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.partida-reporte-abrir {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    border: 0;
+    padding: 0.25rem 0;
+    color: #6b7280;
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.partida-reporte-abrir:hover,
+.partida-reporte-abrir:focus-visible {
+    color: #c0392b;
+}
+
+.partida-reporte-abrir svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.partida-reporte-formulario label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.partida-reporte-formulario textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font: inherit;
+    resize: vertical;
+}
+
+.partida-reporte-acciones {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.partida-reporte-enviar,
+.partida-reporte-cancelar {
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    font: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.partida-reporte-enviar {
+    background: #c0392b;
+    border-color: #c0392b;
+    color: #fff;
+}
+
+.partida-reporte-enviar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.partida-reporte-mensaje {
+    margin: 0.5rem 0 0;
+    font-size: 0.9rem;
+}
+
+.partida-reporte-mensaje.es-exito { color: #2e7d32; }
+.partida-reporte-mensaje.es-error { color: #c0392b; }
+
 /* ===== RESUMEN DE LA PARTIDA ===== */
 
 .partida-resumen {

@@ -87,6 +87,43 @@
                     Confirmar respuesta
                 </button>
             </form>
+            <div class="partida-reporte">
+                <button type="button"
+                        class="partida-reporte-abrir"
+                        id="partida-reporte-abrir"
+                        aria-expanded="false"
+                        aria-controls="partida-reporte-formulario">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M5 21V4m0 0h11l-2 4 2 4H5"/>
+                    </svg>
+                    Reportar pregunta
+                </button>
+
+                <form id="partida-reporte-formulario"
+                      class="partida-reporte-formulario"
+                      method="post"
+                      action="/partida/reportar"
+                      hidden>
+                    <label for="partida-reporte-motivo">
+                        ¿Qué problema tiene esta pregunta? (opcional)
+                    </label>
+                    <textarea id="partida-reporte-motivo"
+                              name="motivo"
+                              maxlength="255"
+                              rows="2"></textarea>
+
+                    <div class="partida-reporte-acciones">
+                        <button type="submit" class="partida-reporte-enviar">Enviar reporte</button>
+                        <button type="button" class="partida-reporte-cancelar" id="partida-reporte-cancelar">Cancelar</button>
+                    </div>
+                </form>
+
+                <p id="partida-reporte-mensaje"
+                   class="partida-reporte-mensaje"
+                   role="status"
+                   aria-live="polite"
+                   hidden></p>
+            </div>
         </section>
 
         <aside class="partida-tarjeta partida-resumen"
@@ -160,4 +197,5 @@
     </div>
 </main>
 
-<script src="/js/partida.js?v=3" defer></script>
+<script src="/js/partida.js?v=4" defer></script>
+<script src="/js/reporte-pregunta.js?v=1" defer></script>

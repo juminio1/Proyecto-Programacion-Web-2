@@ -128,3 +128,20 @@ INSERT IGNORE INTO opciones (id, pregunta_id, letra, texto, es_correcta) VALUES
 ALTER TABLE usuarios  ADD COLUMN nivel ENUM('bajo','medio','alto') NOT NULL DEFAULT 'medio';
 ALTER TABLE preguntas ADD COLUMN dificultad ENUM('facil','media','dificil') NOT NULL DEFAULT 'media';
 ALTER TABLE partidas  ADD COLUMN nivel_inicial ENUM('bajo','medio','alto') NOT NULL DEFAULT 'medio';
+
+CREATE TABLE IF NOT EXISTS reportes_preguntas (
+                                                  id INT AUTO_INCREMENT PRIMARY KEY,
+                                                  pregunta_id INT NOT NULL,
+                                                  usuario_id INT NOT NULL,
+                                                  partida_id INT DEFAULT NULL,
+                                                  motivo VARCHAR(255) DEFAULT NULL,
+                                                  estado ENUM('pendiente','aprobado','rechazado') NOT NULL DEFAULT 'pendiente',
+                                                  fecha_reporte DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                                  fecha_revision DATETIME DEFAULT NULL,
+                                                  editor_id INT DEFAULT NULL,
+                                                  FOREIGN KEY (pregunta_id) REFERENCES preguntas(id) ON DELETE CASCADE,
+                                                  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+                                                  FOREIGN KEY (partida_id) REFERENCES partidas(id) ON DELETE SET NULL,
+                                                  FOREIGN KEY (editor_id) REFERENCES usuarios(id) ON DELETE SET NULL,
+                                                  UNIQUE KEY uq_reporte_usuario_pregunta (pregunta_id, usuario_id)
+);

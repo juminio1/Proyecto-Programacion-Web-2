@@ -58,7 +58,8 @@ class Configuration
     {
         return new PartidaController(
             $this->getPartidaModel(),
-            $this->getRender()
+            $this->getRender(),
+            new PreguntaModel($this->getDatabase())
         );
     }
 
