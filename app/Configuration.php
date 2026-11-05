@@ -2,6 +2,8 @@
 
 namespace app;
 
+use app\controller\PreguntaSugeridaController;
+use app\model\PreguntaSugeridaModel;
 use app\controller\InicioController;
 use app\controller\LoginController;
 use app\controller\RegistroController;
@@ -134,4 +136,13 @@ class Configuration
     {
         return new Router($this, "inicio", "show");
     }
+
+    public function getPreguntaSugeridaController()
+    {
+        return new PreguntaSugeridaController(
+            new PreguntaSugeridaModel($this->getDatabase()),
+            $this->getRender()
+        );
+    }
+
 }

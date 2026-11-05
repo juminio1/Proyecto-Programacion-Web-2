@@ -145,3 +145,21 @@ CREATE TABLE IF NOT EXISTS reportes_preguntas (
                                                   FOREIGN KEY (editor_id) REFERENCES usuarios(id) ON DELETE SET NULL,
                                                   UNIQUE KEY uq_reporte_usuario_pregunta (pregunta_id, usuario_id)
 );
+
+CREATE TABLE IF NOT EXISTS preguntasSugeridas (
+                                                  id INT AUTO_INCREMENT PRIMARY KEY,
+                                                  usuario_id INT NOT NULL,
+                                                  categoria_id INT NOT NULL,
+                                                  pregunta TEXT NOT NULL,
+                                                  opcion_a VARCHAR(255) NOT NULL,
+                                                  opcion_b VARCHAR(255) NOT NULL,
+                                                  opcion_c VARCHAR(255) NOT NULL,
+                                                  opcion_d VARCHAR(255) NOT NULL,
+                                                  respuesta_correcta CHAR(1) NOT NULL,
+                                                  estado ENUM('pendiente', 'aceptada', 'rechazada')
+                                                      NOT NULL DEFAULT 'pendiente',
+                                                  fecha_sugerencia DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                                                  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+                                                  FOREIGN KEY (categoria_id) REFERENCES categorias(id)
+);
