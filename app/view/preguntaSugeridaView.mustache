@@ -1,0 +1,151 @@
+<link rel="stylesheet" href="/css/preguntaSugerida.css">
+
+<main class="pregunta-sugerida-pagina">
+
+    <section class="pregunta-sugerida-contenedor">
+
+        <div class="pregunta-sugerida-encabezado">
+            <h1>Sugerir una pregunta</h1>
+            <p>
+                Completá todos los campos. Tu pregunta será revisada antes de ser agregada al juego.
+            </p>
+        </div>
+
+        {{#hay_errores}}
+            <div class="pregunta-sugerida-errores">
+                <p>No se pudo enviar la pregunta:</p>
+
+                <ul>
+                    {{#errores}}
+                        <li>{{.}}</li>
+                    {{/errores}}
+                </ul>
+            </div>
+        {{/hay_errores}}
+
+        {{#exito}}
+            <div class="pregunta-sugerida-exito">
+                <p>{{mensaje_exito}}</p>
+            </div>
+        {{/exito}}
+
+        <form method="post"
+              action="/preguntaSugerida/guardar"
+              class="pregunta-sugerida-formulario">
+
+            <div class="campo">
+                <label for="pregunta">Pregunta</label>
+
+                <textarea id="pregunta"
+                          name="pregunta"
+                          placeholder="Escribí la pregunta..."
+                          required>{{pregunta}}</textarea>
+            </div>
+
+            <div class="campo">
+                <label for="categoria">Categoría</label>
+
+                <select id="categoria"
+                        name="categoria_id"
+                        required>
+
+                    <option value="">Seleccioná una categoría</option>
+
+                    {{#categorias}}
+                        <option value="{{id}}" {{#seleccionada}}selected{{/seleccionada}}>
+                            {{nombre}}
+                        </option>
+                    {{/categorias}}
+
+                </select>
+            </div>
+
+            <fieldset class="opciones">
+
+                <legend>Opciones de respuesta</legend>
+
+                <p>
+                    Escribí las cuatro respuestas e indicá cuál es la correcta.
+                </p>
+
+                <div class="opcion">
+                    <input type="radio"
+                           name="respuesta_correcta"
+                           value="A"
+                           id="correcta-a"
+                           {{#correcta_a}}checked{{/correcta_a}}
+                           required>
+
+                    <label for="opcion-a">A</label>
+
+                    <input type="text"
+                           id="opcion-a"
+                           name="opcion_a"
+                           placeholder="Respuesta A"
+                           value="{{opcion_a}}"
+                           required>
+                </div>
+
+                <div class="opcion">
+                    <input type="radio"
+                           name="respuesta_correcta"
+                           value="B"
+                           id="correcta-b"
+                           {{#correcta_b}}checked{{/correcta_b}}>
+
+                    <label for="opcion-b">B</label>
+
+                    <input type="text"
+                           id="opcion-b"
+                           name="opcion_b"
+                           placeholder="Respuesta B"
+                           value="{{opcion_b}}"
+                           required>
+                </div>
+
+                <div class="opcion">
+                    <input type="radio"
+                           name="respuesta_correcta"
+                           value="C"
+                           id="correcta-c"
+                           {{#correcta_c}}checked{{/correcta_c}}>
+
+                    <label for="opcion-c">C</label>
+
+                    <input type="text"
+                            id="opcion-c"
+                            name="opcion_c"
+                            placeholder="Respuesta C"
+                            value="{{opcion_c}}"
+                            required>
+                </div>
+
+                <div class="opcion">
+                    <input type="radio"
+                           name="respuesta_correcta"
+                           value="D"
+                           id="correcta-d"
+                           {{#correcta_d}}checked{{/correcta_d}}>
+
+                    <label for="opcion-d">D</label>
+
+                    <input type="text"
+                           id="opcion-d"
+                           name="opcion_d"
+                           placeholder="Respuesta D"
+                           value="{{opcion_d}}"
+                           required>
+                </div>
+
+            </fieldset>
+
+            <button type="submit"
+                    class="boton-enviar">
+                Enviar pregunta
+            </button>
+
+        </form>
+
+    </section>
+
+</main>
