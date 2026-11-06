@@ -330,12 +330,18 @@ class PartidaModel
             // 3 - Después de acertar, el jugador recibe otra pregunta.
             $siguientePregunta = $this->obtenerSiguientePregunta($partidaId);
 
-            return [
+            $resultado = [
                 'correcta' => true,
                 'puntaje' => $puntajeActual,
                 'respuestasCorrectas' => $puntajeActual,
                 'siguientePregunta' => $siguientePregunta
             ];
+
+            if ($siguientePregunta === null) {
+                $resultado['duracionSegundos'] = $this->obtenerDuracionPartida($partidaId);
+            }
+
+            return $resultado;
         } else {
             //Respuesta incorrecta — finaliza la partida
             $this->finalizarPartida($partidaId);
@@ -347,10 +353,24 @@ class PartidaModel
                 'finalizada' => true,
                 'puntaje' => $puntajeActual,
                 'respuestasCorrectas' => $puntajeActual,
+                'duracionSegundos' => $this->obtenerDuracionPartida($partidaId),
                 'mensaje' => 'Respuesta incorrecta. Fin de la partida.',
                 'respuestaCorrecta' => $this->obtenerRespuestaCorrecta($preguntaId)
             ];
         }
+    }
+
+    private function obtenerDuracionPartida(int $partidaId): ?int
+    {
+        $pdo = $this->database->getConexion();
+        $sql = "SELECT GREATEST(0, TIMESTAMPDIFF(SECOND, MIN(fecha_creacion), MAX(fecha_respuesta)))
+                FROM partida_preguntas
+                WHERE partida_id = :partida_id";
+        $consulta = $pdo->prepare($sql);
+        $consulta->execute(['partida_id' => $partidaId]);
+        $duracion = $consulta->fetchColumn();
+
+        return $duracion === null || $duracion === false ? null : (int) $duracion;
     }
 
     public function obtenerPuntajePartida($partidaId)

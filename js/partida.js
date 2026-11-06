@@ -211,6 +211,16 @@
     const navegacion = performance.getEntriesByType('navigation')[0];
     iniciarReloj(reloj.dataset.restanteMs, navegacion?.responseStart || performance.now());
 
+    function formatearDuracion(segundos) {
+        if (!Number.isInteger(segundos) || segundos < 0) {
+            return '—';
+        }
+
+        const minutos = String(Math.floor(segundos / 60)).padStart(2, '0');
+        const resto = String(segundos % 60).padStart(2, '0');
+        return `${minutos}:${resto}`;
+    }
+
     function mostrarFinalizacion(data, completada = false) {
         partidaFinalizada = true;
         detenerReloj();
@@ -219,8 +229,7 @@
         const puntaje = Number(data.puntaje) || 0;
         const aciertos = Number(data.respuestasCorrectas ?? data.puntaje) || 0;
 
-        // Provisorio: todavía no se mide la duración real.
-        const tiempoDemo = '01:30';
+        const tiempoTotal = formatearDuracion(data.duracionSegundos);
 
         let titulo = 'Partida finalizada';
         let descripcion = 'La partida terminó al responder incorrectamente.';
@@ -443,8 +452,8 @@
 
             ${tiempoAgotado ? '' : `
                 <div class="partida-modal-dato">
-                    <span>Tiempo (demo)</span>
-                    <strong>${tiempoDemo}</strong>
+                    <span>Tiempo total</span>
+                    <strong>${tiempoTotal}</strong>
                 </div>
             `}
         </div>
