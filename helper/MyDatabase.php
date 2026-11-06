@@ -12,6 +12,7 @@ class MyDatabase
             $pass,
             [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone = '-03:00'",
             ]
         );
     }

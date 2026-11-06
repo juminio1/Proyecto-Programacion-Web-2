@@ -96,6 +96,7 @@ class PartidaController
             }
 
             $resultado = $this->partidaModel->prepararPregunta((int) $partida['id'], $idUsuario);
+
             if (!empty($resultado['tiempoAgotado'])) {
                 $_SESSION['errores_partida'] = [$resultado['mensaje']];
                 Redirect::to('/inicio/show');
@@ -107,6 +108,7 @@ class PartidaController
             }
 
             $pregunta = $resultado['pregunta'];
+
             if (!$pregunta) {
                 $_SESSION['errores_partida'] = ['No hay preguntas disponibles en este momento.'];
                 Redirect::to('/inicio/show');
@@ -133,7 +135,11 @@ class PartidaController
         } catch (PDOException $error) {
             Log::error('Error al cargar la partida: ' . $error->getMessage());
             error_log('Error al cargar la partida: ' . $error->getMessage());
-            $_SESSION['errores_partida'] = ['Hubo un problema al cargar la partida. Por favor, intentá nuevamente.'];
+
+            $_SESSION['errores_partida'] = [
+                'Hubo un problema al cargar la partida. Por favor, intentá nuevamente.'
+            ];
+
             Redirect::to('/inicio/show');
         }
     }
@@ -141,6 +147,7 @@ class PartidaController
     public function vencer()
     {
         $idUsuario = (int) ($_SESSION['usuario_id'] ?? 0);
+
         if ($idUsuario <= 0) {
             $this->responderJson(['error' => 'Sesión no iniciada.'], 401);
         }
@@ -152,6 +159,7 @@ class PartidaController
         $idAsignacion = filter_var(Request::post('id_asignacion'), FILTER_VALIDATE_INT, [
             'options' => ['min_range' => 1]
         ]);
+
         if ($idAsignacion === false) {
             $this->responderJson(['error' => 'La asignación de pregunta no es válida.'], 400);
         }
@@ -209,14 +217,6 @@ class PartidaController
         }
     }
 
-    private function responderJson(array $datos, int $codigo = 200): void
-    {
-        http_response_code($codigo);
-        header('Content-Type: application/json');
-        echo json_encode($datos);
-        exit();
-    }
-
     public function responder()
     {
         $idUsuario = (int) ($_SESSION['usuario_id'] ?? 0);
@@ -225,6 +225,7 @@ class PartidaController
             if ($this->esPeticionAjax()) {
                 $this->responderJson(['error' => 'Sesión no iniciada.']);
             }
+
             Redirect::to('/login/show');
             return;
         }
@@ -276,6 +277,14 @@ class PartidaController
             $_SESSION['errores_partida'] = ['Ocurrió un error al registrar tu respuesta.'];
             Redirect::to('/partida/show');
         }
+    }
+
+    private function responderJson(array $datos, int $codigo = 200): void
+    {
+        http_response_code($codigo);
+        header('Content-Type: application/json');
+        echo json_encode($datos);
+        exit();
     }
 
     private function esPeticionAjax(): bool

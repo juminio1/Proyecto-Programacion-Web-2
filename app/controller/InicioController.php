@@ -37,6 +37,20 @@ class InicioController
         $puntajeAcumulado = $this->model->obtenerPuntajeAcumulado($idUsuario);
         $partidasJugadas = $this->model->obtenerPartidasJugadas($idUsuario);
         $ultimasPartidas = $this->model->obtenerHistorialPartidas($idUsuario, 3);
+        $ranking = $this->model->obtenerRankingSemanal();
+
+        $posicion = '-';
+
+        foreach ($ranking as $indice => &$jugador) {
+
+            $jugador['posicion'] = $indice + 1;
+
+            if ((int) $jugador['id'] === (int) $idUsuario) {
+                $posicion = $indice + 1;
+            }
+        }
+
+        unset($jugador);
 
         $datosHome = [
             'usuarioEncontrado' => true,
@@ -45,9 +59,9 @@ class InicioController
             'hayErroresPartida' => !empty($erroresPartida),
             'erroresPartida' => $erroresPartida,
             'puntaje' => $puntajeAcumulado,
-            'posicion' => '-',
+            'posicion' => $posicion,
             'partidasJugadas' => $partidasJugadas,
-            'ranking' => [],
+            'ranking' => $ranking,
             'ultimasPartidas' => $ultimasPartidas,
             'tienePartidas' => !empty($ultimasPartidas)
         ];
