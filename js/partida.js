@@ -8,6 +8,7 @@
     const boton = formulario.querySelector('.partida-confirmar');
     const mensaje = document.getElementById('partida-mensaje');
     const inputPregunta = document.getElementById('partida-id-pregunta');
+    const inputAsignacion = document.getElementById('partida-id-asignacion');
     const elementoPuntaje = document.getElementById('partida-puntaje-valor');
     const elementoAciertos = document.getElementById('partida-aciertos-valor');
     const elementoCategoria = document.querySelector('.partida-categoria');
@@ -16,24 +17,136 @@
     const fieldsetOpciones = formulario.querySelector('.partida-opciones');
     const tarjetaPregunta = document.querySelector('.partida-pregunta');
     const pagina = document.querySelector('.partida-pagina');
+    const reloj = document.getElementById('partida-reloj');
+    const numeroReloj = reloj.querySelector('.partida-reloj-texto strong');
+    const unidadReloj = reloj.querySelector('.partida-reloj-texto span');
 
+    const duracionMs = Number(reloj.dataset.duracionMs);
+    let vencimiento = 0;
+    let intervaloReloj = null;
     let enviando = false;
+    let verificandoTiempo = false;
+    let partidaFinalizada = false;
+
+    function detenerReloj() {
+        clearInterval(intervaloReloj);
+        intervaloReloj = null;
+    }
+
+    function iniciarReloj(restanteMs, desde = performance.now()) {
+        detenerReloj();
+        vencimiento = desde + Number(restanteMs);
+        intervaloReloj = setInterval(actualizarReloj, 125);
+        actualizarReloj();
+    }
+
+    function actualizarReloj() {
+        const restante = Math.max(0, vencimiento - performance.now());
+        const segundos = Math.ceil(restante / 1000);
+        const unidad = segundos === 1 ? 'segundo' : 'segundos';
+
+        numeroReloj.textContent = String(segundos);
+        unidadReloj.textContent = unidad;
+        reloj.setAttribute('aria-label', segundos + ' ' + unidad + (segundos === 1 ? ' restante' : ' restantes'));
+        reloj.style.setProperty('--partida-reloj-avance', String(100 - Math.min(100, restante * 100 / duracionMs)));
+        reloj.classList.toggle('partida-reloj-urgente', segundos <= 5);
+
+        if (restante === 0) {
+            detenerReloj();
+            if (!enviando && !verificandoTiempo && !partidaFinalizada) {
+                verificarVencimiento();
+            }
+        }
+    }
+
+    function bloquearRespuesta(textoBoton, textoMensaje) {
+        fieldsetOpciones.disabled = true;
+        boton.disabled = true;
+        boton.textContent = textoBoton;
+        mensaje.textContent = textoMensaje;
+    }
+
+    function habilitarRespuesta(textoMensaje) {
+        if (performance.now() >= vencimiento) {
+            actualizarReloj();
+            return;
+        }
+
+        fieldsetOpciones.disabled = false;
+        boton.disabled = !formulario.querySelector('input[name="respuesta"]:checked');
+        boton.textContent = 'Confirmar respuesta';
+        mensaje.textContent = textoMensaje;
+    }
+
+    async function verificarVencimiento() {
+        verificandoTiempo = true;
+        bloquearRespuesta('Verificando tiempo…', 'Estamos verificando el tiempo restante.');
+
+        let restanteMs = null;
+        let recibidoEn = null;
+
+        try {
+            const datos = new FormData();
+            datos.append('id_asignacion', inputAsignacion.value);
+
+            const respuestaHttp = await fetch('/partida/vencer', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: datos
+            });
+            recibidoEn = performance.now();
+
+            if (respuestaHttp.status === 401) {
+                window.location.assign('/login/show');
+                return;
+            }
+            if (respuestaHttp.status === 409) {
+                window.location.reload();
+                return;
+            }
+            if (!respuestaHttp.ok) {
+                throw new Error('No se pudo comprobar el vencimiento.');
+            }
+
+            const data = await respuestaHttp.json();
+            if (data.tiempoAgotado) {
+                mostrarFinalizacion(data);
+                return;
+            }
+
+            if (!(data.tiempoRestanteMs > 0) || String(data.idAsignacion) !== inputAsignacion.value) {
+                throw new Error('El servidor no devolvió un tiempo válido.');
+            }
+            restanteMs = data.tiempoRestanteMs;
+        } catch (error) {
+            console.error('Error al verificar el vencimiento:', error);
+            bloquearRespuesta('Tiempo por verificar', 'No pudimos verificar el tiempo. Recargá la página para continuar.');
+            return;
+        } finally {
+            verificandoTiempo = false;
+        }
+
+        // Si el aviso llegó antes de tiempo, retomamos el plazo que devolvió PHP.
+        iniciarReloj(restanteMs, recibidoEn);
+        if (!verificandoTiempo) {
+            habilitarRespuesta('Todavía estás a tiempo de confirmar tu respuesta.');
+        }
+    }
 
     formulario.addEventListener('change', (evento) => {
-        if (evento.target.name === 'respuesta') {
-            const opcion = formulario.querySelector('input[name="respuesta"]:checked');
-            boton.disabled = !opcion || enviando;
-            mensaje.textContent = opcion
-                ? 'Confirmá tu respuesta cuando estés listo.'
-                : 'Seleccioná una opción para responder.';
+        if (evento.target.name === 'respuesta' && !enviando && !verificandoTiempo) {
+            habilitarRespuesta('Confirmá tu respuesta cuando estés listo.');
         }
     });
 
     formulario.addEventListener('submit', async (evento) => {
         evento.preventDefault();
 
-        // Backend/Frontend: Evitar que una respuesta enviada nuevamente vuelva a sumar puntos
-        if (enviando) {
+        if (enviando || verificandoTiempo || partidaFinalizada) {
+            return;
+        }
+        if (performance.now() >= vencimiento) {
+            actualizarReloj();
             return;
         }
 
@@ -42,117 +155,85 @@
             return;
         }
 
-        const idPregunta = inputPregunta ? inputPregunta.value : '';
-        const respuesta = opcion.value;
-
-        // Deshabilitar controles para evitar doble envío
+        const formData = new FormData(formulario);
+        formData.append('ajax', '1');
         enviando = true;
-        boton.disabled = true;
-        boton.textContent = 'Verificando...';
-        mensaje.textContent = 'Validando tu respuesta...';
-
-        formulario.querySelectorAll('input[name="respuesta"]').forEach((input) => {
-            input.disabled = true;
-        });
+        bloquearRespuesta('Verificando…', 'Validando tu respuesta…');
 
         try {
-            const formData = new FormData();
-            formData.append('id_pregunta', idPregunta);
-            formData.append('respuesta', respuesta);
-            formData.append('ajax', '1');
-
-            const respuestaHttp = await fetch('/partida/responder', {
+            const respuestaHttp = await fetch(formulario.action, {
                 method: 'POST',
-                headers: {
-                    'Accept': 'application/json'
-                },
+                headers: { 'Accept': 'application/json' },
                 body: formData
             });
+            const recibidoEn = performance.now();
 
             if (!respuestaHttp.ok) {
                 throw new Error('Error en el servidor al enviar la respuesta.');
             }
 
             const data = await respuestaHttp.json();
+            enviando = false;
 
             if (data.error) {
-                mensaje.textContent = data.error;
-
                 if (data.ya_respondida) {
-                    boton.textContent = 'Ya respondida';
-                    boton.disabled = true;
+                    detenerReloj();
+                    window.location.reload();
                 } else {
-                    boton.textContent = 'Confirmar respuesta';
-                    boton.disabled = false;
-                    formulario.querySelectorAll('input[name="respuesta"]').forEach((input) => {
-                        input.disabled = false;
-                    });
-                    enviando = false;
+                    habilitarRespuesta(data.error);
                 }
                 return;
             }
 
-            if (data.ya_respondida) {
-                mensaje.textContent = data.error || 'Esta pregunta ya fue respondida en esta partida.';
-                boton.textContent = 'Ya respondida';
-                boton.disabled = true;
-                return;
-            }
-
-            if (data.correcta) {
-                // 1 - Cada respuesta correcta suma exactamente un punto a la partida.
-                // 2 - El puntaje actualizado se muestra en pantalla.
-                if (elementoPuntaje) {
-                    elementoPuntaje.textContent = `${data.puntaje} puntos`;
-                }
-                if (elementoAciertos) {
-                    elementoAciertos.textContent = `${data.respuestasCorrectas}`;
-                }
-
-                // 3 - Después de acertar, el jugador recibe otra pregunta.
-                if (data.siguientePregunta) {
-                    mensaje.textContent = '¡Respuesta correcta! +1 punto. Cargando siguiente pregunta...';
-
-                    setTimeout(() => {
-                        actualizarPregunta(data.siguientePregunta);
-                        enviando = false;
-                    }, 700);
-                } else {
-                mostrarFinalizacion(data, true);
-            }
+            if (data.correcta && data.siguientePregunta) {
+                elementoPuntaje.textContent = data.puntaje + (data.puntaje === 1 ? ' punto' : ' puntos');
+                elementoAciertos.textContent = String(data.respuestasCorrectas);
+                actualizarPregunta(data.siguientePregunta, recibidoEn);
             } else {
-                mostrarFinalizacion(data);
-                if (pagina) {
-                    pagina.classList.add('partida-finalizada');
-                }
-
+                mostrarFinalizacion(data, data.correcta === true);
             }
         } catch (error) {
             console.error('Error al responder:', error);
-            mensaje.textContent = 'Ocurrió un error al procesar tu respuesta. Intentá nuevamente.';
-            formulario.querySelectorAll('input[name="respuesta"]').forEach((input) => {
-                input.disabled = false;
-            });
-            boton.disabled = false;
-            boton.textContent = 'Confirmar respuesta';
             enviando = false;
+            habilitarRespuesta('Ocurrió un error al procesar tu respuesta. Intentá nuevamente.');
         }
     });
 
+    function actualizarRelojVisible() {
+        if (!document.hidden && intervaloReloj !== null) {
+            actualizarReloj();
+        }
+    }
+
+    document.addEventListener('visibilitychange', actualizarRelojVisible);
+    window.addEventListener('pageshow', actualizarRelojVisible);
+
+    const navegacion = performance.getEntriesByType('navigation')[0];
+    iniciarReloj(reloj.dataset.restanteMs, navegacion?.responseStart || performance.now());
+
     function mostrarFinalizacion(data, completada = false) {
+        partidaFinalizada = true;
+        detenerReloj();
+
+        const tiempoAgotado = data.tiempoAgotado === true;
         const puntaje = Number(data.puntaje) || 0;
         const aciertos = Number(data.respuestasCorrectas ?? data.puntaje) || 0;
 
         // Provisorio: todavía no se mide la duración real.
         const tiempoDemo = '01:30';
 
-        const titulo = completada
-            ? '¡Partida completada!'
-            : 'Partida finalizada';
-
-        const descripcion = completada
-            ? 'Respondiste todas las preguntas disponibles.'
-            : 'La partida terminó al responder incorrectamente.';
+        let titulo = 'Partida finalizada';
+        let descripcion = 'La partida terminó al responder incorrectamente.';
+        let trazoIcono = 'm6 6 12 12M18 6 6 18';
+        if (completada) {
+            titulo = '¡Partida completada!';
+            descripcion = 'Respondiste todas las preguntas disponibles.';
+            trazoIcono = 'm5 12 4 4L19 6';
+        } else if (tiempoAgotado) {
+            titulo = '¡Se te acabó el tiempo!';
+            descripcion = 'No confirmaste una respuesta a tiempo. Conservás los puntos que ya ganaste.';
+            trazoIcono = 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0ZM12 7v5l3 2';
+        }
 
         const puntosTexto = `${puntaje} ${puntaje === 1 ? 'punto' : 'puntos'}`;
 
@@ -165,17 +246,14 @@
              stroke-width="2.5"
              stroke-linecap="round"
              stroke-linejoin="round">
-            <path d="${
-            completada
-                ? 'm5 12 4 4L19 6'
-                : 'm6 6 12 12M18 6 6 18'
-        }"/>
+            <path d="${trazoIcono}"/>
         </svg>
     `;
 
         if (pagina) {
             pagina.classList.add('partida-finalizada');
             pagina.classList.toggle('partida-completada', completada);
+            pagina.classList.toggle('partida-tiempo-agotado', tiempoAgotado);
         }
 
         if (elementoPuntaje) {
@@ -245,7 +323,7 @@
                 </div>
 
                 <h2 id="partida-fin-titulo" class="partida-fin-titulo">
-                    ${completada ? titulo : '¡Respuesta incorrecta!'}
+                    ${completada || tiempoAgotado ? titulo : '¡Respuesta incorrecta!'}
                 </h2>
 
                 <p class="partida-fin-mensaje">
@@ -314,7 +392,8 @@
         const dialogo = document.createElement('dialog');
 
         dialogo.className = 'partida-modal'
-            + (completada ? ' partida-modal-completada' : '');
+            + (completada ? ' partida-modal-completada' : '')
+            + (tiempoAgotado ? ' partida-modal-tiempo' : '');
 
         dialogo.setAttribute(
             'aria-labelledby',
@@ -362,10 +441,12 @@
                 <strong>${aciertos}</strong>
             </div>
 
-            <div class="partida-modal-dato">
-                <span>Tiempo (demo)</span>
-                <strong>${tiempoDemo}</strong>
-            </div>
+            ${tiempoAgotado ? '' : `
+                <div class="partida-modal-dato">
+                    <span>Tiempo (demo)</span>
+                    <strong>${tiempoDemo}</strong>
+                </div>
+            `}
         </div>
 
         ${respuestaModal}
@@ -405,7 +486,7 @@
         return div.innerHTML;
     }
 
-    function actualizarPregunta(nuevaPregunta) {
+    function actualizarPregunta(nuevaPregunta, recibidaEn) {
         if (tarjetaPregunta && nuevaPregunta.color) {
             tarjetaPregunta.style.setProperty('--color-categoria', nuevaPregunta.color);
         }
@@ -436,6 +517,7 @@
         if (inputPregunta && nuevaPregunta.id) {
             inputPregunta.value = nuevaPregunta.id;
         }
+        inputAsignacion.value = nuevaPregunta.idAsignacion;
 
         // Renderizar opciones nuevas
         if (fieldsetOpciones && Array.isArray(nuevaPregunta.opciones)) {
@@ -479,8 +561,13 @@
             });
         }
 
-        mensaje.textContent = 'Seleccioná una opción para responder.';
-        boton.textContent = 'Confirmar respuesta';
-        boton.disabled = true;
+        if (typeof window.reiniciarReportePregunta === 'function') {
+            window.reiniciarReportePregunta();
+        }
+
+        iniciarReloj(nuevaPregunta.tiempoRestanteMs, recibidaEn);
+        if (!verificandoTiempo) {
+            habilitarRespuesta('¡Respuesta correcta! +1 punto. Elegí una opción para continuar.');
+        }
     }
 })();

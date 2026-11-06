@@ -2,11 +2,14 @@
 
 namespace app;
 
+use app\controller\PreguntaSugeridaController;
+use app\model\PreguntaSugeridaModel;
 use app\controller\InicioController;
 use app\controller\LoginController;
 use app\controller\RegistroController;
 use app\controller\PartidaController;
 use app\controller\PreguntaController;
+use app\model\UsuarioModel;
 use app\controller\HistorialController;
 use app\model\InicioModel;
 use app\model\LoginModel;
@@ -49,15 +52,16 @@ class Configuration
         return new LoginController(
             new LoginModel($this->getDatabase()),
             $this->getRender(),
-            new PartidaModel($this->getDatabase())
+            $this->getPartidaModel()
         );
     }
 
     public function getPartidaController()
     {
         return new PartidaController(
-            new PartidaModel($this->getDatabase()),
-            $this->getRender()
+            $this->getPartidaModel(),
+            $this->getRender(),
+            new PreguntaModel($this->getDatabase())
         );
     }
 
@@ -76,6 +80,12 @@ class Configuration
             new InicioModel($this->getDatabase()),
             $this->getRender()
         );
+    }
+
+    private function getPartidaModel()
+    {
+        $db = $this->getDatabase();
+        return new PartidaModel($db, new PreguntaModel($db), new UsuarioModel($db));
     }
 
     private function getConfig()
@@ -126,4 +136,13 @@ class Configuration
     {
         return new Router($this, "inicio", "show");
     }
+
+    public function getPreguntaSugeridaController()
+    {
+        return new PreguntaSugeridaController(
+            new PreguntaSugeridaModel($this->getDatabase()),
+            $this->getRender()
+        );
+    }
+
 }

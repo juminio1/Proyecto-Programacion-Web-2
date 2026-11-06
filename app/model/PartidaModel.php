@@ -7,11 +7,18 @@ use PDO;
 
 class PartidaModel
 {
-    private $database;
+    private const DURACION_PREGUNTA = 15;
+    private const MOTIVO_TIEMPO_AGOTADO = 'tiempo_agotado';
 
-    public function __construct($database)
+    private $database;
+    private $preguntaModel;
+    private $usuarioModel;
+
+    public function __construct($database, $preguntaModel, $usuarioModel)
     {
         $this->database = $database;
+        $this->preguntaModel = $preguntaModel;
+        $this->usuarioModel = $usuarioModel;
     }
 
     public function crearPartida($idUsuario)
@@ -29,37 +36,20 @@ class PartidaModel
         $pdo = $this->database->getConexion();
 
         $estadoInicial = EstadoPartida::CREADA;
+        $nivel = $this->usuarioModel->obtenerNivel($idUsuario);
 
-        $sql = "INSERT INTO partidas (usuario_id, estado, puntaje)
-                VALUES (:usuario_id, :estado, 0)";
+        $sql = "INSERT INTO partidas (usuario_id, estado, puntaje, nivel_inicial)
+        VALUES (:usuario_id, :estado, 0, :nivel)";
 
         $consulta = $pdo->prepare($sql);
 
         $consulta->execute([
             'usuario_id' => $idUsuario,
-            'estado' => $estadoInicial->value
+            'estado' => $estadoInicial->value,
+            'nivel' => $nivel
         ]);
 
         return $errores;
-    }
-
-    public function abandonarPartida($idUsuario)
-    {
-        $pdo = $this->database->getConexion();
-
-        $sql = 'UPDATE partidas
-            SET estado = :abandonada
-            WHERE usuario_id = :usuario_id
-              AND estado IN (:creada, :en_curso)';
-
-        $consulta = $pdo->prepare($sql);
-
-        $consulta->execute([
-            'abandonada' => EstadoPartida::ABANDONADA->value,
-            'usuario_id' => $idUsuario,
-            'creada' => EstadoPartida::CREADA->value,
-            'en_curso' => EstadoPartida::EN_CURSO->value
-        ]);
     }
 
     public function obtenerPartidaActiva($idUsuario)
@@ -95,7 +85,10 @@ class PartidaModel
                p.id AS pregunta_id,
                p.pregunta,
                c.nombre AS categoria,
-               c.color AS color
+               c.color AS color,
+               TIMESTAMPDIFF(MICROSECOND, CURRENT_TIMESTAMP(6),
+                   COALESCE(pp.vence_en, DATE_ADD(pp.fecha_creacion, INTERVAL :duracion SECOND))
+               ) AS microsegundos_restantes
         FROM partida_preguntas pp
         INNER JOIN preguntas p ON pp.pregunta_id = p.id
         INNER JOIN categorias c ON p.categoria_id = c.id
@@ -105,15 +98,24 @@ class PartidaModel
         LIMIT 1";
 
         $consulta = $pdo->prepare($sql);
-        $consulta->execute(['partida_id' => $partidaId]);
+        $consulta->execute([
+            'partida_id' => $partidaId,
+            'duracion' => self::DURACION_PREGUNTA
+        ]);
         $pregunta = $consulta->fetch(PDO::FETCH_ASSOC);
 
         if (!$pregunta) {
             return null;
         }
 
+        $tiempoRestanteMs = max(0, (int) ceil($pregunta['microsegundos_restantes'] / 1000));
+
         return [
             'id' => (int) $pregunta['pregunta_id'],
+            'idAsignacion' => (int) $pregunta['partida_pregunta_id'],
+            'tiempoRestanteMs' => $tiempoRestanteMs,
+            'duracionPreguntaMs' => self::DURACION_PREGUNTA * 1000,
+            'tiempoRestante' => (int) ceil($tiempoRestanteMs / 1000),
             'pregunta' => $pregunta['pregunta'],
             'categoria' => $pregunta['categoria'],
             'color' => $pregunta['color'],
@@ -125,24 +127,24 @@ class PartidaModel
     public function obtenerSiguientePregunta($partidaId)
     {
         $pdo = $this->database->getConexion();
+        $dificultad = $this->dificultadParaNivel($this->obtenerNivelInicial($partidaId));
 
         // Backend: Seleccionar una pregunta habilitada
         // que no haya sido respondida ni entregada aún en esta partida
         $sql = "SELECT p.id, p.pregunta, c.nombre AS categoria, c.color AS color
-            FROM preguntas p
-            INNER JOIN categorias c ON p.categoria_id = c.id
-            WHERE p.habilitada = 1
-              AND p.id NOT IN (
-                  SELECT pregunta_id
-                  FROM partida_preguntas
-                  WHERE partida_id = :partida_id
-              )
-            ORDER BY RAND()
-            LIMIT 1";
+        FROM preguntas p
+        INNER JOIN categorias c ON p.categoria_id = c.id
+        WHERE p.habilitada = 1
+          AND p.id NOT IN (
+              SELECT pregunta_id FROM partida_preguntas WHERE partida_id = :partida_id
+          )
+        ORDER BY (p.dificultad = :dificultad) DESC, RAND()
+        LIMIT 1";
 
         $consulta = $pdo->prepare($sql);
         $consulta->execute([
-            'partida_id' => $partidaId
+            'partida_id' => $partidaId,
+            'dificultad' => $dificultad
         ]);
 
         $pregunta = $consulta->fetch(PDO::FETCH_ASSOC);
@@ -172,26 +174,60 @@ class PartidaModel
 
         // Registrar la asignación de la pregunta a la partida
         $sqlInsert = "INSERT INTO partida_preguntas
-                    (partida_id, pregunta_id, numero_pregunta)
+                    (partida_id, pregunta_id, numero_pregunta, vence_en)
                   VALUES
-                    (:partida_id, :pregunta_id, :numero_pregunta)";
+                    (:partida_id, :pregunta_id, :numero_pregunta,
+                     DATE_ADD(CURRENT_TIMESTAMP(6), INTERVAL :duracion SECOND))";
 
         $consultaInsert = $pdo->prepare($sqlInsert);
 
         $consultaInsert->execute([
             'partida_id' => $partidaId,
             'pregunta_id' => $pregunta['id'],
-            'numero_pregunta' => $numeroPregunta
+            'numero_pregunta' => $numeroPregunta,
+            'duracion' => self::DURACION_PREGUNTA
         ]);
 
-        return [
-            'id' => (int) $pregunta['id'],
-            'pregunta' => $pregunta['pregunta'],
-            'categoria' => $pregunta['categoria'],
-            'color' => $pregunta['color'],
-            'numeroPregunta' => $numeroPregunta,
-            'opciones' => $this->obtenerOpcionesDePregunta($pregunta['id'])
-        ];
+        return $this->obtenerPreguntaActual($partidaId);
+    }
+
+    public function prepararPregunta(int $partidaId, int $idUsuario): array
+    {
+        return $this->enTransaccion(function (PDO $pdo) use ($partidaId, $idUsuario) {
+            $partida = $this->bloquearPartida($pdo, $partidaId, $idUsuario);
+            if (!$this->estaActiva($partida)) {
+                return $this->resultadoPartidaCerrada($partida);
+            }
+
+            $pregunta = $this->obtenerPreguntaActual($partidaId);
+            if ($pregunta && $pregunta['tiempoRestanteMs'] === 0) {
+                return $this->cerrarPorTiempo($pdo, $partida, $pregunta['idAsignacion']);
+            }
+
+            return [
+                'pregunta' => $pregunta ?? $this->obtenerSiguientePregunta($partidaId),
+                'puntaje' => (int) $partida['puntaje']
+            ];
+        });
+    }
+
+    public function vencerPregunta(int $idUsuario, int $idAsignacion): array
+    {
+        return $this->conPreguntaPendiente(
+            $idUsuario,
+            $idAsignacion,
+            function (PDO $pdo, array $partida, array $pregunta): array {
+                if ($pregunta['tiempoRestanteMs'] > 0) {
+                    return [
+                        'tiempoAgotado' => false,
+                        'idAsignacion' => $pregunta['idAsignacion'],
+                        'tiempoRestanteMs' => $pregunta['tiempoRestanteMs']
+                    ];
+                }
+
+                return $this->cerrarPorTiempo($pdo, $partida, $pregunta['idAsignacion']);
+            }
+        );
     }
 
     public function obtenerOpcionesDePregunta($preguntaId)
@@ -209,39 +245,26 @@ class PartidaModel
         return $consulta->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function responderPregunta($partidaId, $idUsuario, $preguntaId, $respuesta)
+    public function responderPregunta(int $idUsuario, int $idAsignacion, int $respuesta): array
     {
-        $pdo = $this->database->getConexion();
+        return $this->conPreguntaPendiente(
+            $idUsuario,
+            $idAsignacion,
+            function (PDO $pdo, array $partida, array $pregunta) use ($respuesta): array {
+                if ($pregunta['tiempoRestanteMs'] === 0) {
+                    return $this->cerrarPorTiempo($pdo, $partida, $pregunta['idAsignacion']);
+                }
 
-        $sqlPP = "SELECT id, opcion_id, es_correcta, fecha_respuesta
-                  FROM partida_preguntas
-                  WHERE partida_id = :partida_id AND pregunta_id = :pregunta_id
-                  LIMIT 1";
-        $consultaPP = $pdo->prepare($sqlPP);
-        $consultaPP->execute([
-            'partida_id' => $partidaId,
-            'pregunta_id' => $preguntaId
-        ]);
-        $partidaPregunta = $consultaPP->fetch(PDO::FETCH_ASSOC);
+                return $this->registrarRespuesta($pdo, $partida, $pregunta, $respuesta);
+            }
+        );
+    }
 
-        if (!$partidaPregunta) {
-            return [
-                'error' => 'La pregunta no corresponde a la partida en curso.',
-                'correcta' => false
-            ];
-        }
-
-        // 2. Backend: Evitar que una respuesta enviada nuevamente vuelva a sumar puntos.
-        // 4 - Una misma respuesta no puede contabilizarse más de una vez.
-        if (!empty($partidaPregunta['fecha_respuesta'])) {
-            return [
-                'error' => 'Esta pregunta ya fue respondida en esta partida.',
-                'ya_respondida' => true,
-                'correcta' => (bool) $partidaPregunta['es_correcta'],
-                'puntaje' => $this->obtenerPuntajePartida($partidaId),
-                'respuestasCorrectas' => $this->obtenerPuntajePartida($partidaId)
-            ];
-        }
+    private function registrarRespuesta(PDO $pdo, array $partida, array $pregunta, int $respuesta): array
+    {
+        $partidaId = (int) $partida['id'];
+        $idUsuario = (int) $partida['usuario_id'];
+        $preguntaId = $pregunta['id'];
 
         // 3. Backend: Comparar la opción elegida con la respuesta correcta.
         $sqlOpcion = "SELECT id, letra, texto, es_correcta
@@ -271,13 +294,21 @@ class PartidaModel
                         SET opcion_id = :opcion_id,
                             es_correcta = :es_correcta,
                             fecha_respuesta = NOW()
-                        WHERE id = :id";
+                        WHERE id = :id
+                          AND fecha_respuesta IS NULL
+                          AND COALESCE(vence_en, DATE_ADD(fecha_creacion, INTERVAL :duracion SECOND))
+                              > CURRENT_TIMESTAMP(6)";
         $consultaUpdatePP = $pdo->prepare($sqlUpdatePP);
         $consultaUpdatePP->execute([
             'opcion_id' => $opcionElegida['id'],
             'es_correcta' => $esCorrecta ? 1 : 0,
-            'id' => $partidaPregunta['id']
+            'id' => $pregunta['idAsignacion'],
+            'duracion' => self::DURACION_PREGUNTA
         ]);
+
+        if ($consultaUpdatePP->rowCount() === 0) {
+            return $this->cerrarPorTiempo($pdo, $partida, $pregunta['idAsignacion']);
+        }
 
         if ($esCorrecta) {
             $sqlPuntos = "UPDATE partidas
@@ -336,17 +367,12 @@ class PartidaModel
 
     public function sumarPuntoAcumuladoUsuario($idUsuario)
     {
-        try {
-            $pdo = $this->database->getConexion();
-            $sql = "UPDATE usuarios
+        $pdo = $this->database->getConexion();
+        $sql = "UPDATE usuarios
                     SET puntaje_acumulado = puntaje_acumulado + 1
                     WHERE id = :id";
-            $consulta = $pdo->prepare($sql);
-            $consulta->execute(['id' => $idUsuario]);
-        } catch (\PDOException $e) {
-            \Log::error('Error al actualizar puntaje acumulado en usuario: ' . $e->getMessage());
-            error_log('Error al actualizar puntaje acumulado en usuario: ' . $e->getMessage());
-        }
+        $consulta = $pdo->prepare($sql);
+        $consulta->execute(['id' => $idUsuario]);
     }
 
     public function obtenerPuntajeAcumuladoUsuario($idUsuario)
@@ -365,16 +391,146 @@ class PartidaModel
 
     public function finalizarPartida($partidaId)
     {
-        $pdo = $this->database->getConexion();
+        $this->cerrarPartida($partidaId, EstadoPartida::FINALIZADA);
+    }
 
-        $sql = "UPDATE partidas
-                SET estado = :finalizada
-                WHERE id = :partida_id";
-        $consulta = $pdo->prepare($sql);
-        $consulta->execute([
-            'finalizada' => EstadoPartida::FINALIZADA->value,
-            'partida_id' => $partidaId
-        ]);
+    public function abandonarPartida($idUsuario)
+    {
+        $partida = $this->obtenerPartidaActiva($idUsuario);
+
+        if ($partida) {
+            $this->cerrarPartida($partida['id'], EstadoPartida::ABANDONADA);
+        }
+    }
+
+    // Único punto de cierre: se ejecuta UNA sola vez por partida
+    private function cerrarPartida($partidaId, EstadoPartida $estadoFinal, ?string $motivo = null)
+    {
+        $this->enTransaccion(function (PDO $pdo) use ($partidaId, $estadoFinal, $motivo) {
+            $sql = "UPDATE partidas
+                SET estado = :estado, motivo_fin = :motivo
+                WHERE id = :id
+                  AND estado IN (:creada, :en_curso)";
+            $consulta = $pdo->prepare($sql);
+            $consulta->execute([
+                'estado' => $estadoFinal->value,
+                'motivo' => $motivo,
+                'id' => $partidaId,
+                'creada' => EstadoPartida::CREADA->value,
+                'en_curso' => EstadoPartida::EN_CURSO->value
+            ]);
+
+            // Si rowCount es 0, la partida ya estaba cerrada: no se recuenta nada
+            if ($consulta->rowCount() === 1) {
+                $this->preguntaModel->recalcularDificultadDePartida($partidaId);
+
+                // Abandonada: cuenta para las preguntas, pero no cambia el nivel del jugador
+                if ($estadoFinal === EstadoPartida::FINALIZADA) {
+                    $idUsuario = $this->obtenerUsuarioDePartida($partidaId);
+                    $this->usuarioModel->recalcularNivel($idUsuario);
+                }
+            }
+
+        });
+    }
+
+    private function conPreguntaPendiente(int $idUsuario, int $idAsignacion, callable $operacion): array
+    {
+        $pdo = $this->database->getConexion();
+        $consulta = $pdo->prepare("SELECT pp.partida_id
+                                  FROM partida_preguntas pp
+                                  INNER JOIN partidas p ON p.id = pp.partida_id
+                                  WHERE pp.id = :asignacion AND p.usuario_id = :usuario");
+        $consulta->execute(['asignacion' => $idAsignacion, 'usuario' => $idUsuario]);
+        $partidaId = $consulta->fetchColumn();
+        if ($partidaId === false) {
+            return ['error' => 'La pregunta no corresponde a tu partida.'];
+        }
+
+        return $this->enTransaccion(function (PDO $pdo) use ($partidaId, $idUsuario, $idAsignacion, $operacion): array {
+            $partida = $this->bloquearPartida($pdo, (int) $partidaId, $idUsuario);
+            if (!$this->estaActiva($partida)) {
+                return $this->resultadoPartidaCerrada($partida);
+            }
+
+            $pregunta = $this->obtenerPreguntaActual($partidaId);
+            if (!$pregunta || $pregunta['idAsignacion'] !== $idAsignacion) {
+                return ['error' => 'Esa pregunta ya no está pendiente.', 'ya_respondida' => true];
+            }
+
+            return $operacion($pdo, $partida, $pregunta);
+        });
+    }
+
+    private function enTransaccion(callable $operacion)
+    {
+        $pdo = $this->database->getConexion();
+        if ($pdo->inTransaction()) {
+            return $operacion($pdo);
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $resultado = $operacion($pdo);
+            $pdo->commit();
+            return $resultado;
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    private function bloquearPartida(PDO $pdo, int $partidaId, int $idUsuario): ?array
+    {
+        $consulta = $pdo->prepare("SELECT id, usuario_id, estado, puntaje, motivo_fin
+                                  FROM partidas
+                                  WHERE id = :id AND usuario_id = :usuario
+                                  FOR UPDATE");
+        $consulta->execute(['id' => $partidaId, 'usuario' => $idUsuario]);
+        return $consulta->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    private function estaActiva(?array $partida): bool
+    {
+        return in_array($partida['estado'] ?? null, [
+            EstadoPartida::CREADA->value,
+            EstadoPartida::EN_CURSO->value
+        ], true);
+    }
+
+    private function cerrarPorTiempo(PDO $pdo, array $partida, int $idAsignacion): array
+    {
+        $consulta = $pdo->prepare("UPDATE partida_preguntas
+                                  SET es_correcta = 0, fecha_respuesta = CURRENT_TIMESTAMP
+                                  WHERE id = :asignacion AND partida_id = :partida
+                                    AND fecha_respuesta IS NULL");
+        $consulta->execute(['asignacion' => $idAsignacion, 'partida' => $partida['id']]);
+
+        $this->cerrarPartida($partida['id'], EstadoPartida::FINALIZADA, self::MOTIVO_TIEMPO_AGOTADO);
+        return $this->resultadoTiempoAgotado((int) $partida['puntaje']);
+    }
+
+    private function resultadoPartidaCerrada(?array $partida): array
+    {
+        if (($partida['motivo_fin'] ?? null) === self::MOTIVO_TIEMPO_AGOTADO) {
+            return $this->resultadoTiempoAgotado((int) $partida['puntaje']);
+        }
+
+        return ['error' => 'No tenés una partida activa en este momento.'];
+    }
+
+    private function resultadoTiempoAgotado(int $puntaje): array
+    {
+        return [
+            'correcta' => false,
+            'finalizada' => true,
+            'tiempoAgotado' => true,
+            'mensaje' => 'Se te acabó el tiempo.',
+            'puntaje' => $puntaje,
+            'respuestasCorrectas' => $puntaje
+        ];
     }
 
     public function obtenerRespuestaCorrecta($preguntaId)
@@ -443,4 +599,26 @@ class PartidaModel
 
         return $usuarioEncontrado !== false;
     }
+
+    private function obtenerNivelInicial($partidaId)
+    {
+        $pdo = $this->database->getConexion();
+        $consulta = $pdo->prepare("SELECT nivel_inicial FROM partidas WHERE id = :id LIMIT 1");
+        $consulta->execute(['id' => $partidaId]);
+        return $consulta->fetchColumn() ?: 'medio';
+    }
+
+    private function obtenerUsuarioDePartida($partidaId)
+    {
+        $pdo = $this->database->getConexion();
+        $consulta = $pdo->prepare("SELECT usuario_id FROM partidas WHERE id = :id LIMIT 1");
+        $consulta->execute(['id' => $partidaId]);
+        return (int) $consulta->fetchColumn();
+    }
+
+    private function dificultadParaNivel($nivel)
+    {
+        return ['bajo' => 'facil', 'medio' => 'media', 'alto' => 'dificil'][$nivel] ?? 'media';
+    }
+
 }

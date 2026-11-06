@@ -33,11 +33,17 @@ class InicioModel
         $pdo = $this->database->getConexion();
 
         $sql = "SELECT COALESCE(SUM(puntaje), 0) AS total
-                FROM partidas
-                WHERE usuario_id = :id";
+            FROM partidas
+            WHERE usuario_id = :id
+              AND estado <> :abandonada";
 
         $consulta = $pdo->prepare($sql);
-        $consulta->execute(['id' => $idUsuario]);
+
+        $consulta->execute([
+            'id' => $idUsuario,
+            'abandonada' => 'abandonada'
+        ]);
+
         $fila = $consulta->fetch(PDO::FETCH_ASSOC);
 
         return $fila ? (int) $fila['total'] : 0;
