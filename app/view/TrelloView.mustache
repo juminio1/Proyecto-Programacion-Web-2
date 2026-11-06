@@ -1,0 +1,683 @@
+<style>
+    .pt-panel {
+        --pt-ink: #21183e;
+        --pt-muted: #635a77;
+        --pt-border: #e8e1f1;
+        --pt-purple: #5b2fd2;
+        max-width: 1160px;
+        margin: 0 auto;
+        padding: clamp(18px, 4vw, 42px) clamp(14px, 3.5vw, 32px) 52px;
+        color: var(--pt-ink);
+        font-family: "Nunito", system-ui, sans-serif;
+        line-height: 1.5;
+    }
+
+    .pt-panel *, .pt-panel *::before, .pt-panel *::after { box-sizing: border-box; }
+    .pt-panel [hidden] { display: none !important; }
+    .pt-panel :is(a, button, input):focus-visible { outline: 3px solid #9a79ec; outline-offset: 3px; }
+    .pt-panel :is(h1, h2, h3, p) { margin: 0; font-family: inherit; }
+
+    .pt-hero {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 30px;
+        padding: clamp(24px, 5vw, 54px);
+        border-radius: 26px;
+        background: radial-gradient(ellipse at 100% 0%, #7447dc 0%, transparent 57%),
+        linear-gradient(125deg, #241348, #42219a 85%);
+        color: #fff;
+        box-shadow: 0 12px 30px #32146e24;
+    }
+
+    .pt-hero::before, .pt-hero::after {
+        position: absolute;
+        z-index: -1;
+        inset: -220px -105px auto auto;
+        width: 480px;
+        height: 480px;
+        border: 1px solid #ffffff29;
+        border-radius: 50%;
+        content: "";
+    }
+
+    .pt-hero::after { inset: -183px -68px auto auto; width: 405px; height: 405px; }
+
+    .pt-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: .75rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: #eee5ff;
+    }
+
+    .pt-kicker span { width: 8px; height: 8px; border-radius: 50%; background: #c8a9ff; }
+
+    .pt-hero h1 {
+        margin: 9px 0 10px;
+        font-size: clamp(2rem, 5vw, 3.55rem);
+        line-height: 1.07;
+        font-weight: 850;
+        letter-spacing: -.045em;
+    }
+
+    .pt-bajada { max-width: 500px; color: #f3ecff; font-size: 1rem; }
+
+    .pt-tablero {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 45px;
+        margin-top: 22px;
+        padding: 9px 15px;
+        border-radius: 11px;
+        color: #47229c;
+        background: #fff;
+        font-size: .875rem;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .pt-tablero:hover { background: #f1e8ff; }
+
+    .pt-hero-datos { display: flex; gap: 10px; }
+    .pt-hero-datos div {
+        min-width: 90px;
+        padding: 9px 13px;
+        border: 1px solid #ffffff43;
+        border-radius: 13px;
+        background: #ffffff16;
+        text-align: center;
+    }
+    .pt-hero-datos strong, .pt-hero-datos span { display: block; }
+    .pt-hero-datos strong { font-size: 1.55rem; line-height: 1.2; }
+    .pt-hero-datos span { color: #efe5ff; font-size: .78rem; }
+
+    .pt-controles {
+        margin: 24px 0 26px;
+        padding: 18px 22px;
+        border: 1px solid var(--pt-border);
+        border-radius: 18px;
+        background: #fff;
+    }
+    .pt-controles-cabecera { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; }
+    .pt-controles h2 { font-size: 1.35rem; font-weight: 850; letter-spacing: -.025em; }
+    .pt-conteo { color: var(--pt-muted); font-size: .86rem; }
+    .pt-busqueda { display: grid; gap: 4px; width: min(100%, 340px); font-size: .82rem; font-weight: 750; }
+    .pt-busqueda-campo { position: relative; display: block; }
+    .pt-busqueda-campo svg { position: absolute; top: 12px; left: 12px; width: 18px; color: #78669e; pointer-events: none; }
+    .pt-busqueda input {
+        width: 100%;
+        min-height: 42px;
+        padding: 8px 10px 8px 38px;
+        border: 1px solid #d9cee9;
+        border-radius: 10px;
+        background: #fcfaff;
+        color: var(--pt-ink);
+        font: inherit;
+        font-weight: 500;
+    }
+
+    .pt-filtros { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 15px; }
+    .pt-filtros button, .pt-acciones button, .pt-cerrar {
+        cursor: pointer;
+        font: inherit;
+    }
+    .pt-filtros button {
+        min-height: 36px;
+        padding: 5px 12px;
+        border: 1px solid var(--pt-border);
+        border-radius: 999px;
+        color: var(--pt-muted);
+        background: #fff;
+        font-size: .83rem;
+        font-weight: 750;
+    }
+    .pt-filtros button:hover { background: #f7f2ff; }
+    .pt-filtros button[aria-pressed="true"] { border-color: #ded0fc; background: #ede4ff; color: #4d26a7; }
+
+    .pt-area {
+        --pt-acento: #5b2fc1;
+        --pt-suave: #eee5ff;
+        margin: 28px 0 0;
+    }
+    .pt-area[data-area="juego"] { --pt-acento: #175bb4; --pt-suave: #e3efff; }
+    .pt-area[data-area="editor"] { --pt-acento: #14745d; --pt-suave: #dff5ec; }
+    .pt-area[data-area="admin"] { --pt-acento: #8b5105; --pt-suave: #fff0d9; }
+    .pt-area-cabecera { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .pt-area-icono {
+        display: grid;
+        place-items: center;
+        width: 35px;
+        height: 35px;
+        border-radius: 10px;
+        background: var(--pt-suave);
+        color: var(--pt-acento);
+        font-size: .77rem;
+        font-weight: 850;
+    }
+    .pt-area-cabecera h2 { font-size: 1.27rem; font-weight: 850; letter-spacing: -.02em; }
+    .pt-area-cantidad {
+        padding: 2px 8px;
+        border: 1px solid var(--pt-border);
+        border-radius: 999px;
+        color: var(--pt-muted);
+        background: #fff;
+        font-size: .76rem;
+        font-weight: 750;
+    }
+
+    .pt-grilla { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .pt-tarjeta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        min-height: 138px;
+        padding: 15px 16px 13px;
+        border: 1px solid var(--pt-border);
+        border-top: 3px solid var(--pt-suave);
+        border-radius: 15px;
+        background: #fff;
+        box-shadow: 0 3px 10px #35265b08;
+    }
+    .pt-tarjeta:hover, .pt-tarjeta:focus-within { border-top-color: var(--pt-acento); }
+    .pt-hu {
+        padding: 2px 7px;
+        border-radius: 6px;
+        background: var(--pt-suave);
+        color: var(--pt-acento);
+        font-size: .7rem;
+        font-weight: 850;
+        letter-spacing: .03em;
+    }
+    .pt-tarjeta h3 {
+        margin: 7px 0 10px;
+        font-size: 1rem;
+        line-height: 1.35;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+    }
+    .pt-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: auto; }
+    .pt-acciones a, .pt-dialogo-link {
+        color: #5226b8;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        font-size: .82rem;
+        font-weight: 750;
+    }
+    .pt-acciones button {
+        padding: 5px 8px;
+        border: 1px solid var(--pt-border);
+        border-radius: 8px;
+        color: #4c3974;
+        background: #fbf8ff;
+        font-size: .82rem;
+        font-weight: 750;
+    }
+    .pt-acciones button:hover { background: #eee5ff; }
+
+    .pt-vacio {
+        padding: 22px;
+        border: 1px dashed #d9cdec;
+        border-radius: 14px;
+        color: var(--pt-muted);
+        text-align: center;
+    }
+
+    .pt-dialogo {
+        width: min(540px, calc(100% - 28px));
+        max-height: 85vh;
+        padding: 0;
+        border: 1px solid var(--pt-border);
+        border-radius: 18px;
+        color: var(--pt-ink);
+        background: #fff;
+        box-shadow: 0 20px 80px #1c10394d;
+    }
+    .pt-dialogo::backdrop { background: #1c103977; }
+    .pt-dialogo-contenido { padding: 22px; }
+    .pt-dialogo-cabecera { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .pt-dialogo-kicker { color: var(--pt-purple); font-size: .76rem; font-weight: 850; text-transform: uppercase; letter-spacing: .06em; }
+    .pt-dialogo h2 { font-size: 1.25rem; line-height: 1.3; font-weight: 850; }
+    .pt-cerrar {
+        display: grid;
+        place-items: center;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        color: #4d367c;
+        background: #f2ebff;
+        font-size: 1.5rem;
+    }
+    .pt-dialogo-mensaje { margin-top: 14px !important; color: var(--pt-muted); font-size: .88rem; }
+    .pt-incrustacion { overflow-x: auto; margin-top: 10px; }
+    .pt-incrustacion iframe { max-width: 100%; }
+    .pt-dialogo-link { display: inline-block; margin-top: 12px; }
+
+    @media (max-width: 850px) {
+        .pt-grilla { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 590px) {
+        .pt-hero, .pt-controles-cabecera { flex-direction: column; align-items: flex-start; }
+        .pt-hero { gap: 18px; }
+        .pt-grilla { grid-template-columns: minmax(0, 1fr); }
+        .pt-tarjeta { min-height: 0; }
+    }
+</style>
+
+<main id="trello-panel" class="pt-panel">
+    <header class="pt-hero">
+        <div class="pt-hero-contenido">
+            <p class="pt-kicker"><span aria-hidden="true"></span> Preguntados · Tablero local</p>
+            <h1>Tareas del proyecto</h1>
+            <p class="pt-bajada">Encontrá las historias de usuario de Preguntados y consultá cada tarjeta desde acá.</p>
+            <a class="pt-tablero" href="https://trello.com/b/huMYHtzD/preguntados"
+               target="_blank" rel="noopener noreferrer">
+                Abrir tablero en Trello <span aria-hidden="true">↗</span>
+            </a>
+        </div>
+        <div class="pt-hero-datos" aria-label="18 historias en 4 áreas">
+            <div><strong>18</strong><span>historias</span></div>
+            <div><strong>4</strong><span>áreas</span></div>
+        </div>
+    </header>
+
+    <section class="pt-controles" aria-labelledby="pt-historias">
+        <div class="pt-controles-cabecera">
+            <div>
+                <h2 id="pt-historias">Historias de usuario</h2>
+                <p class="pt-conteo" data-count aria-live="polite">18 tareas</p>
+            </div>
+            <label class="pt-busqueda" hidden>
+                <span>Buscar una tarea</span>
+                <span class="pt-busqueda-campo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" aria-hidden="true">
+                        <circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 4 4"/>
+                    </svg>
+                    <input type="search" data-search placeholder="Ej. HU-13, ranking o perfil">
+                </span>
+            </label>
+        </div>
+        <div class="pt-filtros" role="group" aria-label="Filtrar por área" hidden>
+            <button type="button" data-filter="todas" aria-pressed="true">Todas</button>
+            <button type="button" data-filter="jugadores" aria-pressed="false">Jugadores</button>
+            <button type="button" data-filter="juego" aria-pressed="false">Experiencia de juego</button>
+            <button type="button" data-filter="editor" aria-pressed="false">Editor</button>
+            <button type="button" data-filter="admin" aria-pressed="false">Administración</button>
+        </div>
+    </section>
+
+    <p class="pt-vacio" data-empty hidden>No hay tareas que coincidan con tu búsqueda.</p>
+
+    <section class="pt-area" data-area="jugadores" aria-labelledby="pt-jugadores">
+        <header class="pt-area-cabecera">
+            <span class="pt-area-icono" aria-hidden="true">01</span>
+            <h2 id="pt-jugadores">Jugadores</h2>
+            <span class="pt-area-cantidad" data-area-count>5</span>
+        </header>
+
+        <div class="pt-grilla">
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU</span>
+                <h3>Perfil</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Perfil" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/X0Zr1A5C" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-12</span>
+                <h3>Consultar el perfil de un jugador</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Consultar el perfil de un jugador" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/1wUd2vLl" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-13</span>
+                <h3>Acceder a un perfil mediante un código QR</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Acceder a un perfil mediante un código QR" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/8wfZXDsa" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-11</span>
+                <h3>Consultar el ranking general</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Consultar el ranking general" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/DV2EnQ5O" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU</span>
+                <h3>Vista de ranking</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Vista de ranking" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/tre1C4lZ" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="pt-area" data-area="juego" aria-labelledby="pt-juego">
+        <header class="pt-area-cabecera">
+            <span class="pt-area-icono" aria-hidden="true">02</span>
+            <h2 id="pt-juego">Experiencia de juego</h2>
+            <span class="pt-area-cantidad" data-area-count>3</span>
+        </header>
+
+        <div class="pt-grilla">
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU</span>
+                <h3>Prevenir trampas durante la partida</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Prevenir trampas durante la partida" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/y8yPiRZg" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU</span>
+                <h3>Animaciones en toda la página</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Animaciones en toda la página" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/tXBZpp51" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-26</span>
+                <h3>Utilizar el juego desde el celular</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Utilizar el juego desde el celular" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/k1jQS9Np" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="pt-area" data-area="editor" aria-labelledby="pt-editor">
+        <header class="pt-area-cabecera">
+            <span class="pt-area-icono" aria-hidden="true">03</span>
+            <h2 id="pt-editor">Editor</h2>
+            <span class="pt-area-cantidad" data-area-count>5</span>
+        </header>
+
+        <div class="pt-grilla">
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-16</span>
+                <h3>Dar de alta preguntas</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Dar de alta preguntas" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/q5ybNF1M" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-17</span>
+                <h3>Modificar preguntas</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Modificar preguntas" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/AXaQ9JTi" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-18</span>
+                <h3>Dar de baja preguntas</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Dar de baja preguntas" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/i9AGz0HP" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-19</span>
+                <h3>Revisar preguntas reportadas</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Revisar preguntas reportadas" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/wgVE8hWY" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-20</span>
+                <h3>Aprobar preguntas sugeridas</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Aprobar preguntas sugeridas" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/COgTL8HE" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section class="pt-area" data-area="admin" aria-labelledby="pt-admin">
+        <header class="pt-area-cabecera">
+            <span class="pt-area-icono" aria-hidden="true">04</span>
+            <h2 id="pt-admin">Administración</h2>
+            <span class="pt-area-cantidad" data-area-count>5</span>
+        </header>
+
+        <div class="pt-grilla">
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-21</span>
+                <h3>Consultar estadísticas generales</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Consultar estadísticas generales" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/PdFEID9Y" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-22</span>
+                <h3>Consultar el porcentaje de aciertos por usuario</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Consultar el porcentaje de aciertos por usuario" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/TZ3xLSrL" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-23</span>
+                <h3>Consultar estadísticas de los usuarios</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Consultar estadísticas de los usuarios" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/buWYYY3j" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-24</span>
+                <h3>Filtrar estadísticas por período</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Filtrar estadísticas por período" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/PnlnUHjZ" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+            <article class="pt-tarjeta" data-card>
+                <span class="pt-hu">HU-25</span>
+                <h3>Imprimir reportes</h3>
+                <div class="pt-acciones">
+                    <button type="button" data-preview aria-label="Vista previa: Imprimir reportes" hidden>Vista previa</button>
+                    <a href="https://trello.com/c/bldV2HKS" data-card-link target="_blank" rel="noopener noreferrer">
+                        Abrir en Trello <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <dialog class="pt-dialogo" aria-labelledby="pt-dialogo-titulo">
+        <div class="pt-dialogo-contenido">
+            <header class="pt-dialogo-cabecera">
+                <div>
+                    <p class="pt-dialogo-kicker">Tarjeta de Trello</p>
+                    <h2 id="pt-dialogo-titulo"></h2>
+                </div>
+                <form method="dialog">
+                    <button class="pt-cerrar" type="submit" aria-label="Cerrar vista previa" autofocus>×</button>
+                </form>
+            </header>
+            <p class="pt-dialogo-mensaje" data-preview-message role="status">Cargando vista previa…</p>
+            <div class="pt-incrustacion" data-embed></div>
+            <a class="pt-dialogo-link" data-preview-link target="_blank" rel="noopener noreferrer">
+                Abrir tarjeta en Trello <span aria-hidden="true">↗</span>
+            </a>
+        </div>
+    </dialog>
+</main>
+
+<script>
+    (() => {
+        const panel = document.getElementById('trello-panel');
+        const grupos = [...panel.querySelectorAll('[data-area]')];
+        const filtros = [...panel.querySelectorAll('[data-filter]')];
+        const buscador = panel.querySelector('[data-search]');
+        const conteo = panel.querySelector('[data-count]');
+        const vacio = panel.querySelector('[data-empty]');
+        const dialogo = panel.querySelector('dialog');
+        const titulo = panel.querySelector('#pt-dialogo-titulo');
+        const destino = panel.querySelector('[data-preview-link]');
+        const espacio = panel.querySelector('[data-embed]');
+        const mensaje = panel.querySelector('[data-preview-message]');
+        let area = 'todas';
+        let cargaTrello;
+        let solicitud = 0;
+
+        const normalizar = (texto) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+        function actualizar() {
+            const palabras = normalizar(buscador.value.trim()).split(/\s+/);
+            let visibles = 0;
+
+            for (const grupo of grupos) {
+                let cantidad = 0;
+                const categoria = grupo.querySelector('h2').textContent;
+
+                for (const tarjeta of grupo.querySelectorAll('[data-card]')) {
+                    const texto = normalizar(tarjeta.querySelector('h3').textContent
+                            + ' ' + tarjeta.querySelector('.pt-hu').textContent + ' ' + categoria);
+                    const visible = (area === 'todas' || grupo.dataset.area === area)
+                            && palabras.every((palabra) => texto.includes(palabra));
+                    tarjeta.hidden = !visible;
+                    if (visible) cantidad++;
+                }
+
+                grupo.hidden = cantidad === 0;
+                grupo.querySelector('[data-area-count]').textContent = cantidad;
+                visibles += cantidad;
+            }
+
+            conteo.textContent = visibles === 1 ? '1 tarea' : visibles + ' tareas';
+            vacio.hidden = visibles !== 0;
+        }
+
+        buscador.closest('label').hidden = false;
+        panel.querySelector('.pt-filtros').hidden = false;
+        buscador.addEventListener('input', actualizar);
+
+        for (const filtro of filtros) {
+            filtro.addEventListener('click', () => {
+                area = filtro.dataset.filter;
+                for (const otro of filtros) {
+                    otro.setAttribute('aria-pressed', String(otro === filtro));
+                }
+                actualizar();
+            });
+        }
+
+        if (typeof dialogo.showModal !== 'function') return;
+        panel.querySelectorAll('[data-preview]').forEach((boton) => { boton.hidden = false; });
+
+        // El script oficial se descarga recién al abrir la primera tarjeta.
+        function cargarTrello() {
+            if (window.TrelloCards?.create) return Promise.resolve(window.TrelloCards);
+
+            if (!cargaTrello) {
+                cargaTrello = new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://p.trellocdn.com/embed.min.js';
+                    script.onload = () => {
+                        if (window.TrelloCards?.create) resolve(window.TrelloCards);
+                        else reject(new Error('Trello no está disponible'));
+                    };
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                }).catch((error) => {
+                    cargaTrello = null;
+                    throw error;
+                });
+            }
+
+            return cargaTrello;
+        }
+
+        panel.addEventListener('click', async (evento) => {
+            const boton = evento.target.closest('[data-preview]');
+            if (!boton) return;
+
+            const tarjeta = boton.closest('[data-card]');
+            const enlace = tarjeta.querySelector('[data-card-link]');
+            const actual = ++solicitud;
+            titulo.textContent = tarjeta.querySelector('h3').textContent;
+            destino.href = enlace.href;
+            espacio.replaceChildren();
+            mensaje.textContent = 'Cargando vista previa…';
+            dialogo.showModal();
+
+            try {
+                const trello = await cargarTrello();
+                if (!dialogo.open || actual !== solicitud) return;
+
+                const contenedor = document.createElement('div');
+                espacio.appendChild(contenedor);
+                trello.create(enlace.href, contenedor, { compact: false });
+                mensaje.textContent = 'Si la vista previa no carga, abrí la tarjeta directamente en Trello.';
+            } catch {
+                if (dialogo.open && actual === solicitud) {
+                    mensaje.textContent = 'La vista previa no está disponible. Podés abrir la tarjeta en Trello.';
+                }
+            }
+        });
+
+        dialogo.addEventListener('close', () => {
+            solicitud++;
+            espacio.replaceChildren();
+        });
+    })();
+</script>

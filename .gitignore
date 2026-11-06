@@ -4,3 +4,4 @@ prueba_mail.php
 log/*.log
 public/uploads/perfiles/*
 /router.local.php
+/app/view/TrelloView.mustache
