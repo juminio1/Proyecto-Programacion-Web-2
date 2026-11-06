@@ -424,9 +424,18 @@ body {
 .partida-reloj-progreso {
     stroke: #7d3df3;
     stroke-linecap: round;
-    stroke-dasharray: 290 428;
+    stroke-dasharray: 100;
+    stroke-dashoffset: var(--partida-reloj-avance, 0);
     transform: rotate(-90deg);
     transform-origin: 80px 80px;
+}
+
+.partida-reloj-urgente .partida-reloj-progreso {
+    stroke: #b45309;
+}
+
+.partida-reloj-urgente .partida-reloj-texto strong {
+    color: #92400e;
 }
 
 .partida-reloj-texto {
@@ -1288,6 +1297,17 @@ body {
     color: #5b2fd9;
 }
 
+.partida-modal-tiempo {
+    --partida-modal-columnas: 2;
+}
+
+.partida-modal-tiempo .partida-modal-icono,
+.partida-tiempo-agotado .partida-fin-icono {
+    border-color: #f4dfb4;
+    background-color: #fff4dc;
+    color: #92400e;
+}
+
 .partida-modal-etiqueta {
     margin: 0 0 8px;
     color: #5b2fd9;
@@ -1315,7 +1335,7 @@ body {
 
 .partida-modal-estadisticas {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--partida-modal-columnas, 3), minmax(0, 1fr));
     gap: 10px;
     margin: 24px 0;
 }

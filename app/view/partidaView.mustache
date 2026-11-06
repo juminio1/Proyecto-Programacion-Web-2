@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/css/partida.css?v=4">
+<link rel="stylesheet" href="/css/partida.css?v=temporizador15">
 
 <main class="partida-pagina">
     <form class="partida-formulario-salida"
@@ -46,6 +46,7 @@
 
             <form id="partida-formulario" method="post" action="/partida/responder">
                 <input type="hidden" name="id_pregunta" id="partida-id-pregunta" value="{{idPregunta}}">
+                <input type="hidden" name="id_asignacion" id="partida-id-asignacion" value="{{idAsignacion}}">
 
                 <fieldset class="partida-opciones"
                           aria-describedby="partida-mensaje">
@@ -135,13 +136,16 @@
                 <p class="partida-tiempo-etiqueta">Tiempo restante</p>
 
                 <div class="partida-reloj"
+                     id="partida-reloj"
+                     data-restante-ms="{{tiempoRestanteMs}}"
+                     data-duracion-ms="{{duracionPreguntaMs}}"
                      role="img"
                      aria-label="{{tiempoRestante}} segundos restantes">
                     <svg viewBox="0 0 160 160" aria-hidden="true">
                         <circle class="partida-reloj-fondo"
                                 cx="80" cy="80" r="68"/>
                         <circle class="partida-reloj-progreso"
-                                cx="80" cy="80" r="68"/>
+                                cx="80" cy="80" r="68" pathLength="100"/>
                     </svg>
 
                     <div class="partida-reloj-texto" aria-hidden="true">
@@ -197,5 +201,5 @@
     </div>
 </main>
 
-<script src="/js/partida.js?v=4" defer></script>
+<script src="/js/partida.js?v=tiempo-real1" defer></script>
 <script src="/js/reporte-pregunta.js?v=1" defer></script>
