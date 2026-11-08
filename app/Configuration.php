@@ -9,6 +9,7 @@ use app\controller\LoginController;
 use app\controller\RegistroController;
 use app\controller\PartidaController;
 use app\controller\PreguntaController;
+use app\controller\PerfilController;
 use app\model\UsuarioModel;
 use app\controller\HistorialController;
 use app\model\InicioModel;
@@ -16,6 +17,7 @@ use app\model\LoginModel;
 use app\model\PartidaModel;
 use app\model\RegistroModel;
 use app\model\PreguntaModel;
+use app\model\PerfilModel;
 use Mailer;
 use MustacheRender;
 use MyDatabase;
@@ -65,7 +67,6 @@ class Configuration
         );
     }
 
-
     public function getPreguntaController()
     {
         return new PreguntaController(
@@ -78,6 +79,14 @@ class Configuration
     {
         return new HistorialController(
             new InicioModel($this->getDatabase()),
+            $this->getRender()
+        );
+    }
+
+    public function getPerfilController()
+    {
+        return new PerfilController(
+            new PerfilModel($this->getDatabase()),
             $this->getRender()
         );
     }
@@ -114,7 +123,6 @@ class Configuration
         return $config;
     }
 
-
     private function getDatabase()
     {
         $config = $this->getConfig();
@@ -144,5 +152,4 @@ class Configuration
             $this->getRender()
         );
     }
-
 }
