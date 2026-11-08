@@ -1,0 +1,561 @@
+/* ==========================================================================
+   PERFIL DE USUARIO - PREGUNTADOS
+   Estilos para la vista de Mi Perfil
+   ========================================================================== */
+
+.perfil-contenedor {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 28px 24px 48px;
+    width: 100%;
+}
+
+/* Tarjeta Hero / Cabecera */
+.perfil-hero-card {
+    background-color: #ffffff;
+    border: 1px solid var(--borde, #ece8f3);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 6px 20px rgba(33, 16, 79, 0.05);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.perfil-hero-izq {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.perfil-avatar-wrap {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid var(--morado, #5b2fd9);
+    box-shadow: 0 4px 14px rgba(91, 47, 217, 0.25);
+    background-color: #f3f0f8;
+    flex-shrink: 0;
+}
+
+.perfil-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.perfil-avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #7a4af0, #4d25c6);
+    color: #ffffff;
+    font-size: 42px;
+    font-weight: 900;
+}
+
+.perfil-hero-datos h1 {
+    font-size: 28px;
+    font-weight: 900;
+    margin: 0 0 6px;
+    color: var(--tinta, #1d1050);
+    letter-spacing: -0.02em;
+}
+
+.perfil-username {
+    display: inline-block;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--morado, #5b2fd9);
+    margin-bottom: 10px;
+}
+
+.perfil-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.perfil-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.badge-nivel {
+    background-color: #f0eaff;
+    color: var(--morado, #5b2fd9);
+    border: 1px solid #d9c5ff;
+}
+
+.badge-registro {
+    background-color: #f4f3f8;
+    color: var(--gris, #6d6785);
+}
+
+.badge-ubicacion {
+    background-color: #e9f7ef;
+    color: #1e7e34;
+    border: 1px solid #c3e6cb;
+}
+
+/* Fila de Totales */
+.perfil-totales-fila {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.tarjeta-total {
+    background-color: #ffffff;
+    border: 1px solid var(--borde, #ece8f3);
+    border-radius: 18px;
+    padding: 22px 26px;
+    box-shadow: 0 4px 16px rgba(33, 16, 79, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tarjeta-total:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(33, 16, 79, 0.08);
+}
+
+.total-icono-wrap {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.total-icono-puntaje {
+    background-color: #fff6e5;
+    color: #e59400;
+}
+
+.total-icono-partidas {
+    background-color: #eef3ff;
+    color: #2b6cb0;
+}
+
+.total-info h3 {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gris, #6d6785);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.total-info .total-valor {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--tinta, #1d1050);
+    line-height: 1.1;
+}
+
+.total-info .total-subtexto {
+    font-size: 13px;
+    color: var(--gris, #6d6785);
+    font-weight: 600;
+}
+
+/* Grid Principal: 2 Columnas */
+.perfil-grid-cuerpo {
+    display: grid;
+    grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .perfil-grid-cuerpo {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tarjetas Generales */
+.perfil-card {
+    background-color: #ffffff;
+    border: 1px solid var(--borde, #ece8f3);
+    border-radius: 20px;
+    padding: 26px;
+    box-shadow: 0 6px 20px rgba(33, 16, 79, 0.05);
+    margin-bottom: 24px;
+}
+
+.perfil-card:last-child {
+    margin-bottom: 0;
+}
+
+.perfil-card-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--borde, #ece8f3);
+}
+
+.perfil-card-cabecera h2 {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--tinta, #1d1050);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.perfil-card-cabecera svg {
+    color: var(--morado, #5b2fd9);
+}
+
+/* Lista de Datos Personales */
+.datos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.dato-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--borde, #ece8f3);
+    gap: 12px;
+}
+
+.dato-fila:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.dato-etiqueta {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gris, #6d6785);
+}
+
+.dato-valor {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--tinta, #1d1050);
+    text-align: right;
+    word-break: break-word;
+}
+
+/* Mapa Leaflet */
+.mapa-wrap {
+    margin-top: 14px;
+}
+
+#mapa-perfil {
+    width: 100%;
+    height: 320px;
+    border-radius: 14px;
+    border: 1px solid var(--borde, #ece8f3);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+    z-index: 1;
+}
+
+.mapa-pie {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--gris, #6d6785);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Tabla de Partidas */
+.tabla-wrap {
+    overflow-x: auto;
+}
+
+.tabla-partidas {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.tabla-partidas th {
+    padding: 12px 16px;
+    background-color: #f3f0f8;
+    color: var(--gris, #6d6785);
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+}
+
+.tabla-partidas th:first-child {
+    border-radius: 12px 0 0 12px;
+}
+
+.tabla-partidas th:last-child {
+    border-radius: 0 12px 12px 0;
+    text-align: right;
+}
+
+.tabla-partidas td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #efeaf6;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.tabla-partidas td:first-child {
+    font-weight: 800;
+    color: var(--morado, #5b2fd9);
+}
+
+.tabla-partidas td:nth-child(2) {
+    color: var(--gris, #6d6785);
+}
+
+.tabla-partidas td:last-child {
+    font-weight: 800;
+    text-align: right;
+    color: var(--tinta, #1d1050);
+}
+
+.tabla-partidas tbody tr:hover td {
+    background-color: rgba(91, 47, 217, 0.02);
+}
+
+.tabla-partidas tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.badge-resultado {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    background-color: #eaf8ef;
+    color: #1f8b4d;
+}
+
+/* Estado Vacío */
+.mensaje-vacio-perfil {
+    padding: 40px 24px;
+    border: 2px dashed #d9c5ff;
+    border-radius: 16px;
+    background-color: #faf7ff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+}
+
+.mensaje-vacio-icono {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: #f0eaff;
+    color: var(--morado, #5b2fd9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mensaje-vacio-texto {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--tinta, #1d1050);
+}
+
+.boton-jugar-perfil {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 12px 24px;
+    border-radius: 999px;
+    background-color: var(--morado, #5b2fd9);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 15px;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(91, 47, 217, 0.25);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.boton-jugar-perfil:hover {
+    background-color: #4d25c6;
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   MODO OSCURO - PERFIL
+   ========================================================================== */
+
+html[data-theme="dark"] .perfil-hero-card,
+html.dark-mode .perfil-hero-card,
+html[data-theme="dark"] .tarjeta-total,
+html.dark-mode .tarjeta-total,
+html[data-theme="dark"] .perfil-card,
+html.dark-mode .perfil-card {
+    background-color: var(--bg-superficie, #1c1730);
+    border-color: var(--borde, #2e2650);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .perfil-hero-datos h1,
+html.dark-mode .perfil-hero-datos h1,
+html[data-theme="dark"] .total-info .total-valor,
+html.dark-mode .total-info .total-valor,
+html[data-theme="dark"] .perfil-card-cabecera h2,
+html.dark-mode .perfil-card-cabecera h2,
+html[data-theme="dark"] .dato-valor,
+html.dark-mode .dato-valor,
+html[data-theme="dark"] .mensaje-vacio-texto,
+html.dark-mode .mensaje-vacio-texto {
+    color: var(--texto-principal, #f3efff);
+}
+
+html[data-theme="dark"] .perfil-username,
+html.dark-mode .perfil-username {
+    color: #b89bfb;
+}
+
+html[data-theme="dark"] .badge-nivel,
+html.dark-mode .badge-nivel {
+    background-color: #2b224e;
+    color: #d6c6ff;
+    border-color: #4f3b7d;
+}
+
+html[data-theme="dark"] .badge-registro,
+html.dark-mode .badge-registro {
+    background-color: #241c3d;
+    color: #b4acd4;
+}
+
+html[data-theme="dark"] .badge-ubicacion,
+html.dark-mode .badge-ubicacion {
+    background-color: #173224;
+    color: #7ce3a2;
+    border-color: #245838;
+}
+
+html[data-theme="dark"] .total-icono-puntaje,
+html.dark-mode .total-icono-puntaje {
+    background-color: #38290f;
+    color: #f7c531;
+}
+
+html[data-theme="dark"] .total-icono-partidas,
+html.dark-mode .total-icono-partidas {
+    background-color: #182745;
+    color: #63a4ff;
+}
+
+html[data-theme="dark"] .perfil-card-cabecera,
+html.dark-mode .perfil-card-cabecera,
+html[data-theme="dark"] .dato-fila,
+html.dark-mode .dato-fila {
+    border-color: var(--borde, #2e2650);
+}
+
+html[data-theme="dark"] #mapa-perfil,
+html.dark-mode #mapa-perfil {
+    border-color: #382e5e;
+}
+
+html[data-theme="dark"] #mapa-perfil .leaflet-tile-pane,
+html.dark-mode #mapa-perfil .leaflet-tile-pane {
+    filter: invert(90%) hue-rotate(190deg) brightness(85%) contrast(110%);
+}
+
+html[data-theme="dark"] #mapa-perfil .leaflet-control-zoom a,
+html.dark-mode #mapa-perfil .leaflet-control-zoom a {
+    background-color: #1c1730;
+    color: #f3efff;
+    border-color: #382e5e;
+}
+
+html[data-theme="dark"] #mapa-perfil .leaflet-control-zoom a:hover,
+html.dark-mode #mapa-perfil .leaflet-control-zoom a:hover {
+    background-color: #2b224e;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] #mapa-perfil .leaflet-popup-content-wrapper,
+html.dark-mode #mapa-perfil .leaflet-popup-content-wrapper {
+    background-color: #1c1730;
+    color: #f3efff;
+    border: 1px solid #382e5e;
+}
+
+html[data-theme="dark"] #mapa-perfil .leaflet-popup-tip,
+html.dark-mode #mapa-perfil .leaflet-popup-tip {
+    background-color: #1c1730;
+}
+
+html[data-theme="dark"] .tabla-partidas th,
+html.dark-mode .tabla-partidas th {
+    background-color: #241c3d;
+    color: #b4acd4;
+}
+
+html[data-theme="dark"] .tabla-partidas td,
+html.dark-mode .tabla-partidas td {
+    border-bottom-color: #2e2650;
+    color: #e2ddf3;
+}
+
+html[data-theme="dark"] .tabla-partidas td:first-child,
+html.dark-mode .tabla-partidas td:first-child {
+    color: #b89bfb;
+}
+
+html[data-theme="dark"] .tabla-partidas td:last-child,
+html.dark-mode .tabla-partidas td:last-child {
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .badge-resultado,
+html.dark-mode .badge-resultado {
+    background-color: #173224;
+    color: #7ce3a2;
+}
+
+html[data-theme="dark"] .mensaje-vacio-perfil,
+html.dark-mode .mensaje-vacio-perfil {
+    background-color: #171228;
+    border-color: #433369;
+}
+
+html[data-theme="dark"] .mensaje-vacio-icono,
+html.dark-mode .mensaje-vacio-icono {
+    background-color: #2b224e;
+    color: #b89bfb;
+}

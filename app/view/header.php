@@ -104,6 +104,7 @@ function claseActiva($pagina, $paginaActiva)
                 </summary>
 
                 <div class="usuario-menu">
+                    <a href="/perfil/show">Mi perfil</a>
                     <form method="post" action="/login/logout">
                         <button type="submit" class="usuario-boton-salir">
                             Cerrar sesión
