@@ -17,6 +17,7 @@
     const fieldsetOpciones = formulario.querySelector('.partida-opciones');
     const tarjetaPregunta = document.querySelector('.partida-pregunta');
     const pagina = document.querySelector('.partida-pagina');
+    const dialogoAbandono = document.getElementById('partida-confirmar-abandono');
     const reloj = document.getElementById('partida-reloj');
     const numeroReloj = reloj.querySelector('.partida-reloj-texto strong');
     const unidadReloj = reloj.querySelector('.partida-reloj-texto span');
@@ -27,6 +28,10 @@
     let enviando = false;
     let verificandoTiempo = false;
     let partidaFinalizada = false;
+    let formularioAbandono = null;
+    let enviandoAbandono = false;
+    let consultandoEstado = false;
+    let intervaloEstado = null;
 
     function detenerReloj() {
         clearInterval(intervaloReloj);
@@ -67,6 +72,10 @@
     }
 
     function habilitarRespuesta(textoMensaje) {
+        if (partidaFinalizada) {
+            return;
+        }
+
         if (performance.now() >= vencimiento) {
             actualizarReloj();
             return;
@@ -109,10 +118,12 @@
             }
 
             const data = await respuestaHttp.json();
-            if (data.tiempoAgotado) {
+            if (data.tiempoAgotado || data.estado === 'abandonada') {
                 mostrarFinalizacion(data);
                 return;
             }
+
+            if (partidaFinalizada) return;
 
             if (!(data.tiempoRestanteMs > 0) || String(data.idAsignacion) !== inputAsignacion.value) {
                 throw new Error('El servidor no devolvió un tiempo válido.');
@@ -175,6 +186,8 @@
             const data = await respuestaHttp.json();
             enviando = false;
 
+            if (partidaFinalizada) return;
+
             if (data.error) {
                 if (data.ya_respondida) {
                     detenerReloj();
@@ -208,6 +221,77 @@
     document.addEventListener('visibilitychange', actualizarRelojVisible);
     window.addEventListener('pageshow', actualizarRelojVisible);
 
+    document.querySelectorAll('.partida-formulario-salida').forEach((salida) => {
+        salida.addEventListener('submit', (evento) => {
+            if (!dialogoAbandono || typeof dialogoAbandono.showModal !== 'function') {
+                if (!window.confirm('¿Abandonar la partida? Quedará con 0 puntos.')) evento.preventDefault();
+                return;
+            }
+            evento.preventDefault();
+            if (partidaFinalizada || enviandoAbandono || dialogoAbandono.open) return;
+
+            formularioAbandono = salida;
+            dialogoAbandono.returnValue = '';
+            dialogoAbandono.showModal();
+        });
+    });
+
+    dialogoAbandono?.addEventListener('close', async () => {
+        const salida = formularioAbandono;
+        formularioAbandono = null;
+        if (!salida || dialogoAbandono.returnValue !== 'abandonar' || partidaFinalizada) return;
+
+        enviandoAbandono = true;
+        try {
+            const respuesta = await fetch(salida.action, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: new FormData(salida)
+            });
+            if (respuesta.status === 401) {
+                window.location.assign('/login/show');
+                return;
+            }
+            const resultado = await respuesta.json();
+            if (resultado.estado === 'abandonada' || resultado.tiempoAgotado) {
+                mostrarFinalizacion(resultado);
+            } else if (!partidaFinalizada) {
+                mensaje.textContent = resultado.error || 'No se pudo abandonar la partida.';
+            }
+        } catch {
+            if (!partidaFinalizada) mensaje.textContent = 'No se pudo abandonar la partida. Intentá nuevamente.';
+        } finally {
+            enviandoAbandono = false;
+        }
+    });
+
+    async function consultarAbandono() {
+        const idPartida = pagina?.dataset.idPartida;
+        if (!idPartida || partidaFinalizada || consultandoEstado || document.hidden) return;
+
+        consultandoEstado = true;
+        try {
+            const respuesta = await fetch('/partida/estado?id_partida=' + encodeURIComponent(idPartida), {
+                headers: { 'Accept': 'application/json' },
+                cache: 'no-store'
+            });
+            if (!respuesta.ok) return;
+            const resultado = await respuesta.json();
+            if (resultado.estado === 'abandonada') mostrarFinalizacion(resultado);
+        } catch {
+            // Se vuelve a consultar al recuperar conexión o en el siguiente intervalo.
+        } finally {
+            consultandoEstado = false;
+        }
+    }
+
+    if (pagina?.dataset.idPartida) {
+        intervaloEstado = setInterval(consultarAbandono, 3000);
+        window.addEventListener('pageshow', consultarAbandono);
+        window.addEventListener('online', consultarAbandono);
+        document.addEventListener('visibilitychange', consultarAbandono);
+    }
+
     const navegacion = performance.getEntriesByType('navigation')[0];
     iniciarReloj(reloj.dataset.restanteMs, navegacion?.responseStart || performance.now());
 
@@ -222,9 +306,14 @@
     }
 
     function mostrarFinalizacion(data, completada = false) {
+        if (partidaFinalizada) return;
         partidaFinalizada = true;
         detenerReloj();
+        clearInterval(intervaloEstado);
+        formularioAbandono = null;
+        if (dialogoAbandono?.open) dialogoAbandono.close();
 
+        const abandonada = data.estado === 'abandonada';
         const tiempoAgotado = data.tiempoAgotado === true;
         const puntaje = Number(data.puntaje) || 0;
         const aciertos = Number(data.respuestasCorrectas ?? data.puntaje) || 0;
@@ -238,6 +327,9 @@
             titulo = '¡Partida completada!';
             descripcion = 'Respondiste todas las preguntas disponibles.';
             trazoIcono = 'm5 12 4 4L19 6';
+        } else if (abandonada) {
+            titulo = 'Partida abandonada';
+            descripcion = 'Esta partida no suma puntos.';
         } else if (tiempoAgotado) {
             titulo = '¡Se te acabó el tiempo!';
             descripcion = 'No confirmaste una respuesta a tiempo. Conservás los puntos que ya ganaste.';
@@ -270,15 +362,19 @@
         }
 
         if (elementoAciertos) {
-            elementoAciertos.textContent = String(aciertos);
+            if (abandonada) {
+                elementoAciertos.closest('.partida-dato').style.display = 'none';
+            } else {
+                elementoAciertos.textContent = String(aciertos);
+            }
         }
 
         const encabezado = document.querySelector('.partida-encabezado');
 
         if (encabezado) {
-            encabezado.querySelector('h1').textContent = completada
-                ? 'Partida completada'
-                : 'Partida finalizada';
+            encabezado.querySelector('h1').textContent = abandonada
+                ? titulo
+                : (completada ? 'Partida completada' : 'Partida finalizada');
 
             encabezado.querySelector('p').textContent = descripcion;
         }
@@ -332,7 +428,7 @@
                 </div>
 
                 <h2 id="partida-fin-titulo" class="partida-fin-titulo">
-                    ${completada || tiempoAgotado ? titulo : '¡Respuesta incorrecta!'}
+                    ${completada || tiempoAgotado || abandonada ? titulo : '¡Respuesta incorrecta!'}
                 </h2>
 
                 <p class="partida-fin-mensaje">
@@ -403,6 +499,7 @@
         dialogo.className = 'partida-modal'
             + (completada ? ' partida-modal-completada' : '')
             + (tiempoAgotado ? ' partida-modal-tiempo' : '');
+        if (abandonada) dialogo.style.setProperty('--partida-modal-columnas', '1');
 
         dialogo.setAttribute(
             'aria-labelledby',
@@ -445,12 +542,14 @@
                 <strong>${puntosTexto}</strong>
             </div>
 
-            <div class="partida-modal-dato">
-                <span>Aciertos</span>
-                <strong>${aciertos}</strong>
-            </div>
+            ${abandonada ? '' : `
+                <div class="partida-modal-dato">
+                    <span>Aciertos</span>
+                    <strong>${aciertos}</strong>
+                </div>
+            `}
 
-            ${tiempoAgotado ? '' : `
+            ${tiempoAgotado || abandonada ? '' : `
                 <div class="partida-modal-dato">
                     <span>Tiempo total</span>
                     <strong>${tiempoTotal}</strong>

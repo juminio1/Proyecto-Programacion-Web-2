@@ -107,6 +107,7 @@ class InicioModel
             FROM usuarios u
             LEFT JOIN partidas p
                 ON p.usuario_id = u.id
+                AND p.estado <> :abandonada
                 AND p.fecha_creacion >= DATE_SUB(
                     CURDATE(),
                     INTERVAL WEEKDAY(CURDATE()) DAY
@@ -126,7 +127,7 @@ class InicioModel
             LIMIT 5";
 
         $consulta = $pdo->prepare($sql);
-        $consulta->execute();
+        $consulta->execute(['abandonada' => 'abandonada']);
 
         return $consulta->fetchAll(PDO::FETCH_ASSOC);
     }
