@@ -1,9 +1,10 @@
 <link rel="stylesheet" href="/css/partida.css?v=temporizador15">
 
-<main class="partida-pagina">
+<main class="partida-pagina" data-id-partida="{{idPartida}}">
     <form class="partida-formulario-salida"
           method="post"
           action="/partida/abandonar">
+        <input type="hidden" name="id_partida" value="{{idPartida}}">
 
         <button type="submit" class="partida-volver">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -189,6 +190,7 @@
             <form class="partida-formulario-salida partida-formulario-abandonar"
                   method="post"
                   action="/partida/abandonar">
+                <input type="hidden" name="id_partida" value="{{idPartida}}">
 
                 <button type="submit" class="partida-abandonar">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -199,7 +201,22 @@
             </form>
         </aside>
     </div>
+    <dialog id="partida-confirmar-abandono" class="partida-modal"
+            aria-labelledby="partida-abandono-titulo" aria-describedby="partida-abandono-aviso">
+        <h2 id="partida-abandono-titulo">¿Abandonar la partida?</h2>
+        <p id="partida-abandono-aviso" class="partida-modal-descripcion">
+            Esta partida quedará con 0 puntos. El reloj sigue corriendo.
+        </p>
+        <form method="dialog" class="w3-section">
+            <button type="submit" value="seguir" class="w3-button w3-round-large w3-light-grey" autofocus>
+                Seguir jugando
+            </button>
+            <button type="submit" value="abandonar" class="w3-button w3-round-large w3-deep-purple">
+                Confirmar abandono
+            </button>
+        </form>
+    </dialog>
 </main>
 
-<script src="/js/partida.js?v=tiempo-real1" defer></script>
+<script src="/js/partida.js?v=abandono1" defer></script>
 <script src="/js/reporte-pregunta.js?v=1" defer></script>

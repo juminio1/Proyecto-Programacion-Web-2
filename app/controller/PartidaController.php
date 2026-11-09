@@ -23,27 +23,84 @@ class PartidaController
     public function abandonar()
     {
         $idUsuario = (int) ($_SESSION['usuario_id'] ?? 0);
+        $ajax = $this->esPeticionAjax();
 
         if ($idUsuario <= 0) {
+            if ($ajax) {
+                $this->responderJson(['error' => 'Sesión no iniciada.'], 401);
+            }
             Redirect::to('/login/show');
         }
 
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            if ($ajax) {
+                $this->responderJson(['error' => 'Método no permitido.'], 405);
+            }
+            Redirect::to('/inicio/show');
+        }
+
+        $idPartida = filter_var(Request::post('id_partida'), FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1]
+        ]);
+
+        if ($idPartida === false) {
+            if ($ajax) {
+                $this->responderJson(['error' => 'La partida indicada no es válida.'], 400);
+            }
+            $_SESSION['errores_partida'] = ['La partida indicada no es válida.'];
             Redirect::to('/inicio/show');
         }
 
         try {
-            $this->partidaModel->abandonarPartida($idUsuario);
+            $resultado = $this->partidaModel->abandonarPartidaPorId($idUsuario, $idPartida);
+            if ($ajax) {
+                $this->responderJson($resultado, isset($resultado['error']) ? 409 : 200);
+            }
+            if (isset($resultado['error']) || !empty($resultado['tiempoAgotado'])) {
+                $_SESSION['errores_partida'] = [$resultado['error'] ?? $resultado['mensaje']];
+            }
         } catch (PDOException $error) {
             Log::error('Error al abandonar partida: ' . $error->getMessage());
             error_log('Error al abandonar partida: ' . $error->getMessage());
 
+            if ($ajax) {
+                $this->responderJson(['error' => 'No se pudo abandonar la partida. Intentá nuevamente.'], 500);
+            }
             $_SESSION['errores_partida'] = [
                 'No se pudo abandonar la partida. Intentá nuevamente.'
             ];
         }
 
         Redirect::to('/inicio/show');
+    }
+
+    public function estado()
+    {
+        header('Cache-Control: no-store');
+        $idUsuario = (int) ($_SESSION['usuario_id'] ?? 0);
+        if ($idUsuario <= 0) {
+            $this->responderJson(['error' => 'Sesión no iniciada.'], 401);
+        }
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            $this->responderJson(['error' => 'Método no permitido.'], 405);
+        }
+        $idPartida = filter_var(Request::get('id_partida'), FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1]
+        ]);
+        if ($idPartida === false) {
+            $this->responderJson(['error' => 'La partida indicada no es válida.'], 400);
+        }
+
+        try {
+            $estado = $this->partidaModel->consultarEstadoPartida($idUsuario, $idPartida);
+            if ($estado === null) {
+                $this->responderJson(['error' => 'No se encontró la partida.'], 404);
+            }
+            $this->responderJson($estado);
+        } catch (PDOException $error) {
+            Log::error('Error al consultar la partida: ' . $error->getMessage());
+            $this->responderJson(['error' => 'No se pudo consultar la partida.'], 500);
+        }
     }
 
     public function crear()
@@ -104,6 +161,11 @@ class PartidaController
 
             if (isset($resultado['error'])) {
                 $_SESSION['errores_partida'] = [$resultado['error']];
+                Redirect::to('/inicio/show');
+            }
+
+            if (($resultado['estado'] ?? null) === 'abandonada') {
+                $_SESSION['errores_partida'] = [$resultado['mensaje']];
                 Redirect::to('/inicio/show');
             }
 
@@ -261,6 +323,11 @@ class PartidaController
                 Redirect::to('/inicio/show');
             }
 
+            if (($resultado['estado'] ?? null) === 'abandonada') {
+                $_SESSION['errores_partida'] = [$resultado['mensaje']];
+                Redirect::to('/inicio/show');
+            }
+
             if (!empty($resultado['error'])) {
                 $_SESSION['errores_partida'] = [$resultado['error']];
             }
@@ -279,8 +346,7 @@ class PartidaController
         }
     }
 
-    private function responderJson(array $datos, int $codigo = 200): void
-    {
+    private function responderJson(array $datos, int $codigo = 200){
         http_response_code($codigo);
         header('Content-Type: application/json');
         echo json_encode($datos);

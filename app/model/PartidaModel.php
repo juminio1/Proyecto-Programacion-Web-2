@@ -423,9 +423,59 @@ class PartidaModel
         }
     }
 
-    // Único punto de cierre: se ejecuta UNA sola vez por partida
-    private function cerrarPartida($partidaId, EstadoPartida $estadoFinal, ?string $motivo = null)
-    {
+    public function abandonarPartidaPorId(int $idUsuario, int $idPartida){
+        return $this->enTransaccion(function (PDO $pdo) use ($idUsuario, $idPartida) {
+            $partida = $this->bloquearPartida($pdo, $idPartida, $idUsuario);
+            if (!$this->estaActiva($partida)) {
+                return $this->resultadoPartidaCerrada($partida);
+            }
+
+            $pregunta = $this->obtenerPreguntaActual($idPartida);
+            if ($pregunta && $pregunta['tiempoRestanteMs'] === 0) {
+                return $this->cerrarPorTiempo($pdo, $partida, $pregunta['idAsignacion']);
+            }
+
+            if ($pregunta) {
+                $consulta = $pdo->prepare("UPDATE partida_preguntas
+                    SET es_correcta = 0, fecha_respuesta = CURRENT_TIMESTAMP
+                    WHERE id = :id AND partida_id = :partida AND fecha_respuesta IS NULL");
+                $consulta->execute(['id' => $pregunta['idAsignacion'], 'partida' => $idPartida]);
+            }
+
+            $this->cerrarPartida($idPartida, EstadoPartida::ABANDONADA, 'abandono');
+
+            $consulta = $pdo->prepare("UPDATE partidas SET puntaje = 0 WHERE id = :id");
+            $consulta->execute(['id' => $idPartida]);
+
+            if ((int) $partida['puntaje'] > 0) {
+                $consulta = $pdo->prepare("UPDATE usuarios
+                    SET puntaje_acumulado = GREATEST(0, puntaje_acumulado - :puntos)
+                    WHERE id = :id");
+                $consulta->execute(['puntos' => (int) $partida['puntaje'], 'id' => $idUsuario]);
+            }
+
+            return $this->resultadoAbandono();
+        });
+    }
+
+    public function consultarEstadoPartida(int $idUsuario, int $idPartida){
+        $pdo = $this->database->getConexion();
+        $consulta = $pdo->prepare("SELECT estado FROM partidas
+            WHERE id = :id AND usuario_id = :usuario");
+        $consulta->execute(['id' => $idPartida, 'usuario' => $idUsuario]);
+        $partida = $consulta->fetch(PDO::FETCH_ASSOC);
+
+        if (!$partida) {
+            return null;
+        }
+
+        return $partida['estado'] === EstadoPartida::ABANDONADA->value
+            ? $this->resultadoAbandono()
+            : ['estado' => $partida['estado']];
+    }
+
+    //Es un unico punto de cierre. Se ejecuta una sola vez
+    private function cerrarPartida($partidaId, EstadoPartida $estadoFinal, ?string $motivo = null){
         $this->enTransaccion(function (PDO $pdo) use ($partidaId, $estadoFinal, $motivo) {
             $sql = "UPDATE partidas
                 SET estado = :estado, motivo_fin = :motivo
@@ -440,11 +490,11 @@ class PartidaModel
                 'en_curso' => EstadoPartida::EN_CURSO->value
             ]);
 
-            // Si rowCount es 0, la partida ya estaba cerrada: no se recuenta nada
+            // Si rowCount es 0, la partida ya estaba cerrada no se recuenta nada
             if ($consulta->rowCount() === 1) {
                 $this->preguntaModel->recalcularDificultadDePartida($partidaId);
 
-                // Abandonada: cuenta para las preguntas, pero no cambia el nivel del jugador
+                // Abandonada cuenta para las preguntas, pero no cambia el nivel del jugador
                 if ($estadoFinal === EstadoPartida::FINALIZADA) {
                     $idUsuario = $this->obtenerUsuarioDePartida($partidaId);
                     $this->usuarioModel->recalcularNivel($idUsuario);
@@ -454,8 +504,7 @@ class PartidaModel
         });
     }
 
-    private function conPreguntaPendiente(int $idUsuario, int $idAsignacion, callable $operacion): array
-    {
+    private function conPreguntaPendiente(int $idUsuario, int $idAsignacion, callable $operacion){
         $pdo = $this->database->getConexion();
         $consulta = $pdo->prepare("SELECT pp.partida_id
                                   FROM partida_preguntas pp
@@ -502,7 +551,7 @@ class PartidaModel
         }
     }
 
-    private function bloquearPartida(PDO $pdo, int $partidaId, int $idUsuario): ?array
+    private function bloquearPartida(PDO $pdo, int $partidaId, int $idUsuario)
     {
         $consulta = $pdo->prepare("SELECT id, usuario_id, estado, puntaje, motivo_fin
                                   FROM partidas
@@ -512,7 +561,7 @@ class PartidaModel
         return $consulta->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
-    private function estaActiva(?array $partida): bool
+    private function estaActiva(?array $partida)
     {
         return in_array($partida['estado'] ?? null, [
             EstadoPartida::CREADA->value,
@@ -520,7 +569,7 @@ class PartidaModel
         ], true);
     }
 
-    private function cerrarPorTiempo(PDO $pdo, array $partida, int $idAsignacion): array
+    private function cerrarPorTiempo(PDO $pdo, array $partida, int $idAsignacion)
     {
         $consulta = $pdo->prepare("UPDATE partida_preguntas
                                   SET es_correcta = 0, fecha_respuesta = CURRENT_TIMESTAMP
@@ -532,8 +581,12 @@ class PartidaModel
         return $this->resultadoTiempoAgotado((int) $partida['puntaje']);
     }
 
-    private function resultadoPartidaCerrada(?array $partida): array
+    private function resultadoPartidaCerrada(?array $partida)
     {
+        if (($partida['estado'] ?? null) === EstadoPartida::ABANDONADA->value) {
+            return $this->resultadoAbandono();
+        }
+
         if (($partida['motivo_fin'] ?? null) === self::MOTIVO_TIEMPO_AGOTADO) {
             return $this->resultadoTiempoAgotado((int) $partida['puntaje']);
         }
@@ -541,7 +594,18 @@ class PartidaModel
         return ['error' => 'No tenés una partida activa en este momento.'];
     }
 
-    private function resultadoTiempoAgotado(int $puntaje): array
+    private function resultadoAbandono()
+    {
+        return [
+            'estado' => EstadoPartida::ABANDONADA->value,
+            'finalizada' => true,
+            'correcta' => false,
+            'puntaje' => 0,
+            'mensaje' => 'Partida abandonada. Esta partida no suma puntos.'
+        ];
+    }
+
+    private function resultadoTiempoAgotado(int $puntaje)
     {
         return [
             'correcta' => false,
