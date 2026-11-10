@@ -3,7 +3,7 @@
 namespace app\controller;
 
 use Redirect;
-use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\SvgWriter;
 
 class PerfilController
@@ -70,25 +70,15 @@ class PerfilController
             . '/perfil/show?id='
             . (int) $usuario['id'];
 
-        try {
+        $qrCode = QrCode::create($urlPerfil)
+            ->setSize(300)
+            ->setMargin(12);
 
-            $builderQr = Builder::create()
-                ->writer(new SvgWriter())
-                ->data($urlPerfil)
-                ->size(300)
-                ->margin(12);
+        $writer = new SvgWriter();
 
-            $resultadoQr = $builderQr->build();
+        $resultadoQr = $writer->write($qrCode);
 
-            $qrPerfil = $resultadoQr->getDataUri();
-
-        } catch (\Throwable $e) {
-
-            die(
-                'ERROR QR: '
-                . htmlspecialchars($e->getMessage())
-            );
-        }
+        $qrPerfil = $resultadoQr->getDataUri();
 
 
         /* =====================================================
