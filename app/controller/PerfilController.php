@@ -70,15 +70,25 @@ class PerfilController
             . '/perfil/show?id='
             . (int) $usuario['id'];
 
-        $builderQr = Builder::create()
-            ->writer(new SvgWriter())
-            ->data($urlPerfil)
-            ->size(300)
-            ->margin(12);
+        try {
 
-        $resultadoQr = $builderQr->build();
+            $builderQr = Builder::create()
+                ->writer(new SvgWriter())
+                ->data($urlPerfil)
+                ->size(300)
+                ->margin(12);
 
-        $qrPerfil = $resultadoQr->getDataUri();
+            $resultadoQr = $builderQr->build();
+
+            $qrPerfil = $resultadoQr->getDataUri();
+
+        } catch (\Throwable $e) {
+
+            die(
+                'ERROR QR: '
+                . htmlspecialchars($e->getMessage())
+            );
+        }
 
 
         /* =====================================================
