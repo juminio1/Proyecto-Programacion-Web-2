@@ -145,7 +145,7 @@ function claseActiva($pagina, $paginaActiva)
 
     <link
             rel="stylesheet"
-            href="/css/header.css"
+            href="/css/header.css?v=2"
     >
 
     <link
