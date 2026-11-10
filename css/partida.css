@@ -1,4 +1,3 @@
-/* ===== BASE DE LA PÁGINA ===== */
 
 body {
     margin: 0;
@@ -770,31 +769,6 @@ body {
     border-top: 6px solid var(--color-categoria);
 }
 
-.partida-pregunta.animar {
-    animation: partida-nueva-pregunta 0.8s ease-out;
-}
-
-@keyframes partida-nueva-pregunta {
-    0% {
-        background-color: color-mix(
-                in srgb,
-                var(--color-categoria) 40%,
-                white
-        );
-        transform: scale(0.97);
-        opacity: 0.6;
-    }
-
-    100% {
-        background-color: color-mix(
-                in srgb,
-                var(--color-categoria) 10%,
-                white
-        );
-        transform: scale(1);
-        opacity: 1;
-    }
-}
 
 .partida-pagina {
     background-color: color-mix(
@@ -1436,5 +1410,226 @@ body {
         align-items: center;
         padding: 12px 14px;
         text-align: left;
+    }
+}
+
+/* =========================================================
+   ENTRADA DE NUEVA PREGUNTA
+   ========================================================= */
+
+.partida-pregunta.animar {
+    animation: entrada-pregunta 0.55s
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes entrada-pregunta {
+    0% {
+        opacity: 0;
+        transform: translateY(24px) scale(0.97);
+    }
+
+    65% {
+        opacity: 1;
+        transform: translateY(-3px) scale(1.005);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* =========================================================
+   ENUNCIADO
+   ========================================================= */
+
+.partida-pregunta.animar #partida-enunciado {
+    animation: entrada-enunciado 0.5s ease-out both;
+    animation-delay: 0.08s;
+}
+
+@keyframes entrada-enunciado {
+    from {
+        opacity: 0;
+        transform: translateX(-18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+
+/* =========================================================
+   OPCIONES
+   ========================================================= */
+
+.partida-pregunta.animar .partida-opcion {
+    opacity: 0;
+    animation: entrada-opcion 0.48s
+    cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.partida-pregunta.animar .partida-opcion:nth-of-type(1) {
+    animation-delay: 0.14s;
+}
+
+.partida-pregunta.animar .partida-opcion:nth-of-type(2) {
+    animation-delay: 0.22s;
+}
+
+.partida-pregunta.animar .partida-opcion:nth-of-type(3) {
+    animation-delay: 0.30s;
+}
+
+.partida-pregunta.animar .partida-opcion:nth-of-type(4) {
+    animation-delay: 0.38s;
+}
+
+@keyframes entrada-opcion {
+    0% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.96);
+    }
+
+    70% {
+        opacity: 1;
+        transform: translateY(-2px) scale(1.01);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* =========================================================
+   HOVER DE OPCIONES
+   ========================================================= */
+
+.partida-opcion-contenido {
+    transition:
+            transform 0.18s ease,
+            border-color 0.2s ease,
+            background-color 0.2s ease,
+            box-shadow 0.2s ease;
+}
+
+.partida-opcion:hover .partida-opcion-contenido {
+    transform: translateY(-3px) scale(1.01);
+
+    box-shadow:
+            0 8px 20px rgba(91, 47, 217, 0.16);
+}
+
+
+/* =========================================================
+   OPCIÓN SELECCIONADA
+   ========================================================= */
+
+.partida-radio:checked + .partida-opcion-contenido {
+    animation: opcion-seleccionada 0.32s
+    cubic-bezier(0.22, 1, 0.36, 1);
+
+    box-shadow:
+            0 7px 22px rgba(117, 64, 245, 0.22);
+}
+
+@keyframes opcion-seleccionada {
+    0% {
+        transform: scale(1);
+    }
+
+    45% {
+        transform: scale(1.035);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.partida-radio:checked
++ .partida-opcion-contenido
+.partida-letra {
+    animation: letra-seleccionada 0.35s ease;
+}
+
+@keyframes letra-seleccionada {
+    0% {
+        transform: scale(0.75) rotate(-8deg);
+    }
+
+    65% {
+        transform: scale(1.15) rotate(3deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0);
+    }
+}
+
+
+/* =========================================================
+   BOTÓN CONFIRMAR
+   ========================================================= */
+
+.partida-confirmar {
+    transition:
+            opacity 0.2s ease,
+            box-shadow 0.2s ease,
+            transform 0.18s ease,
+            filter 0.18s ease;
+}
+
+.partida-confirmar:not(:disabled) {
+    animation: boton-disponible 0.35s ease-out;
+}
+
+@keyframes boton-disponible {
+    0% {
+        transform: scale(0.95);
+    }
+
+    60% {
+        transform: scale(1.025);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.partida-confirmar:hover:not(:disabled) {
+    transform: translateY(-2px);
+
+    filter: brightness(1.08);
+
+    box-shadow:
+            0 10px 26px rgba(91, 47, 217, 0.32);
+}
+
+.partida-confirmar:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+
+/* =========================================================
+   ACCESIBILIDAD
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .partida-pregunta.animar,
+    .partida-pregunta.animar #partida-enunciado,
+    .partida-pregunta.animar .partida-opcion,
+    .partida-radio:checked + .partida-opcion-contenido,
+    .partida-radio:checked
+    + .partida-opcion-contenido
+    .partida-letra,
+    .partida-confirmar:not(:disabled) {
+        animation: none !important;
     }
 }

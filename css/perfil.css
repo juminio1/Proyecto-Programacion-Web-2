@@ -559,3 +559,411 @@ html.dark-mode .mensaje-vacio-icono {
     background-color: #2b224e;
     color: #b89bfb;
 }
+
+/* ==========================================================================
+   LAYOUT ORDENADO DEL PERFIL
+   ========================================================================== */
+
+/*
+ * Desktop:
+ * ┌────────────────────┬──────────────────────────────┐
+ * │ Datos              │ Historial                    │
+ * ├────────────────────┼──────────────────────────────┤
+ * │ Mapa               │ Código QR                    │
+ * └────────────────────┴──────────────────────────────┘
+ */
+
+.perfil-grid-cuerpo {
+    display: grid;
+    grid-template-columns: minmax(340px, 0.9fr) minmax(0, 1.55fr);
+    grid-template-areas:
+        "datos historial"
+        "mapa qr";
+    gap: 24px;
+    align-items: stretch;
+}
+
+.perfil-grid-cuerpo > .perfil-card {
+    margin-bottom: 0;
+    min-width: 0;
+}
+
+.perfil-card-datos {
+    grid-area: datos;
+}
+
+.perfil-card-historial {
+    grid-area: historial;
+}
+
+.perfil-card-mapa {
+    grid-area: mapa;
+}
+
+.perfil-qr-card {
+    grid-area: qr;
+}
+
+/* El mapa no necesita ser tan alto cuando comparte fila con el QR. */
+.perfil-card-mapa #mapa-perfil {
+    height: 300px;
+}
+
+
+/* ==========================================================================
+   CÓDIGO QR DEL PERFIL
+   ========================================================================== */
+
+.perfil-qr-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.perfil-qr-card .perfil-card-cabecera {
+    flex-shrink: 0;
+}
+
+.perfil-qr-contenido {
+    display: grid;
+    grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
+    align-items: center;
+    gap: 30px;
+    flex: 1;
+}
+
+.perfil-qr-marco {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 230px;
+    padding: 14px;
+    margin: 0 auto;
+    border: 1px solid #e4def0;
+    border-radius: 18px;
+    background-color: #ffffff;
+    box-shadow: 0 8px 24px rgba(33, 16, 79, 0.08);
+}
+
+.perfil-qr-imagen {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+}
+
+.perfil-qr-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    min-width: 0;
+}
+
+.perfil-qr-texto {
+    max-width: 430px;
+    margin: 0;
+    color: var(--gris, #6d6785);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.perfil-qr-texto strong {
+    color: var(--tinta, #1d1050);
+    font-weight: 900;
+}
+
+.perfil-qr-enlace {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 18px;
+    border: 1px solid #d9c5ff;
+    border-radius: 999px;
+    background-color: #f6f2ff;
+    color: var(--morado, #5b2fd9);
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+    transition:
+            transform 0.15s ease,
+            background-color 0.15s ease,
+            border-color 0.15s ease,
+            box-shadow 0.15s ease;
+}
+
+.perfil-qr-enlace:hover {
+    transform: translateY(-1px);
+    background-color: #eee7ff;
+    border-color: #bda4f5;
+    box-shadow: 0 5px 14px rgba(91, 47, 217, 0.12);
+}
+
+
+/* ==========================================================================
+   AJUSTES DE PROPORCIÓN Y ESPACIADO
+   ========================================================================== */
+
+.perfil-card-historial {
+    align-self: start;
+}
+
+.perfil-card-historial .tabla-wrap {
+    width: 100%;
+}
+
+.perfil-card-mapa,
+.perfil-qr-card {
+    min-height: 390px;
+}
+
+/* Evita que encabezados largos rompan las tarjetas. */
+.perfil-card-cabecera {
+    gap: 12px;
+}
+
+.perfil-card-cabecera h2 {
+    min-width: 0;
+}
+
+
+/* ==========================================================================
+   TABLETS
+   ========================================================================== */
+
+@media (max-width: 1050px) {
+    .perfil-contenedor {
+        max-width: 920px;
+    }
+
+    .perfil-grid-cuerpo {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "datos"
+            "historial"
+            "mapa"
+            "qr";
+    }
+
+    .perfil-card-mapa,
+    .perfil-qr-card {
+        min-height: auto;
+    }
+
+    .perfil-card-mapa #mapa-perfil {
+        height: 320px;
+    }
+
+    .perfil-qr-contenido {
+        grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
+    }
+}
+
+
+/* ==========================================================================
+   CELULARES
+   ========================================================================== */
+
+@media (max-width: 700px) {
+    .perfil-contenedor {
+        gap: 18px;
+        padding: 20px 16px 36px;
+    }
+
+    .perfil-hero-card {
+        padding: 22px 18px;
+        gap: 18px;
+    }
+
+    .perfil-hero-izq {
+        width: 100%;
+        gap: 16px;
+    }
+
+    .perfil-avatar-wrap {
+        width: 84px;
+        height: 84px;
+    }
+
+    .perfil-avatar-placeholder {
+        font-size: 34px;
+    }
+
+    .perfil-hero-datos {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .perfil-hero-datos h1 {
+        font-size: 24px;
+        overflow-wrap: anywhere;
+    }
+
+    .perfil-badges {
+        gap: 6px;
+    }
+
+    .perfil-totales-fila {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .tarjeta-total {
+        padding: 18px;
+    }
+
+    .perfil-card {
+        padding: 20px 18px;
+        border-radius: 18px;
+    }
+
+    .perfil-card-cabecera h2 {
+        font-size: 18px;
+    }
+
+    .dato-fila {
+        align-items: flex-start;
+    }
+
+    .dato-etiqueta,
+    .dato-valor {
+        min-width: 0;
+    }
+
+    .dato-valor {
+        max-width: 58%;
+        overflow-wrap: anywhere;
+    }
+
+    .perfil-card-mapa #mapa-perfil {
+        height: 280px;
+    }
+
+    .perfil-qr-contenido {
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: center;
+        gap: 20px;
+        text-align: center;
+    }
+
+    .perfil-qr-marco {
+        width: min(220px, 100%);
+    }
+
+    .perfil-qr-info {
+        align-items: center;
+        width: 100%;
+    }
+
+    .perfil-qr-texto {
+        max-width: 360px;
+        font-size: 14px;
+    }
+
+    .perfil-qr-enlace {
+        width: min(100%, 300px);
+    }
+
+    .tabla-partidas {
+        min-width: 560px;
+    }
+}
+
+
+@media (max-width: 480px) {
+    .perfil-hero-izq {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .perfil-avatar-wrap {
+        width: 78px;
+        height: 78px;
+    }
+
+    .perfil-hero-datos h1 {
+        font-size: 22px;
+    }
+
+    .perfil-card {
+        padding: 18px 15px;
+    }
+
+    .dato-fila {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .dato-valor {
+        max-width: 100%;
+        text-align: left;
+    }
+
+    .perfil-card-mapa #mapa-perfil {
+        height: 250px;
+    }
+
+    .perfil-qr-marco {
+        width: min(205px, 100%);
+        padding: 11px;
+    }
+}
+
+
+/* ==========================================================================
+   MODO OSCURO - QR
+   ========================================================================== */
+
+html[data-theme="dark"] .perfil-qr-marco,
+html.dark-mode .perfil-qr-marco {
+    /*
+     * Mantener el QR sobre blanco mejora el contraste y la lectura
+     * de la cámara incluso cuando el resto del sitio está en oscuro.
+     */
+    background-color: #ffffff;
+    border-color: #ded7eb;
+}
+
+html[data-theme="dark"] .perfil-qr-texto,
+html.dark-mode .perfil-qr-texto {
+    color: #b4acd4;
+}
+
+html[data-theme="dark"] .perfil-qr-texto strong,
+html.dark-mode .perfil-qr-texto strong {
+    color: #f3efff;
+}
+
+html[data-theme="dark"] .perfil-qr-enlace,
+html.dark-mode .perfil-qr-enlace {
+    background-color: #2b224e;
+    border-color: #4f3b7d;
+    color: #d6c6ff;
+}
+
+html[data-theme="dark"] .perfil-qr-enlace:hover,
+html.dark-mode .perfil-qr-enlace:hover {
+    background-color: #382b60;
+    border-color: #6c54a0;
+}
+
+/* ===== HISTORIAL CON ALTURA CONTROLADA ===== */
+
+.perfil-card-historial {
+    align-self: start;
+}
+
+.perfil-card-historial .tabla-wrap {
+    max-height: 420px;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+/* Mantiene los títulos visibles al hacer scroll */
+.perfil-card-historial .tabla-partidas thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}

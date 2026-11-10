@@ -3,6 +3,8 @@
 namespace app\controller;
 
 use Redirect;
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Writer\SvgWriter;
 
 class PerfilController
 {
@@ -87,7 +89,10 @@ class PerfilController
             'puntajeAcumulado' => $puntajeAcumulado,
             'totalPartidas' => $totalPartidas,
             'partidas' => $partidasFinalizadas,
-            'tienePartidas' => $tienePartidas
+            'tienePartidas' => $tienePartidas,
+
+            'qrPerfil' => $qrPerfil,
+            'urlPerfil' => $urlPerfil
         ];
 
         $this->render->renderiza('perfil', $datos);
