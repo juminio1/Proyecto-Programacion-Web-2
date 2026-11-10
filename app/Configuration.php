@@ -10,6 +10,8 @@ use app\controller\RegistroController;
 use app\controller\PartidaController;
 use app\controller\PreguntaController;
 use app\controller\PerfilController;
+use app\controller\RankingController;
+use app\model\RankingModel;
 use app\model\UsuarioModel;
 use app\controller\HistorialController;
 use app\model\InicioModel;
@@ -88,6 +90,14 @@ class Configuration
     {
         return new PerfilController(
             new PerfilModel($this->getDatabase()),
+            $this->getRender()
+        );
+    }
+
+    public function getRankingController()
+    {
+        return new RankingController(
+            new RankingModel($this->getDatabase()),
             $this->getRender()
         );
     }

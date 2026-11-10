@@ -532,6 +532,11 @@ nav a[aria-current="page"] {
     white-space: nowrap;
 }
 
+.tabla-partidas .fila-propia {
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.1);
+}
+
 .enlace-boton:hover {
     color: var(--morado);
 }

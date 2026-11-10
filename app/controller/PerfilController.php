@@ -19,48 +19,26 @@ class PerfilController
 
     public function show()
     {
-        $idUsuarioSesion = $_SESSION['usuario_id'] ?? null;
+        $idSesion = $_SESSION['usuario_id'] ?? null;
 
-        if (isset($_GET['id'])) {
-            $idUsuario = (int) $_GET['id'];
-        } else {
-            if ($idUsuarioSesion === null) {
-                Redirect::to('/login/show');
-                return;
-            }
-
-            $idUsuario = (int) $idUsuarioSesion;
-        }
-
-        if ($idUsuario <= 0) {
+        if ($idSesion === null) {
             Redirect::to('/login/show');
             return;
         }
+
+        // Si viene ?id= se muestra ese perfil, si no, el del usuario logueado
+        $idUsuario = isset($_GET['id']) ? (int) $_GET['id'] : (int) $idSesion;
 
         $usuario = $this->model->obtenerUsuarioPorId($idUsuario);
 
         if (!$usuario) {
-            Redirect::to('/login/show');
+            Redirect::to('/inicio/show');
             return;
         }
 
-        $baseUrl = 'https://preguntadospw2.infinityfreeapp.com';
+        $esMiPerfil = ($idUsuario === (int) $idSesion);
 
-        $urlPerfil = $baseUrl
-            . '/perfil/show?id='
-            . (int) $usuario['id'];
-
-        $builderQr = Builder::create()
-            ->writer(new SvgWriter())
-            ->data($urlPerfil)
-            ->size(300)
-            ->margin(12);
-
-        $resultadoQr = $builderQr->build();
-
-        $qrPerfil = $resultadoQr->getDataUri();
-
-        $partidasFinalizadas = $this->model->obtenerPartidasFinalizadas((int) $idUsuario);
+        $partidasFinalizadas = $this->model->obtenerPartidasFinalizadas($idUsuario);
         $totalPartidas = $this->model->calcularTotalPartidas($partidasFinalizadas);
         $puntajeAcumulado = $this->model->calcularPuntajeAcumulado($partidasFinalizadas);
         $tienePartidas = $totalPartidas > 0;
@@ -92,6 +70,7 @@ class PerfilController
 
         $datos = [
             'id' => $usuario['id'],
+            'esMiPerfil' => $esMiPerfil,
             'nombre_completo' => $usuario['nombre_completo'],
             'nombre_usuario' => $usuario['nombre_usuario'],
             'email' => $usuario['email'],

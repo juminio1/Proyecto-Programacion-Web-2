@@ -1,6 +1,5 @@
 <?php
 use app\Configuration;
-
 session_start();
 require_once("app/Configuration.php");
 
