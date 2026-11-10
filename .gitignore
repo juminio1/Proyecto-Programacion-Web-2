@@ -5,3 +5,5 @@ log/*.log
 public/uploads/perfiles/*
 /router.local.php
 /app/view/TrelloView.mustache
+
+/vendor/
