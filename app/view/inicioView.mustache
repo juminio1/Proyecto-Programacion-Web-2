@@ -164,9 +164,9 @@
                 <div class="ranking-item">
                     <span class="medalla">{{posicion}}</span>
 
-                    <span class="ranking-jugador">
+                    <a class="ranking-jugador" href="/perfil/show?id={{id}}">
                         {{nombre_usuario}}
-                    </span>
+                    </a>
 
                     <span class="ranking-puntos">
                 {{puntaje}} pts
@@ -179,6 +179,7 @@
                     Todavía no hay jugadores en el ranking.
                 </p>
             {{/ranking}}
+            <a href="/ranking" class="enlace-boton">Ver ranking completo</a>
         </section>
 
     </div>

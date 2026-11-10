@@ -1,0 +1,41 @@
+<link rel="stylesheet" href="/css/inicio.css">
+<main>
+    <section class="ultimas-partidas">
+        <div class="tarjeta-cabecera">
+            <h2>Ranking semanal completo</h2>
+            <a href="/inicio/show" class="enlace-boton">Volver al inicio</a>
+        </div>
+
+        {{#hayRanking}}
+            <p>{{totalJugadores}} jugadores</p>
+
+            <table class="tabla-partidas">
+                <thead>
+                <tr>
+                    <th>Posición</th>
+                    <th>Jugador</th>
+                    <th>Puntaje</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#ranking}}
+                    <tr {{#esYo}}class="fila-propia"{{/esYo}}>
+                        <td>#{{posicion}}</td>
+                        <td>
+                            <a href="/perfil/show?id={{id}}">{{nombre_usuario}}</a>
+                            {{#esYo}}(vos){{/esYo}}
+                        </td>
+                        <td>{{puntaje}} pts</td>
+                    </tr>
+                {{/ranking}}
+                </tbody>
+            </table>
+        {{/hayRanking}}
+
+        {{^hayRanking}}
+            <p class="mensaje-vacio">
+                Todavía no hay jugadores en el ranking.
+            </p>
+        {{/hayRanking}}
+    </section>
+</main>
