@@ -3,6 +3,8 @@
 namespace app\controller;
 
 use Redirect;
+use Endroid\QrCode\Builder\Builder;
+use Endroid\QrCode\Writer\SvgWriter;
 
 class PerfilController
 {
@@ -17,19 +19,46 @@ class PerfilController
 
     public function show()
     {
-        $idUsuario = $_SESSION['usuario_id'] ?? null;
+        $idUsuarioSesion = $_SESSION['usuario_id'] ?? null;
 
-        if ($idUsuario === null) {
+        if (isset($_GET['id'])) {
+            $idUsuario = (int) $_GET['id'];
+        } else {
+            if ($idUsuarioSesion === null) {
+                Redirect::to('/login/show');
+                return;
+            }
+
+            $idUsuario = (int) $idUsuarioSesion;
+        }
+
+        if ($idUsuario <= 0) {
             Redirect::to('/login/show');
             return;
         }
 
-        $usuario = $this->model->obtenerUsuarioPorId((int) $idUsuario);
+        $usuario = $this->model->obtenerUsuarioPorId($idUsuario);
 
         if (!$usuario) {
             Redirect::to('/login/show');
             return;
         }
+
+        $baseUrl = 'https://preguntadospw2.infinityfreeapp.com';
+
+        $urlPerfil = $baseUrl
+            . '/perfil/show?id='
+            . (int) $usuario['id'];
+
+        $builderQr = Builder::create()
+            ->writer(new SvgWriter())
+            ->data($urlPerfil)
+            ->size(300)
+            ->margin(12);
+
+        $resultadoQr = $builderQr->build();
+
+        $qrPerfil = $resultadoQr->getDataUri();
 
         $partidasFinalizadas = $this->model->obtenerPartidasFinalizadas((int) $idUsuario);
         $totalPartidas = $this->model->calcularTotalPartidas($partidasFinalizadas);
@@ -81,7 +110,10 @@ class PerfilController
             'puntajeAcumulado' => $puntajeAcumulado,
             'totalPartidas' => $totalPartidas,
             'partidas' => $partidasFinalizadas,
-            'tienePartidas' => $tienePartidas
+            'tienePartidas' => $tienePartidas,
+
+            'qrPerfil' => $qrPerfil,
+            'urlPerfil' => $urlPerfil
         ];
 
         $this->render->renderiza('perfil', $datos);
