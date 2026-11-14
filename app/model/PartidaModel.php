@@ -414,24 +414,25 @@ class PartidaModel
         $this->cerrarPartida($partidaId, EstadoPartida::FINALIZADA);
     }
 
-    public function abandonarPartida($idUsuario)
+    public function abandonarPartida(int $idUsuario): void
     {
         $partida = $this->obtenerPartidaActiva($idUsuario);
-
         if ($partida) {
-            $this->cerrarPartida($partida['id'], EstadoPartida::ABANDONADA);
+            // El logout abandona una partida activa; una ya cerrada se conserva.
+            $this->abandonarPartidaPorId($idUsuario, (int) $partida['id'], respetarVencimiento: false);
         }
     }
 
-    public function abandonarPartidaPorId(int $idUsuario, int $idPartida){
-        return $this->enTransaccion(function (PDO $pdo) use ($idUsuario, $idPartida) {
+    public function abandonarPartidaPorId(int $idUsuario, int $idPartida, bool $respetarVencimiento = true)
+    {
+        return $this->enTransaccion(function (PDO $pdo) use ($idUsuario, $idPartida, $respetarVencimiento) {
             $partida = $this->bloquearPartida($pdo, $idPartida, $idUsuario);
             if (!$this->estaActiva($partida)) {
                 return $this->resultadoPartidaCerrada($partida);
             }
 
             $pregunta = $this->obtenerPreguntaActual($idPartida);
-            if ($pregunta && $pregunta['tiempoRestanteMs'] === 0) {
+            if ($respetarVencimiento && $pregunta && $pregunta['tiempoRestanteMs'] === 0) {
                 return $this->cerrarPorTiempo($pdo, $partida, $pregunta['idAsignacion']);
             }
 

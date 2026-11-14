@@ -14,6 +14,7 @@ use app\controller\RankingController;
 use app\model\RankingModel;
 use app\model\UsuarioModel;
 use app\controller\HistorialController;
+use app\controller\EditorController;
 use app\model\InicioModel;
 use app\model\LoginModel;
 use app\model\PartidaModel;
@@ -30,6 +31,8 @@ require_once("helper/Autoloader.php");
 
 class Configuration
 {
+    private $database;
+
     public function __construct()
     {
     }
@@ -55,9 +58,13 @@ class Configuration
     public function getLoginController()
     {
         return new LoginController(
-            new LoginModel($this->getDatabase()),
+            fn () => new LoginModel($this->getDatabase()),
             $this->getRender(),
-            $this->getPartidaModel()
+            function (int $idUsuario): void {
+                // La espera por una fila ocupada se limita solo para esta conexión de logout.
+                $this->getDatabase()->getConexion()->exec('SET SESSION innodb_lock_wait_timeout = 2');
+                $this->getPartidaModel()->abandonarPartida($idUsuario);
+            }
         );
     }
 
@@ -102,6 +109,11 @@ class Configuration
         );
     }
 
+    public function getEditorController()
+    {
+        return new EditorController($this->getRender());
+    }
+
     private function getPartidaModel()
     {
         $db = $this->getDatabase();
@@ -136,9 +148,13 @@ class Configuration
 
     private function getDatabase()
     {
+        if ($this->database !== null) {
+            return $this->database;
+        }
+
         $config = $this->getConfig();
 
-        return new MyDatabase(
+        return $this->database = new MyDatabase(
             $config["db_host"],
             $config["db_user"],
             $config["db_pass"],
@@ -153,7 +169,9 @@ class Configuration
 
     public function getRouter()
     {
-        return new Router($this, "inicio", "show");
+        return new Router($this, "inicio", "show", function (int $idUsuario): ?string {
+            return (new LoginModel($this->getDatabase()))->obtenerRolActivo($idUsuario);
+        });
     }
 
     public function getPreguntaSugeridaController()

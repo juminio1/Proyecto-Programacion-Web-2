@@ -1,0 +1,35 @@
+.editor {
+    width: min(1080px, calc(100% - 36px));
+    min-height: 60vh;
+    margin: 40px auto;
+    font-family: Nunito, Arial, sans-serif;
+    color: var(--texto-principal, #25154d);
+}
+
+.editor-panel {
+    padding: clamp(20px, 4vw, 38px);
+    background: var(--bg-superficie-alt, #f5f0ff);
+    border: 1px solid var(--borde, #e6ddf4);
+    border-radius: 22px;
+}
+
+.editor-panel h1 {
+    margin: 0;
+    font-family: inherit;
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 900;
+    line-height: 1.18;
+}
+
+.editor-panel p {
+    margin: 8px 0 0;
+    color: var(--texto-secundario, #665a7d);
+}
+
+.editor-panel .editor-etiqueta {
+    margin: 0 0 7px;
+    color: var(--morado-oscuro, #5227be);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .09em;
+}
