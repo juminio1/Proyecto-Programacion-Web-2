@@ -14,7 +14,7 @@ class LoginModel{
     public function buscarUsuario($identificador){
         $pdo = $this->database->getConexion();
 
-        $sql = "SELECT id, nombre_usuario, password, activo
+        $sql = "SELECT id, nombre_usuario, password, activo, rol
                 FROM usuarios
                 WHERE nombre_usuario = :username
                 OR email = :email";
@@ -27,6 +27,16 @@ class LoginModel{
         ]);
 
         return $consulta->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerRolActivo(int $idUsuario): ?string
+    {
+        $consulta = $this->database->getConexion()->prepare(
+            'SELECT rol FROM usuarios WHERE id = :id AND activo = 1'
+        );
+        $consulta->execute(['id' => $idUsuario]);
+        $rol = $consulta->fetchColumn();
+        return $rol === false ? null : $rol;
     }
 
     public function iniciarSesion($identificador, $password)

@@ -2,25 +2,32 @@
 
 namespace app\controller;
 
+use app\model\enums\RolUsuario;
 use Request;
 use Redirect;
-use PDOException;
+use RuntimeException;
 
 class LoginController{
 
     private $render;
-    private $loginModel;
-    private $partidaModel;
+    private $crearLoginModel;
+    private $abandonarPartida;
 
-    public function __construct($loginModel, $render, $partidaModel){
-        $this->loginModel = $loginModel;
+    public function __construct(callable $crearLoginModel, $render, callable $abandonarPartida){
+        $this->crearLoginModel = $crearLoginModel;
         $this->render = $render;
-        $this->partidaModel = $partidaModel;
+        $this->abandonarPartida = $abandonarPartida;
     }
 
     public function show()
     {
-        $this->render->renderiza("login");
+        $aviso = $_SESSION['aviso_logout'] ?? null;
+        unset($_SESSION['aviso_logout']);
+
+        $this->render->renderiza("login", [
+            'hay_errores' => $aviso !== null,
+            'errores' => $aviso === null ? [] : [$aviso]
+        ]);
     }
 
     public function login(){
@@ -32,7 +39,8 @@ class LoginController{
         $identificador  = trim(Request::post('usuario', ''));
         $password = Request::post('password', '');
 
-        $errores = $this->loginModel->iniciarSesion($identificador, $password);
+        $loginModel = ($this->crearLoginModel)();
+        $errores = $loginModel->iniciarSesion($identificador, $password);
 
         if (!empty($errores)) {
             $this->render->renderiza("login", [
@@ -43,7 +51,7 @@ class LoginController{
             return;
         }
 
-        $usuario = $this->loginModel->buscarUsuario($identificador);
+        $usuario = $loginModel->buscarUsuario($identificador);
 
         if ($usuario === false) {
             Redirect::to('/login/show');
@@ -51,35 +59,37 @@ class LoginController{
 
         session_regenerate_id(true);
 
-        $_SESSION['usuario_id'] = $usuario['id'];
-        $_SESSION['usuario'] = $usuario['nombre_usuario'];
+        $_SESSION = [
+            'usuario_id' => $usuario['id'],
+            'usuario' => $usuario['nombre_usuario'],
+            'rol' => $usuario['rol'],
+        ];
 
-        Redirect::to('/inicio/show');
+        Redirect::to($usuario['rol'] === RolUsuario::EDITOR ? '/editor/show' : '/inicio/show');
     }
 
     public function logout()
     {
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-            Redirect::to('/inicio/show');
+            Redirect::to(($_SESSION['rol'] ?? null) === RolUsuario::EDITOR ? '/editor/show' : '/inicio/show');
         }
 
         $idUsuario = (int) ($_SESSION['usuario_id'] ?? 0);
+        $esJugador = ($_SESSION['rol'] ?? null) === RolUsuario::JUGADOR;
 
         try {
-            if ($idUsuario > 0) {
-                $this->partidaModel->abandonarPartida($idUsuario);
+            if ($idUsuario > 0 && $esJugador) {
+                ($this->abandonarPartida)($idUsuario);
             }
-        } catch (PDOException $error) {
-            error_log('Error al cerrar sesión: ' . $error->getMessage());
+        } catch (RuntimeException $error) {
+            error_log('Error al abandonar la partida al cerrar sesión: ' . $error->getMessage());
 
-            $_SESSION['errores_partida'] = [
-                'No se pudo cerrar sesión. Intentá nuevamente.'
-            ];
-
-            Redirect::to('/inicio/show');
+            $_SESSION = [];
+            session_regenerate_id(true);
+            $_SESSION['aviso_logout'] = 'Cerraste sesión, pero no se pudo confirmar el abandono de la partida. Si sigue activa cuando vuelvas, entrá a la partida y abandonala.';
+            Redirect::to('/login/show');
         }
 
-        // La partida se actualiza y cierra session
         $_SESSION = [];
 
         if (ini_get('session.use_cookies')) {
