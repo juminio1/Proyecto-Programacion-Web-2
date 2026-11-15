@@ -26,8 +26,8 @@ function prepararEditor(bool $soloSql): void
     $password = (string)($config[$prefijo . 'password'] ?? '');
     if (!preg_match('/\A[A-Za-z0-9_.-]{1,50}\z/', $usuario)
         || strlen($email) > 150 || !filter_var($email, FILTER_VALIDATE_EMAIL)
-        || strlen($password) < 10 || strlen($password) > 72 || str_contains($password, "\0")) {
-        throw new RuntimeException("Completá {$prefijo}usuario, {$prefijo}email y {$prefijo}password (10 a 72 bytes).");
+        || strlen($password) < 4 || strlen($password) > 72 || str_contains($password, "\0")) {
+        throw new RuntimeException("Completá {$prefijo}usuario, {$prefijo}email y {$prefijo}password (4 a 72 bytes).");
     }
 
     if ($soloSql) {
@@ -113,7 +113,7 @@ SQL;
 
 $args = array_slice($argv, 1);
 if ($args !== [] && $args !== ['--sql']) {
-    fwrite(STDERR, 'Uso: php scripts/crear-editor-local.php [--sql]' . PHP_EOL);
+    fwrite(STDERR, 'Uso: php scripts/crear-editor.php [--sql]' . PHP_EOL);
     exit(1);
 }
 

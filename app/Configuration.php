@@ -111,7 +111,10 @@ class Configuration
 
     public function getEditorController()
     {
-        return new EditorController($this->getRender());
+        return new EditorController(
+            new PreguntaSugeridaModel($this->getDatabase()),
+            $this->getRender()
+        );
     }
 
     private function getPartidaModel()
