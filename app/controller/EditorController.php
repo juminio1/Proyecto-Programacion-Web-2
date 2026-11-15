@@ -77,6 +77,16 @@ class EditorController
 
     public function aprobar(): void
     {
+        $this->resolverSugerencia(true);
+    }
+
+    public function rechazar(): void
+    {
+        $this->resolverSugerencia(false);
+    }
+
+    private function resolverSugerencia(bool $aprobar): void
+    {
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
             http_response_code(405);
             header('Allow: POST');
@@ -88,7 +98,7 @@ class EditorController
         if (!is_string($token) || !is_string($tokenGuardado) || !hash_equals($tokenGuardado, $token)) {
             http_response_code(403);
             header('Content-Type: text/plain; charset=utf-8');
-            echo 'Volvé a abrir el listado de sugerencias para aprobar una pregunta.';
+            echo 'Volvé a abrir el listado de sugerencias para realizar esta acción.';
             return;
         }
 
@@ -100,16 +110,21 @@ class EditorController
             if ($id === false) {
                 throw new DomainException('La sugerencia indicada no es válida.');
             }
-            $this->sugerencias->aprobar($id);
-            $_SESSION['editor_sugerencias_aviso'] = [
-                'exito' => 'Sugerencia aprobada. La pregunta ya está disponible para jugar.'
-            ];
+            if ($aprobar) {
+                $this->sugerencias->aprobar($id);
+                $mensaje = 'Sugerencia aprobada. La pregunta ya está disponible para jugar.';
+            } else {
+                $this->sugerencias->rechazar($id);
+                $mensaje = 'Sugerencia rechazada. La pregunta no se incorporó al juego.';
+            }
+            $_SESSION['editor_sugerencias_aviso'] = ['exito' => $mensaje];
         } catch (DomainException $error) {
             $_SESSION['editor_sugerencias_aviso'] = ['error' => $error->getMessage()];
         } catch (PDOException $error) {
-            error_log('Error al aprobar sugerencia: ' . $error->getMessage());
+            $accion = $aprobar ? 'aprobar' : 'rechazar';
+            error_log('Error al ' . $accion . ' sugerencia: ' . $error->getMessage());
             $_SESSION['editor_sugerencias_aviso'] = [
-                'error' => 'No se pudo guardar la aprobación. Volvé a intentar.'
+                'error' => 'No se pudo guardar la ' . ($aprobar ? 'aprobación' : 'decisión') . '. Volvé a intentar.'
             ];
         }
 

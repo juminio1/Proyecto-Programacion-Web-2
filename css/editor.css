@@ -56,6 +56,28 @@
     color: #fff;
 }
 
+.editor-sugerencia-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.editor-sugerencia-acciones .editor-boton {
+    margin-top: 0;
+}
+
+.editor-boton-rechazar {
+    border: 1px solid var(--borde, #e6ddf4);
+    background: transparent;
+    color: var(--texto-principal, #25154d);
+}
+
+.editor-boton-rechazar:hover {
+    background: var(--bg-superficie-alt, #f5f0ff);
+    color: var(--texto-principal, #25154d);
+}
+
 .editor-boton:focus-visible,
 .editor-volver:focus-visible,
 .editor-sugerencia summary:focus-visible {

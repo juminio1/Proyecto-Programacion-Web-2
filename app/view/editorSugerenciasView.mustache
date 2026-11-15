@@ -1,11 +1,11 @@
-<link rel="stylesheet" href="/css/editor.css?v=3">
+<link rel="stylesheet" href="/css/editor.css?v=4">
 
 <main class="editor" aria-labelledby="editor-sugerencias-titulo">
     <header class="editor-panel">
         <a class="editor-volver" href="/editor/show">Volver al panel del editor</a>
         <p class="editor-etiqueta">REVISIÓN DEL EDITOR</p>
         <h1 id="editor-sugerencias-titulo">Preguntas sugeridas</h1>
-        <p>Revisá el enunciado y las opciones antes de incorporar una pregunta al juego.</p>
+        <p>Revisá el enunciado y las opciones para decidir qué preguntas se incorporan al juego.</p>
     </header>
 
     {{#mensajeExito}}
@@ -41,7 +41,12 @@
                     <form action="/editor/aprobar" method="post">
                         <input type="hidden" name="id_sugerencia" value="{{id}}">
                         <input type="hidden" name="csrf_token" value="{{tokenAprobacion}}">
-                        <button type="submit" class="editor-boton">Aprobar pregunta</button>
+                        <div class="editor-sugerencia-acciones">
+                            <button type="submit" class="editor-boton">Aprobar pregunta</button>
+                            <button type="submit" class="editor-boton editor-boton-rechazar" formaction="/editor/rechazar">
+                                Rechazar sugerencia
+                            </button>
+                        </div>
                     </form>
                 </div>
             </details>

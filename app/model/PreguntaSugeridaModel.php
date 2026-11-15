@@ -64,7 +64,7 @@ class PreguntaSugeridaModel
         $pdo->beginTransaction();
 
         try {
-            // El bloqueo evita que dos aprobaciones incorporen la misma sugerencia.
+            // La aprobación y el rechazo compiten por el bloqueo de esta misma fila.
             $consulta = $pdo->prepare(
                 'SELECT categoria_id, pregunta, opcion_a, opcion_b, opcion_c, opcion_d, respuesta_correcta, estado
                  FROM preguntasSugeridas WHERE id = ? FOR UPDATE'
@@ -115,6 +115,19 @@ class PreguntaSugeridaModel
                 $pdo->rollBack();
             }
             throw $error;
+        }
+    }
+
+    public function rechazar(int $idSugerencia): void
+    {
+        $pdo = $this->database->getConexion();
+        $consulta = $pdo->prepare(
+            "UPDATE preguntasSugeridas SET estado = 'rechazada' WHERE id = ? AND estado = 'pendiente'"
+        );
+        $consulta->execute([$idSugerencia]);
+
+        if ($consulta->rowCount() !== 1) {
+            throw new DomainException('La sugerencia no existe o ya fue revisada.');
         }
     }
 
