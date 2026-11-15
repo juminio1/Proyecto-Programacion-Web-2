@@ -21,6 +21,7 @@ use app\model\PartidaModel;
 use app\model\RegistroModel;
 use app\model\PreguntaModel;
 use app\model\PerfilModel;
+use app\model\EditorModel;
 use Mailer;
 use MustacheRender;
 use MyDatabase;
@@ -113,6 +114,7 @@ class Configuration
     {
         return new EditorController(
             new PreguntaSugeridaModel($this->getDatabase()),
+            new EditorModel($this->getDatabase()),
             $this->getRender()
         );
     }

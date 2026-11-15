@@ -1,0 +1,173 @@
+
+<link rel="stylesheet" href="/css/editor.css?v=3">
+
+<main class="editor">
+    <section class="editor-panel editor-reportes">
+
+        <p class="editor-etiqueta">ROL EDITOR</p>
+
+        <h1>Revisión de pregunta</h1>
+
+        <a class="editor-boton" href="/editor/reportes">
+            Volver a reportes
+        </a>
+
+        <div class="reporte-detalle">
+
+            <div class="reporte-card-info">
+                <span class="reporte-categoria">
+                    {{pregunta.categoria}}
+                </span>
+
+                {{#pregunta.habilitada}}
+                    <span class="reporte-estado-activa">
+                        Pregunta habilitada
+                    </span>
+                {{/pregunta.habilitada}}
+
+                {{^pregunta.habilitada}}
+                    <span class="reporte-estado-inactiva">
+                        Pregunta deshabilitada
+                    </span>
+                {{/pregunta.habilitada}}
+            </div>
+
+            <h2>{{pregunta.pregunta}}</h2>
+
+            <h3>Opciones de respuesta</h3>
+
+            <div class="reporte-opciones">
+
+                {{#opciones}}
+                    <div class="reporte-opcion">
+
+                        <strong>{{letra}}.</strong>
+                        {{texto}}
+
+                        {{#es_correcta}}
+                            <span class="reporte-correcta">
+                                Respuesta correcta
+                            </span>
+                        {{/es_correcta}}
+
+                    </div>
+                {{/opciones}}
+
+            </div>
+
+        </div>
+
+        <div class="reporte-detalle">
+
+            <h2>Reportes recibidos</h2>
+
+            {{#sinReportes}}
+                <p>No hay reportes registrados.</p>
+            {{/sinReportes}}
+
+            {{#reportes}}
+                <article class="reporte-individual">
+
+                    <div class="reporte-card-info">
+
+                        <strong>{{nombre_usuario}}</strong>
+
+                        <span class="reporte-estado">
+                            {{estado}}
+                        </span>
+
+                    </div>
+
+                    <p>
+                        <strong>Motivo:</strong>
+                        {{#motivo}}
+                            {{motivo}}
+                        {{/motivo}}
+                        {{^motivo}}
+                            Sin motivo especificado.
+                        {{/motivo}}
+                    </p>
+
+                    <p class="reporte-fecha">
+                        Fecha: {{fecha_reporte}}
+                    </p>
+
+                </article>
+            {{/reportes}}
+
+        </div>
+
+        {{^sinPendientes}}
+
+            <div class="reporte-decision">
+
+                <h2>Decisión del editor</h2>
+
+                <p>
+                    ¿Qué decisión querés tomar sobre esta pregunta?
+                </p>
+
+                <form
+                    action="/editor/resolverReporte"
+                    method="POST">
+
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{tokenCSRF}}">
+
+                    <input
+                        type="hidden"
+                        name="pregunta_id"
+                        value="{{pregunta.id}}">
+
+                    <input
+                        type="hidden"
+                        name="decision"
+                        value="mantener">
+
+                    <button
+                        type="submit"
+                        class="reporte-boton-aprobar">
+
+                        Aprobar permanencia
+
+                    </button>
+
+                </form>
+
+                <form
+                    action="/editor/resolverReporte"
+                    method="POST">
+
+                    <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{tokenCSRF}}">
+
+                    <input
+                        type="hidden"
+                        name="pregunta_id"
+                        value="{{pregunta.id}}">
+
+                    <input
+                        type="hidden"
+                        name="decision"
+                        value="baja">
+
+                    <button
+                        type="submit"
+                        class="reporte-boton-baja">
+
+                        Dar de baja pregunta
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        {{/sinPendientes}}
+
+    </section>
+</main>

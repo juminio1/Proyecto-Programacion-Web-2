@@ -142,24 +142,141 @@ class EditorModel
         });
     }
 
-    public function resolverReporte(int $id, int $editorId, bool $aprobar): void
-    {
-        $this->transaccion(function () use ($id, $editorId, $aprobar) {
-            $consulta = $this->pdo->prepare("SELECT pregunta_id FROM reportes_preguntas WHERE id = ? AND estado = 'pendiente' FOR UPDATE");
-            $consulta->execute([$id]);
-            $idPregunta = $consulta->fetchColumn();
-            if ($idPregunta === false) {
-                throw new DomainException('El reporte no existe o ya fue revisado.');
-            }
-            if ($aprobar) {
-                $consulta = $this->pdo->prepare('UPDATE preguntas SET habilitada = 0 WHERE id = ?');
-                $consulta->execute([$idPregunta]);
-            }
-            $consulta = $this->pdo->prepare(
-                'UPDATE reportes_preguntas SET estado = ?, fecha_revision = CURRENT_TIMESTAMP, editor_id = ? WHERE id = ?'
+public function resolverReporte(
+    int $preguntaId,
+    int $editorId,
+    bool $aprobar
+): void {
+
+    $this->transaccion(function () use ($preguntaId, $editorId, $aprobar) {
+
+        $consulta = $this->pdo->prepare(
+            "SELECT id
+             FROM preguntas
+             WHERE id = ?
+             FOR UPDATE"
+        );
+
+        $consulta->execute([$preguntaId]);
+
+        if ($consulta->fetchColumn() === false) {
+            throw new DomainException('La pregunta no existe.');
+        }
+
+        $consulta = $this->pdo->prepare(
+            "SELECT COUNT(*)
+             FROM reportes_preguntas
+             WHERE pregunta_id = ?
+             AND estado = 'pendiente'"
+        );
+
+        $consulta->execute([$preguntaId]);
+
+        if ((int) $consulta->fetchColumn() === 0) {
+            throw new DomainException(
+                'Esta pregunta ya fue revisada.'
             );
-            $consulta->execute([$aprobar ? 'aprobado' : 'rechazado', $editorId, $id]);
-        });
+        }
+
+        $consulta = $this->pdo->prepare(
+            "UPDATE preguntas
+             SET habilitada = ?
+             WHERE id = ?"
+        );
+
+        $consulta->execute([
+            (int) $aprobar,
+            $preguntaId
+        ]);
+
+        $consulta = $this->pdo->prepare(
+            "UPDATE reportes_preguntas
+             SET estado = ?,
+                 fecha_revision = CURRENT_TIMESTAMP,
+                 editor_id = ?
+             WHERE pregunta_id = ?
+             AND estado = 'pendiente'"
+        );
+
+        $consulta->execute([
+            $aprobar ? 'rechazado' : 'aprobado',
+            $editorId,
+            $preguntaId
+        ]);
+    });
+}
+
+    public function obtenerPreguntasReportadas(): array
+    {
+        $consulta = $this->pdo->query(
+            "SELECT
+                p.id,
+                p.pregunta,
+                c.nombre AS categoria,
+                COUNT(r.id) AS cantidad_reportes,
+                MAX(r.fecha_reporte) AS ultimo_reporte
+            FROM preguntas p
+            INNER JOIN categorias c ON c.id = p.categoria_id
+            INNER JOIN reportes_preguntas r ON r.pregunta_id = p.id
+            WHERE r.estado = 'pendiente'
+            GROUP BY p.id, p.pregunta, c.nombre
+            ORDER BY ultimo_reporte DESC"
+        );
+
+        return $consulta->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerDetallePreguntaReportada(int $id): ?array
+    {
+        $consulta = $this->pdo->prepare(
+            "SELECT
+                p.id,
+                p.pregunta,
+                p.habilitada,
+                c.nombre AS categoria
+            FROM preguntas p
+            INNER JOIN categorias c ON c.id = p.categoria_id
+            WHERE p.id = ?"
+        );
+
+        $consulta->execute([$id]);
+
+        $pregunta = $consulta->fetch(PDO::FETCH_ASSOC);
+
+        if ($pregunta === false) {
+            return null;
+        }
+
+        $consulta = $this->pdo->prepare(
+            "SELECT letra, texto, es_correcta
+            FROM opciones
+            WHERE pregunta_id = ?
+            ORDER BY letra ASC"
+        );
+
+        $consulta->execute([$id]);
+
+        $pregunta['opciones'] = $consulta->fetchAll(PDO::FETCH_ASSOC);
+
+        $consulta = $this->pdo->prepare(
+            "SELECT
+                r.id,
+                r.usuario_id,
+                r.motivo,
+                r.estado,
+                r.fecha_reporte,
+                u.nombre_usuario
+            FROM reportes_preguntas r
+            INNER JOIN usuarios u ON u.id = r.usuario_id
+            WHERE r.pregunta_id = ?
+            ORDER BY r.fecha_reporte DESC"
+        );
+
+        $consulta->execute([$id]);
+
+        $pregunta['reportes'] = $consulta->fetchAll(PDO::FETCH_ASSOC);
+
+        return $pregunta;
     }
 
     private function insertarPregunta(array $datos, int $habilitada, ?int $origen = null): int
