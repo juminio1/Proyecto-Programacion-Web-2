@@ -1,0 +1,50 @@
+<link rel="stylesheet" href="/css/editor.css?v=3">
+
+<main class="editor" aria-labelledby="editor-sugerencias-titulo">
+    <header class="editor-panel">
+        <a class="editor-volver" href="/editor/show">Volver al panel del editor</a>
+        <p class="editor-etiqueta">REVISIÓN DEL EDITOR</p>
+        <h1 id="editor-sugerencias-titulo">Preguntas sugeridas</h1>
+        <p>Revisá el enunciado y las opciones antes de incorporar una pregunta al juego.</p>
+    </header>
+
+    {{#mensajeExito}}
+        <p class="editor-aviso editor-aviso-exito" role="status">{{mensajeExito}}</p>
+    {{/mensajeExito}}
+    {{#mensajeError}}
+        <p class="editor-aviso editor-aviso-error" role="alert">{{mensajeError}}</p>
+    {{/mensajeError}}
+
+    <section class="editor-pendientes" aria-labelledby="editor-pendientes-titulo">
+        <h2 id="editor-pendientes-titulo">Pendientes de revisión</h2>
+
+        {{#sinPendientes}}
+            <p class="editor-sin-pendientes">No hay preguntas sugeridas pendientes.</p>
+        {{/sinPendientes}}
+
+        {{#pendientes}}
+            <details class="editor-sugerencia">
+                <summary>
+                    <span class="editor-sugerencia-categoria">{{categoria}}</span>
+                    <span class="editor-sugerencia-pregunta">{{pregunta}}</span>
+                </summary>
+                <div class="editor-sugerencia-detalle">
+                    <ul class="editor-opciones" aria-label="Opciones de respuesta">
+                        {{#opciones}}
+                            <li class="editor-opcion{{#correcta}} editor-opcion-correcta{{/correcta}}">
+                                <strong>{{letra}}.</strong>
+                                <span>{{texto}}</span>
+                                {{#correcta}}<span class="editor-respuesta-correcta">Correcta</span>{{/correcta}}
+                            </li>
+                        {{/opciones}}
+                    </ul>
+                    <form action="/editor/aprobar" method="post">
+                        <input type="hidden" name="id_sugerencia" value="{{id}}">
+                        <input type="hidden" name="csrf_token" value="{{tokenAprobacion}}">
+                        <button type="submit" class="editor-boton">Aprobar pregunta</button>
+                    </form>
+                </div>
+            </details>
+        {{/pendientes}}
+    </section>
+</main>
