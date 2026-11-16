@@ -79,8 +79,8 @@ class Router
                 'aprobar',
                 'rechazar',
                 'reportes',
-                'detalleReporte',
-                'resolverReporte'
+                'detallereporte',
+                'resolverreporte'
             ], true)) {
                 http_response_code(404);
                 exit;
