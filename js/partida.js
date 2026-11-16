@@ -33,6 +33,45 @@
     let consultandoEstado = false;
     let intervaloEstado = null;
 
+    const ESPERA_MAXIMA_REPORTE_MS = 90000;
+    const formularioReporte = document.getElementById('partida-reporte-formulario');
+    const mensajeReporte = document.getElementById('partida-reporte-mensaje');
+    let esperandoReporte = false;
+    let temporizadorEsperaReporte = null;
+    let observadorReporte = null;
+
+    function reporteAbierto() {
+        return Boolean(formularioReporte) && !formularioReporte.hidden;
+    }
+
+    function esperarCierreReporte() {
+        esperandoReporte = true;
+        bloquearRespuesta(
+            'Tiempo agotado',
+            'Se acabó el tiempo. Terminá tu reporte y después vas a ver el resultado.'
+        );
+
+        const terminar = () => {
+            if (!esperandoReporte) return;
+            esperandoReporte = false;
+            clearTimeout(temporizadorEsperaReporte);
+            observadorReporte.disconnect();
+            verificarVencimiento();
+        };
+
+        observadorReporte = new MutationObserver(() => {
+            if (reporteAbierto()) return;
+            const enviado = !mensajeReporte.hidden && mensajeReporte.classList.contains('es-exito');
+            setTimeout(terminar, enviado ? 2500 : 300);
+        });
+        observadorReporte.observe(formularioReporte, {
+            attributes: true,
+            attributeFilter: ['hidden']
+        });
+
+        temporizadorEsperaReporte = setTimeout(terminar, ESPERA_MAXIMA_REPORTE_MS);
+    }
+
     function detenerReloj() {
         clearInterval(intervaloReloj);
         intervaloReloj = null;
@@ -58,8 +97,12 @@
 
         if (restante === 0) {
             detenerReloj();
-            if (!enviando && !verificandoTiempo && !partidaFinalizada) {
-                verificarVencimiento();
+            if (!enviando && !verificandoTiempo && !partidaFinalizada && !esperandoReporte) {
+                if (reporteAbierto()) {
+                    esperarCierreReporte();
+                } else {
+                    verificarVencimiento();
+                }
             }
         }
     }
@@ -72,7 +115,7 @@
     }
 
     function habilitarRespuesta(textoMensaje) {
-        if (partidaFinalizada) {
+        if (partidaFinalizada || esperandoReporte) {
             return;
         }
 
