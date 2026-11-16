@@ -72,7 +72,16 @@ class Router
                 echo 'Esta página es exclusiva para editores.';
                 exit;
             }
-            if (!in_array($method, ['', 'show', 'sugerencias', 'aprobar', 'rechazar'], true)) {
+            if (!in_array($method, [
+                '',
+                'show',
+                'sugerencias',
+                'aprobar',
+                'rechazar',
+                'reportes',
+                'detallereporte',
+                'resolverreporte'
+            ], true)) {
                 http_response_code(404);
                 exit;
             }

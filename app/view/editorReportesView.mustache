@@ -1,0 +1,77 @@
+<link rel="stylesheet" href="/css/editor.css?v=4">
+
+<main class="editor">
+    <section class="editor-panel editor-reportes">
+
+        <p class="editor-etiqueta">ROL EDITOR</p>
+
+        <h1>Preguntas reportadas</h1>
+
+        <p>
+            Revisá las preguntas que fueron reportadas
+            por los jugadores.
+        </p>
+
+        <a class="editor-boton" href="/editor/show">
+            Volver al panel
+        </a>
+
+        {{#mensajeExito}}
+            <div class="reporte-mensaje reporte-exito">
+                {{mensajeExito}}
+            </div>
+        {{/mensajeExito}}
+
+        {{#mensajeError}}
+            <div class="reporte-mensaje reporte-error">
+                {{mensajeError}}
+            </div>
+        {{/mensajeError}}
+
+        {{#sinReportes}}
+            <div class="reporte-vacio">
+                <h2>No hay reportes pendientes</h2>
+                <p>
+                    Todas las preguntas están al día.
+                </p>
+            </div>
+        {{/sinReportes}}
+
+        {{^sinReportes}}
+            <div class="reporte-listado">
+
+                {{#preguntas}}
+                    <article class="reporte-card">
+
+                        <div class="reporte-card-info">
+
+                            <span class="reporte-categoria">
+                                {{categoria}}
+                            </span>
+
+                            <span class="reporte-contador">
+                                {{cantidad_reportes}} reportes
+                            </span>
+
+                        </div>
+
+                        <h2>{{pregunta}}</h2>
+
+                        <p class="reporte-fecha">
+                            Último reporte: {{ultimo_reporte}}
+                        </p>
+
+                        <a
+                            class="editor-boton"
+                            href="/editor/DetalleReporte?id={{id}}">
+                            Revisar pregunta
+                        </a>
+
+                    </article>
+                {{/preguntas}}
+
+            </div>
+        {{/sinReportes}}
+
+    </section>
+</main>

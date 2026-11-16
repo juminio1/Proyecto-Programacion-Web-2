@@ -1,3 +1,14 @@
+/* ==========================================================
+   Vistas del editor (panel, sugerencias, reportes, detalle)
+   ========================================================== */
+
+.editor,
+.editor *,
+.editor *::before,
+.editor *::after {
+    box-sizing: border-box;
+}
+
 .editor {
     width: min(1080px, calc(100% - 36px));
     min-height: 60vh;
@@ -16,9 +27,10 @@
 .editor-panel h1 {
     margin: 0;
     font-family: inherit;
-    font-size: clamp(30px, 5vw, 46px);
+    font-size: clamp(26px, 5vw, 46px);
     font-weight: 900;
     line-height: 1.18;
+    overflow-wrap: anywhere;
 }
 
 .editor-panel p {
@@ -34,12 +46,15 @@
     letter-spacing: .09em;
 }
 
+/* ---------- Botones ---------- */
+
 .editor-boton {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-height: 44px;
     margin-top: 18px;
+    margin-right: 10px;
     padding: 10px 18px;
     border: 0;
     border-radius: 12px;
@@ -47,6 +62,7 @@
     color: #fff;
     font: inherit;
     font-weight: 800;
+    text-align: center;
     text-decoration: none;
     cursor: pointer;
 }
@@ -65,6 +81,7 @@
 
 .editor-sugerencia-acciones .editor-boton {
     margin-top: 0;
+    margin-right: 0;
 }
 
 .editor-boton-rechazar {
@@ -91,6 +108,8 @@
     color: var(--morado-oscuro, #5227be);
     font-weight: 800;
 }
+
+/* ---------- Sugerencias ---------- */
 
 .editor-pendientes {
     display: grid;
@@ -185,4 +204,329 @@
 
 .editor-aviso-error {
     border-inline-start-color: #d95161;
+}
+
+/* ---------- Reportes ---------- */
+
+.editor-reportes {
+    width: 100%;
+    max-width: 850px;
+}
+
+.reporte-listado {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 25px;
+}
+
+.reporte-card,
+.reporte-detalle,
+.reporte-individual {
+    padding: 20px;
+    background: var(--bg-superficie, #fff);
+    border: 1px solid var(--borde, #ddd);
+    border-radius: 12px;
+    margin-top: 15px;
+}
+
+.reporte-card h2,
+.reporte-detalle h2 {
+    margin: 0 0 8px;
+    font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.reporte-detalle h3 {
+    margin: 16px 0 0;
+    font-size: 1.05rem;
+}
+
+.reporte-card-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.reporte-categoria {
+    font-weight: bold;
+    color: var(--morado-oscuro, #7650c9);
+}
+
+.reporte-contador {
+    background: #fff0d5;
+    color: #9a6200;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.reporte-fecha {
+    color: var(--texto-secundario, #777);
+    font-size: 13px;
+}
+
+.reporte-opciones {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.reporte-opcion {
+    padding: 12px;
+    border-radius: 8px;
+    background: var(--bg-superficie-alt, #f5f5f5);
+    border: 1px solid var(--borde, transparent);
+    color: var(--texto-principal, #25154d);
+    overflow-wrap: anywhere;
+}
+
+.reporte-correcta {
+    display: inline-block;
+    color: #16834a;
+    font-size: 13px;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.reporte-estado-activa {
+    color: #16834a;
+    font-weight: bold;
+}
+
+.reporte-estado-inactiva {
+    color: #c0392b;
+    font-weight: bold;
+}
+
+.reporte-estado {
+    font-size: 13px;
+    color: var(--texto-secundario, #777);
+}
+
+.reporte-individual p {
+    overflow-wrap: anywhere;
+}
+
+.reporte-decision {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.reporte-decision form {
+    margin-top: 12px;
+}
+
+.reporte-boton-aprobar,
+.reporte-boton-baja {
+    width: 100%;
+    min-height: 44px;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font: inherit;
+    font-weight: bold;
+}
+
+.reporte-boton-aprobar {
+    background: #198754;
+    color: white;
+}
+
+.reporte-boton-baja {
+    background: #c0392b;
+    color: white;
+}
+
+.reporte-boton-aprobar:hover {
+    background: #146c43;
+}
+
+.reporte-boton-baja:hover {
+    background: #962d22;
+}
+
+.reporte-vacio {
+    margin-top: 30px;
+    padding: 30px;
+    text-align: center;
+    background: var(--bg-superficie-alt, #f5f5f5);
+    border-radius: 12px;
+}
+
+.reporte-mensaje {
+    padding: 12px;
+    margin-top: 20px;
+    border-radius: 8px;
+}
+
+.reporte-exito {
+    background: #d9f5e5;
+    color: #176b3a;
+}
+
+.reporte-error {
+    background: #fbe1e1;
+    color: #a12626;
+}
+
+/* ---------- Modo oscuro (reportes) ---------- */
+
+html[data-theme="dark"] .reporte-contador,
+html.dark-mode .reporte-contador {
+    background: #382b08;
+    color: #fbbf24;
+}
+
+html[data-theme="dark"] .reporte-correcta,
+html.dark-mode .reporte-correcta,
+html[data-theme="dark"] .reporte-estado-activa,
+html.dark-mode .reporte-estado-activa {
+    color: #4ade80;
+}
+
+html[data-theme="dark"] .reporte-estado-inactiva,
+html.dark-mode .reporte-estado-inactiva {
+    color: #f87171;
+}
+
+html[data-theme="dark"] .reporte-decision,
+html.dark-mode .reporte-decision {
+    border-top-color: var(--borde, #2e2650);
+}
+
+html[data-theme="dark"] .reporte-exito,
+html.dark-mode .reporte-exito {
+    background: #0e2b1c;
+    color: #86efac;
+}
+
+html[data-theme="dark"] .reporte-error,
+html.dark-mode .reporte-error {
+    background: #351419;
+    color: #fca5a5;
+}
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+
+/* Tablet y pantallas chicas */
+@media (max-width: 768px) {
+    .editor {
+        width: calc(100% - 24px);
+        margin: 20px auto;
+    }
+
+    .editor-panel {
+        border-radius: 18px;
+    }
+
+    .reporte-card,
+    .reporte-detalle,
+    .reporte-individual {
+        padding: 16px;
+    }
+
+    .reporte-vacio {
+        padding: 22px 16px;
+    }
+
+    /* Los botones del panel y de las listas ocupan todo el ancho */
+    .editor-panel > .editor-boton {
+        display: flex;
+        width: 100%;
+        margin-right: 0;
+    }
+
+    .reporte-card .editor-boton {
+        display: flex;
+        width: 100%;
+        margin-right: 0;
+    }
+}
+
+/* Celulares */
+@media (max-width: 480px) {
+    .editor {
+        width: calc(100% - 16px);
+        margin: 12px auto;
+    }
+
+    .editor-panel {
+        padding: 18px 14px;
+        border-radius: 16px;
+    }
+
+    .editor-panel p {
+        font-size: .95rem;
+    }
+
+    /* Sugerencias: categoría arriba, pregunta abajo */
+    .editor-sugerencia summary {
+        padding: 14px;
+    }
+
+    .editor-sugerencia-categoria {
+        display: block;
+        margin: 0 0 4px;
+    }
+
+    .editor-sugerencia-detalle {
+        padding: 12px 14px 16px;
+    }
+
+    /* Aprobar / rechazar apilados a todo el ancho */
+    .editor-sugerencia-acciones {
+        flex-direction: column;
+    }
+
+    .editor-sugerencia-acciones .editor-boton {
+        width: 100%;
+    }
+
+    /* Tarjetas de reporte */
+    .reporte-card,
+    .reporte-detalle,
+    .reporte-individual {
+        padding: 14px;
+        margin-top: 12px;
+    }
+
+    .reporte-card-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .reporte-opcion {
+        padding: 10px;
+    }
+
+    .reporte-correcta {
+        display: block;
+        margin: 4px 0 0;
+    }
+
+    .reporte-decision {
+        margin-top: 22px;
+        padding-top: 16px;
+    }
+}
+
+/* Respeta la preferencia de menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+    .editor * {
+        transition: none !important;
+        animation: none !important;
+    }
 }
