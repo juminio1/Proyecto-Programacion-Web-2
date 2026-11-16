@@ -28,17 +28,26 @@ class InicioModel
         return $consulta->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerPuntajeAcumulado($idUsuario)
+    private function condicionSemanaActual($alias = 'p')
+    {
+        return "{$alias}.fecha_creacion >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)
+            AND {$alias}.fecha_creacion < DATE_ADD(
+                DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY),
+                INTERVAL 7 DAY
+            )";
+    }
+
+    public function obtenerPuntajeSemanal($idUsuario)
     {
         $pdo = $this->database->getConexion();
 
-        $sql = "SELECT COALESCE(SUM(puntaje), 0) AS total
-            FROM partidas
-            WHERE usuario_id = :id
-              AND estado <> :abandonada";
+        $sql = "SELECT COALESCE(SUM(p.puntaje), 0) AS total
+            FROM partidas p
+            WHERE p.usuario_id = :id
+              AND p.estado <> :abandonada
+              AND " . $this->condicionSemanaActual('p');
 
         $consulta = $pdo->prepare($sql);
-
         $consulta->execute([
             'id' => $idUsuario,
             'abandonada' => 'abandonada'
@@ -49,16 +58,18 @@ class InicioModel
         return $fila ? (int) $fila['total'] : 0;
     }
 
-    public function obtenerPartidasJugadas($idUsuario)
+    public function obtenerPartidasJugadasSemanales($idUsuario)
     {
         $pdo = $this->database->getConexion();
 
         $sql = "SELECT COUNT(*) AS total
-                FROM partidas
-                WHERE usuario_id = :id";
+            FROM partidas p
+            WHERE p.usuario_id = :id
+              AND " . $this->condicionSemanaActual('p');
 
         $consulta = $pdo->prepare($sql);
         $consulta->execute(['id' => $idUsuario]);
+
         $fila = $consulta->fetch(PDO::FETCH_ASSOC);
 
         return $fila ? (int) $fila['total'] : 0;
