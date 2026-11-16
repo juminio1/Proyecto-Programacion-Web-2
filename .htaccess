@@ -63,6 +63,12 @@ Options -Indexes
     # index.php?controller=registro&method=activar&token=ABC123
     RewriteRule ^activar-cuenta/?$ index.php?controller=registro&method=activar [L,QSA]
 
+
+    # ── PERFIL DE USUARIO ───────────────────────────────
+    # URL visible: /perfil/15
+    # Internamente: index.php?controller=perfil&method=show&id=15
+    RewriteRule ^perfil/([0-9]+)/?$ index.php?controller=perfil&method=show&id=$1 [L,QSA]
+
     # ── REGLA 1: /controller/method ──────────────────────
     # ^([^/]+)/([^/]+)$  →  captura dos segmentos separados por /
     #   $1 = primer segmento  (controller)

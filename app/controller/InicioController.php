@@ -34,8 +34,8 @@ class InicioController
 
         unset($_SESSION['errores_partida']);
 
-        $puntajeAcumulado = $this->model->obtenerPuntajeAcumulado($idUsuario);
-        $partidasJugadas = $this->model->obtenerPartidasJugadas($idUsuario);
+        $puntajeSemanal = $this->model->obtenerPuntajeSemanal($idUsuario);
+        $partidasSemanales = $this->model->obtenerPartidasJugadasSemanales($idUsuario);
         $ultimasPartidas = $this->model->obtenerHistorialPartidas($idUsuario, 3);
         $ranking = $this->model->obtenerRankingSemanal();
 
@@ -58,9 +58,9 @@ class InicioController
             'nombreUsuario' => $usuario['nombre_usuario'],
             'hayErroresPartida' => !empty($erroresPartida),
             'erroresPartida' => $erroresPartida,
-            'puntaje' => $puntajeAcumulado,
+            'puntaje' => $puntajeSemanal,
             'posicion' => $posicion,
-            'partidasJugadas' => $partidasJugadas,
+            'partidasJugadas' => $partidasSemanales,
             'ranking' => $ranking,
             'ultimasPartidas' => $ultimasPartidas,
             'tienePartidas' => !empty($ultimasPartidas)
