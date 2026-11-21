@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/css/inicio.css">
+<link rel="stylesheet" href="/css/inicio.css?v=20261121-2">
 <main>
     {{#hayErroresPartida}}
         <div class="w3-panel w3-pale-red w3-leftbar w3-border-red"
@@ -270,28 +270,32 @@
             {{/tienePartidas}}
         </section>
 
-        <section class="sugerir">
-            <svg class="sugerir-ilustracion" viewBox="0 0 200 210" aria-hidden="true" focusable="false">
-                <g stroke="#f7c531" stroke-width="5" stroke-linecap="round">
-                    <path d="M150 30l-8 18"/>
-                    <path d="M178 52l-18 6"/>
-                    <path d="M14 66l16 10"/>
-                    <path d="M10 112l18 4"/>
-                </g>
-                <path d="M95 18c-40 0-70 27-70 60 0 20 10 36 26 47l-9 29 34-19c6 1 12 2 19 2 40 0 70-27 70-60S135 18 95 18z" fill="#fff" stroke="#ece4fb" stroke-width="2"/>
-                <use href="#signo-pregunta" color="#6a2ee8" transform="translate(95 74) scale(.95)"/>
-                <path d="M128 128c-24 0-42 14-42 32s18 32 42 32c5 0 10-1 14-2l24 12-7-22c7-6 11-13 11-20 0-18-18-32-42-32z" fill="#4aa8ff"/>
-                <g fill="#fff">
-                    <circle cx="112" cy="160" r="5"/>
-                    <circle cx="129" cy="160" r="5"/>
-                    <circle cx="146" cy="160" r="5"/>
-                </g>
-            </svg>
+        <section class="sugerir" aria-labelledby="sugerir-titulo">
+            <div class="sugerir-presentacion">
+                <svg class="sugerir-ilustracion" viewBox="0 0 200 210" aria-hidden="true" focusable="false">
+                    <g stroke="#f7c531" stroke-width="5" stroke-linecap="round">
+                        <path d="M150 30l-8 18"/>
+                        <path d="M178 52l-18 6"/>
+                        <path d="M14 66l16 10"/>
+                        <path d="M10 112l18 4"/>
+                    </g>
+                    <path d="M95 18c-40 0-70 27-70 60 0 20 10 36 26 47l-9 29 34-19c6 1 12 2 19 2 40 0 70-27 70-60S135 18 95 18z" fill="#fff" stroke="#ece4fb" stroke-width="2"/>
+                    <use href="#signo-pregunta" color="#6a2ee8" transform="translate(95 74) scale(.95)"/>
+                    <path d="M128 128c-24 0-42 14-42 32s18 32 42 32c5 0 10-1 14-2l24 12-7-22c7-6 11-13 11-20 0-18-18-32-42-32z" fill="#4aa8ff"/>
+                    <g fill="#fff">
+                        <circle cx="112" cy="160" r="5"/>
+                        <circle cx="129" cy="160" r="5"/>
+                        <circle cx="146" cy="160" r="5"/>
+                    </g>
+                </svg>
 
-            <div class="sugerir-contenido">
-                <h2>¿Tenés una idea para el juego?</h2>
-                <p>Ayudá a que el juego siga creciendo.</p>
+                <div class="sugerir-contenido">
+                    <h2 id="sugerir-titulo">¿Tenés una idea para el juego?</h2>
+                    <p>Ayuda a que el juego siga creciendo.</p>
+                </div>
+            </div>
 
+            <div class="sugerir-acciones">
                 <a href="/preguntaSugerida/show" class="boton-sugerir">
                     Sugerir pregunta
                 </a>
