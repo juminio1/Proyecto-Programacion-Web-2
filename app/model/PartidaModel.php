@@ -135,6 +135,7 @@ class PartidaModel
         FROM preguntas p
         INNER JOIN categorias c ON p.categoria_id = c.id
         WHERE p.habilitada = 1
+          AND c.habilitada = 1
           AND p.id NOT IN (
               SELECT pregunta_id FROM partida_preguntas WHERE partida_id = :partida_id
           )
