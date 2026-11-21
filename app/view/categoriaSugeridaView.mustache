@@ -1,0 +1,26 @@
+<link rel="stylesheet" href="/css/categoriaSugerida.css">
+
+<main class="categoria-sugerida-pagina">
+    <section class="categoria-sugerida-contenedor" aria-labelledby="categoria-titulo">
+        <a class="categoria-sugerida-volver" href="/inicio/show">Volver al inicio</a>
+        <h1 id="categoria-titulo">Sugerir una categoría</h1>
+        <p>Propone un nuevo tema para el juego. Un editor revisará tu sugerencia.</p>
+
+        {{#mensajeExito}}
+            <p class="categoria-sugerida-aviso categoria-sugerida-exito" role="status">{{mensajeExito}}</p>
+        {{/mensajeExito}}
+        {{#mensajeError}}
+            <p class="categoria-sugerida-aviso categoria-sugerida-error" role="alert">{{mensajeError}}</p>
+        {{/mensajeError}}
+
+        <form method="post" action="/categoriaSugerida/enviarSugerenciaCategoria" class="categoria-sugerida-formulario">
+            <input type="hidden" name="csrf_token" value="{{tokenCSRF}}">
+            <label for="nombre-categoria">Nombre de la categoría</label>
+            <input type="text" id="nombre-categoria" name="nombre" value="{{nombre}}"
+                   placeholder="Por ejemplo: Tecnología" maxlength="50" required
+                   aria-describedby="categoria-ayuda">
+            <small id="categoria-ayuda">Obligatorio. Hasta 50 caracteres.</small>
+            <button type="submit">Enviar sugerencia</button>
+        </form>
+    </section>
+</main>

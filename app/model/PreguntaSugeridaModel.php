@@ -21,6 +21,7 @@ class PreguntaSugeridaModel
 
         $sql = "SELECT id, nombre
                 FROM categorias
+                WHERE habilitada = 1
                 ORDER BY nombre ASC";
 
         $consulta = $pdo->prepare($sql);
@@ -36,6 +37,7 @@ class PreguntaSugeridaModel
         $sql = "SELECT id
                 FROM categorias
                 WHERE id = :categoria_id
+                  AND habilitada = 1
                 LIMIT 1";
 
         $consulta = $pdo->prepare($sql);
@@ -74,6 +76,10 @@ class PreguntaSugeridaModel
 
             if ($sugerencia === false || $sugerencia['estado'] !== 'pendiente') {
                 throw new DomainException('La sugerencia no existe o ya fue revisada.');
+            }
+
+            if (!$this->categoriaExiste((int) $sugerencia['categoria_id'])) {
+                throw new DomainException('La categoría de esta pregunta ya no está habilitada.');
             }
 
             $pregunta = trim($sugerencia['pregunta']);

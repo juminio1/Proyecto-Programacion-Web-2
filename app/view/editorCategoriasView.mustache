@@ -1,0 +1,40 @@
+<link rel="stylesheet" href="/css/editor.css?v=4">
+
+<main class="editor" aria-labelledby="editor-categorias-titulo">
+    <header class="editor-panel">
+        <a class="editor-volver" href="/editor/show">Volver al panel del editor</a>
+        <p class="editor-etiqueta">REVISIÓN DEL EDITOR</p>
+        <h1 id="editor-categorias-titulo">Categorías sugeridas</h1>
+        <p>Al aprobar una categoría, estará disponible para agregar preguntas. Aparecerá en las partidas cuando tenga preguntas habilitadas.</p>
+    </header>
+
+    {{#mensajeExito}}
+        <p class="editor-aviso editor-aviso-exito" role="status">{{mensajeExito}}</p>
+    {{/mensajeExito}}
+    {{#mensajeError}}
+        <p class="editor-aviso editor-aviso-error" role="alert">{{mensajeError}}</p>
+    {{/mensajeError}}
+
+    <section class="editor-pendientes" aria-labelledby="categorias-pendientes-titulo">
+        <h2 id="categorias-pendientes-titulo">Pendientes de revisión</h2>
+        {{#sinPendientes}}
+            <p class="editor-sin-pendientes">No hay categorías sugeridas pendientes.</p>
+        {{/sinPendientes}}
+
+        {{#pendientes}}
+            <article class="editor-panel">
+                <h2>{{nombre}}</h2>
+                <p>Enviada por {{autor}} · {{fecha}}</p>
+                <form action="/editor/aprobarCategoriaSugerida" method="post">
+                    <input type="hidden" name="id_sugerencia" value="{{id}}">
+                    <input type="hidden" name="csrf_token" value="{{tokenCSRF}}">
+                    <div class="editor-sugerencia-acciones">
+                        <button type="submit" class="editor-boton">Aprobar categoría</button>
+                        <button type="submit" class="editor-boton editor-boton-rechazar"
+                                formaction="/editor/rechazarCategoriaSugerida">Rechazar sugerencia</button>
+                    </div>
+                </form>
+            </article>
+        {{/pendientes}}
+    </section>
+</main>

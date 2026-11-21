@@ -208,6 +208,100 @@
 
 /* ---------- Reportes ---------- */
 
+/* ---------- Categorías habilitadas ---------- */
+
+.editor-categorias {
+    margin-top: 24px;
+}
+
+.editor-categorias-encabezado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.editor-categorias h2 {
+    margin: 0;
+    font-size: clamp(21px, 3vw, 28px);
+    font-weight: 900;
+}
+
+.editor-categorias-total,
+.editor-categoria-estado {
+    display: inline-block;
+    padding: 5px 12px;
+    border: 1px solid var(--borde, #e6ddf4);
+    border-radius: 999px;
+    background: var(--bg-superficie, #fff);
+    color: var(--texto-principal, #25154d);
+    font-size: .85rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.editor-categorias-tabla-contenedor {
+    margin-top: 22px;
+    overflow-x: auto;
+}
+
+.editor-categorias-tabla-contenedor:focus-visible {
+    outline: 2px solid var(--morado-oscuro, #5227be);
+    outline-offset: 3px;
+}
+
+.editor-categorias-tabla {
+    width: 100%;
+    min-width: 470px;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.editor-categorias-tabla th,
+.editor-categorias-tabla td {
+    padding: 15px 12px;
+    border-bottom: 1px solid var(--borde, #e6ddf4);
+    vertical-align: middle;
+}
+
+.editor-categorias-tabla thead th {
+    color: var(--texto-secundario, #665a7d);
+    font-size: .85rem;
+    font-weight: 800;
+}
+
+.editor-categorias-tabla th[scope="row"] {
+    min-width: 160px;
+    overflow-wrap: anywhere;
+}
+
+.editor-categorias-tabla small {
+    display: block;
+    margin-top: 5px;
+    color: var(--texto-secundario, #665a7d);
+    font-size: .8rem;
+    font-weight: 400;
+}
+
+.editor-categorias-tabla tr:last-child > * {
+    border-bottom: 0;
+}
+
+.editor-categoria-cantidad {
+    font-weight: 900;
+}
+
+.editor-texto-accesible {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
 .editor-reportes {
     width: 100%;
     max-width: 850px;

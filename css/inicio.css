@@ -489,6 +489,7 @@ nav a[aria-current="page"] {
     text-align: center;
 }
 
+.categoria-nueva           { --c: #7c4ee6; --bg: #e0d6fb; --txt: #4a2aa8; }
 .categoria-historia        { --c: #e0403b; --bg: #fbd9d6; --txt: #8f2a24; }
 .categoria-deportes        { --c: #2fa866; --bg: #d5f0df; --txt: #1c6b3f; }
 .categoria-cultura         { --c: #f2b100; --bg: #fcebb0; --txt: #7a5a00; }
@@ -630,6 +631,9 @@ nav a[aria-current="page"] {
 }
 
 .boton-sugerir {
+    display: block;
+    text-align: center;
+    text-decoration: none;
     width: 100%;
     padding: 14px 18px;
     border: 2px solid var(--morado);
@@ -639,6 +643,10 @@ nav a[aria-current="page"] {
     font-size: 19px;
     font-weight: 800;
     transition: background-color 0.2s, color 0.2s;
+}
+
+.boton-sugerir + .boton-sugerir {
+    margin-top: 10px;
 }
 
 .boton-sugerir:hover {

@@ -28,6 +28,23 @@ class InicioModel
         return $consulta->fetch(PDO::FETCH_ASSOC);
     }
 
+    public function obtenerCategoriasHabilitadas(): array
+    {
+        $consulta = $this->database->getConexion()->prepare(
+            'SELECT c.nombre
+             FROM categorias c
+             WHERE c.habilitada = 1
+               AND EXISTS (
+                   SELECT 1 FROM preguntas p
+                   WHERE p.categoria_id = c.id AND p.habilitada = 1
+               )
+             ORDER BY c.nombre ASC'
+        );
+        $consulta->execute();
+
+        return $consulta->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     private function condicionSemanaActual($alias = 'p')
     {
         return "{$alias}.fecha_creacion >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)
