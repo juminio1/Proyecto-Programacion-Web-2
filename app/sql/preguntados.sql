@@ -6,68 +6,69 @@ CREATE DATABASE IF NOT EXISTS preguntados CHARACTER SET utf8mb4 COLLATE utf8mb4_
 USE preguntados;
 
 CREATE TABLE IF NOT EXISTS usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_completo VARCHAR(150) NOT NULL,
-    anio_nacimiento INT NOT NULL,
-    sexo ENUM('Masculino', 'Femenino', 'Prefiero no cargarlo') NOT NULL,
-    pais VARCHAR(100) NOT NULL,
-    ciudad VARCHAR(100) NOT NULL,
-    latitud DECIMAL(10, 8) DEFAULT NULL,
-    longitud DECIMAL(11, 8) DEFAULT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
-    foto_perfil VARCHAR(255) NOT NULL,
-    activo TINYINT(1) NOT NULL DEFAULT 0,
-    token_activacion VARCHAR(64) DEFAULT NULL,
-    fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
-    puntaje_acumulado INT NOT NULL DEFAULT 0
+                                        id INT AUTO_INCREMENT PRIMARY KEY,
+                                        nombre_completo VARCHAR(150) NOT NULL,
+                                        anio_nacimiento INT NOT NULL,
+                                        sexo ENUM('Masculino', 'Femenino', 'Prefiero no cargarlo') NOT NULL,
+                                        pais VARCHAR(100) NOT NULL,
+                                        ciudad VARCHAR(100) NOT NULL,
+                                        latitud DECIMAL(10, 8) DEFAULT NULL,
+                                        longitud DECIMAL(11, 8) DEFAULT NULL,
+                                        email VARCHAR(150) NOT NULL UNIQUE,
+                                        password VARCHAR(255) NOT NULL,
+                                        nombre_usuario VARCHAR(50) NOT NULL UNIQUE,
+                                        foto_perfil VARCHAR(255) NOT NULL,
+                                        activo TINYINT(1) NOT NULL DEFAULT 0,
+                                        token_activacion VARCHAR(64) DEFAULT NULL,
+                                        fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                        puntaje_acumulado INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS partidas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_id INT NOT NULL,
-    estado VARCHAR(20) NOT NULL DEFAULT 'creada',
-    puntaje INT NOT NULL DEFAULT 0,
-    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
+                                        id INT AUTO_INCREMENT PRIMARY KEY,
+                                        usuario_id INT NOT NULL,
+                                        estado VARCHAR(20) NOT NULL DEFAULT 'creada',
+                                        puntaje INT NOT NULL DEFAULT 0,
+                                        fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                        FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS categorias (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(50) NOT NULL UNIQUE,
-    color VARCHAR(20) DEFAULT NULL
+                                          id INT AUTO_INCREMENT PRIMARY KEY,
+                                          nombre VARCHAR(50) NOT NULL UNIQUE,
+                                          habilitada TINYINT(1) NOT NULL DEFAULT 1,
+                                          color VARCHAR(20) DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS preguntas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    categoria_id INT NOT NULL,
-    pregunta TEXT NOT NULL,
-    habilitada TINYINT(1) NOT NULL DEFAULT 1,
-    FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
+                                         id INT AUTO_INCREMENT PRIMARY KEY,
+                                         categoria_id INT NOT NULL,
+                                         pregunta TEXT NOT NULL,
+                                         habilitada TINYINT(1) NOT NULL DEFAULT 1,
+                                         FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS opciones (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    pregunta_id INT NOT NULL,
-    letra CHAR(1) NOT NULL,
-    texto VARCHAR(255) NOT NULL,
-    es_correcta TINYINT(1) NOT NULL DEFAULT 0,
-    FOREIGN KEY (pregunta_id) REFERENCES preguntas(id) ON DELETE CASCADE
+                                        id INT AUTO_INCREMENT PRIMARY KEY,
+                                        pregunta_id INT NOT NULL,
+                                        letra CHAR(1) NOT NULL,
+                                        texto VARCHAR(255) NOT NULL,
+                                        es_correcta TINYINT(1) NOT NULL DEFAULT 0,
+                                        FOREIGN KEY (pregunta_id) REFERENCES preguntas(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS partida_preguntas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    partida_id INT NOT NULL,
-    pregunta_id INT NOT NULL,
-    numero_pregunta INT NOT NULL DEFAULT 1,
-    opcion_id INT DEFAULT NULL,
-    es_correcta TINYINT(1) DEFAULT NULL,
-    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fecha_respuesta DATETIME DEFAULT NULL,
-    FOREIGN KEY (partida_id) REFERENCES partidas(id) ON DELETE CASCADE,
-    FOREIGN KEY (pregunta_id) REFERENCES preguntas(id) ON DELETE CASCADE,
-    UNIQUE KEY uq_partida_pregunta (partida_id, pregunta_id)
+                                                 id INT AUTO_INCREMENT PRIMARY KEY,
+                                                 partida_id INT NOT NULL,
+                                                 pregunta_id INT NOT NULL,
+                                                 numero_pregunta INT NOT NULL DEFAULT 1,
+                                                 opcion_id INT DEFAULT NULL,
+                                                 es_correcta TINYINT(1) DEFAULT NULL,
+                                                 fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                                 fecha_respuesta DATETIME DEFAULT NULL,
+                                                 FOREIGN KEY (partida_id) REFERENCES partidas(id) ON DELETE CASCADE,
+                                                 FOREIGN KEY (pregunta_id) REFERENCES preguntas(id) ON DELETE CASCADE,
+                                                 UNIQUE KEY uq_partida_pregunta (partida_id, pregunta_id)
 );
 
 SET NAMES utf8mb4;
@@ -446,3 +447,24 @@ CREATE TABLE IF NOT EXISTS preguntasSugeridas (
                                                   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
                                                   FOREIGN KEY (categoria_id) REFERENCES categorias(id)
 );
+
+-- HU: Sugerir categorías
+-- Si la base ya existe, ejecutar solamente este bloque para agregar la tabla.
+CREATE TABLE IF NOT EXISTS categoriasSugeridas (
+                                                   id INT AUTO_INCREMENT PRIMARY KEY,
+                                                   usuario_id INT NOT NULL,
+                                                   nombre VARCHAR(50) NOT NULL,
+                                                   estado ENUM('pendiente', 'aceptada', 'rechazada') NOT NULL DEFAULT 'pendiente',
+                                                   fecha_sugerencia DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                                   editor_id INT DEFAULT NULL,
+                                                   fecha_revision DATETIME DEFAULT NULL,
+
+    -- Sólo las pendientes ocupan el nombre: una rechazada permite otra propuesta.
+                                                   nombre_pendiente VARCHAR(50) GENERATED ALWAYS AS (
+                                                       CASE WHEN estado = 'pendiente' THEN nombre ELSE NULL END
+                                                       ) STORED,
+                                                   UNIQUE KEY uq_categoria_sugerida_pendiente (nombre_pendiente),
+                                                   KEY idx_categoria_sugerida_estado_fecha (estado, fecha_sugerencia),
+                                                   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+                                                   FOREIGN KEY (editor_id) REFERENCES usuarios(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

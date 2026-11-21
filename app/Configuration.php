@@ -2,6 +2,9 @@
 
 namespace app;
 
+use app\controller\CategoriaSugeridaController;
+use app\model\CategoriaSugeridaModel;
+use app\model\CategoriaModel;
 use app\controller\PreguntaSugeridaController;
 use app\model\PreguntaSugeridaModel;
 use app\controller\InicioController;
@@ -115,6 +118,8 @@ class Configuration
         return new EditorController(
             new PreguntaSugeridaModel($this->getDatabase()),
             new EditorModel($this->getDatabase()),
+            new CategoriaSugeridaModel($this->getDatabase()),
+            new CategoriaModel($this->getDatabase()),
             $this->getRender()
         );
     }
@@ -177,6 +182,14 @@ class Configuration
         return new Router($this, "inicio", "show", function (int $idUsuario): ?string {
             return (new LoginModel($this->getDatabase()))->obtenerRolActivo($idUsuario);
         });
+    }
+
+    public function getCategoriaSugeridaController()
+    {
+        return new CategoriaSugeridaController(
+            new CategoriaSugeridaModel($this->getDatabase()),
+            $this->getRender()
+        );
     }
 
     public function getPreguntaSugeridaController()

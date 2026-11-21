@@ -1,0 +1,99 @@
+.categoria-sugerida-pagina,
+.categoria-sugerida-pagina * {
+    box-sizing: border-box;
+}
+
+.categoria-sugerida-pagina {
+    min-height: 65vh;
+    padding: 48px 20px;
+    background: var(--fondo, #f7f5fb);
+    color: var(--texto-principal, #24105f);
+    font-family: Nunito, Arial, sans-serif;
+}
+
+.categoria-sugerida-contenedor {
+    max-width: 650px;
+    margin: 0 auto;
+    padding: clamp(24px, 5vw, 40px);
+    border: 1px solid var(--borde, #e2dcef);
+    border-radius: 24px;
+    background: var(--bg-superficie, #fff);
+    box-shadow: 0 10px 30px rgba(57, 35, 110, .08);
+}
+
+.categoria-sugerida-contenedor h1 {
+    margin: 22px 0 8px;
+    font-size: clamp(27px, 5vw, 36px);
+    line-height: 1.2;
+}
+
+.categoria-sugerida-contenedor > p,
+.categoria-sugerida-formulario small {
+    color: var(--texto-secundario, #726987);
+}
+
+.categoria-sugerida-volver {
+    color: var(--morado-claro, #6230df);
+    text-underline-offset: 3px;
+}
+
+.categoria-sugerida-formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 28px;
+}
+
+.categoria-sugerida-formulario label {
+    font-weight: 800;
+}
+
+.categoria-sugerida-formulario input[type="text"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--borde, #d9d1ea);
+    border-radius: 12px;
+    background: var(--bg-superficie, #fff);
+    color: inherit;
+    font: inherit;
+}
+
+.categoria-sugerida-formulario button {
+    margin-top: 14px;
+    padding: 16px 24px;
+    border: 0;
+    border-radius: 12px;
+    background: #6230df;
+    color: #fff;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.categoria-sugerida-formulario button:hover {
+    background: #5125c7;
+}
+
+.categoria-sugerida-pagina :focus-visible {
+    outline: 3px solid #9671ec;
+    outline-offset: 3px;
+}
+
+.categoria-sugerida-contenedor .categoria-sugerida-aviso {
+    padding: 16px;
+    border: 1px solid;
+    border-radius: 12px;
+    overflow-wrap: anywhere;
+}
+
+.categoria-sugerida-contenedor .categoria-sugerida-exito {
+    background: #edf9f2;
+    border-color: #a8dfbd;
+    color: #217a45;
+}
+
+.categoria-sugerida-contenedor .categoria-sugerida-error {
+    background: #fff0f0;
+    border-color: #f3b5b5;
+    color: #9e2e2e;
+}

@@ -1,10 +1,58 @@
-<link rel="stylesheet" href="/css/editor.css?v=4">
+<link rel="stylesheet" href="/css/editor.css?v=5">
 <main class="editor">
     <section class="editor-panel" aria-labelledby="editor-titulo">
         <p class="editor-etiqueta">ROL EDITOR</p>
         <h1 id="editor-titulo">Panel del editor</h1>
-        <p>Esta cuenta está destinada a la gestión de preguntas. Para jugar, iniciá sesión con una cuenta de jugador.</p>
+        <p>Esta cuenta está destinada a la gestión de preguntas y categorías. Para jugar, iniciá sesión con una cuenta de jugador.</p>
         <a class="editor-boton" href="/editor/sugerencias">Revisar preguntas sugeridas</a>
         <a class="editor-boton" href="/editor/reportes">Revisar preguntas reportadas</a>
+        <a class="editor-boton" href="/editor/mostrarCategoriasSugeridasPendientes">Revisar categorías sugeridas</a>
+    </section>
+
+    <section class="editor-categorias editor-panel" aria-labelledby="editor-categorias-titulo">
+        <div class="editor-categorias-encabezado">
+            <h2 id="editor-categorias-titulo">Categorías habilitadas</h2>
+            {{#categoriasCargadas}}
+                <span class="editor-categorias-total">{{cantidadCategoriasHabilitadas}} en total</span>
+            {{/categoriasCargadas}}
+        </div>
+        <p>Las categorías aprobadas quedan habilitadas. Para aparecer en las partidas, necesitan preguntas habilitadas.</p>
+
+        {{#errorCategorias}}
+            <p class="editor-aviso editor-aviso-error" role="alert">{{errorCategorias}}</p>
+        {{/errorCategorias}}
+
+        {{#sinCategoriasHabilitadas}}
+            <p class="editor-sin-pendientes">Todavía no hay categorías habilitadas.</p>
+        {{/sinCategoriasHabilitadas}}
+
+        {{#categoriasCargadas}}
+            {{^sinCategoriasHabilitadas}}
+                <div class="editor-categorias-tabla-contenedor" role="region" aria-label="Listado de categorías habilitadas" tabindex="0">
+                    <table class="editor-categorias-tabla">
+                        <caption class="editor-texto-accesible">Categorías habilitadas y cantidad de preguntas habilitadas de cada una.</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Categoría</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Preguntas habilitadas</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#categoriasHabilitadas}}
+                            <tr>
+                                <th scope="row">
+                                    {{nombre}}
+                                    {{^tienePreguntas}}<small>Necesita preguntas para aparecer en partidas.</small>{{/tienePreguntas}}
+                                </th>
+                                <td><span class="editor-categoria-estado">Habilitada</span></td>
+                                <td class="editor-categoria-cantidad">{{cantidad_preguntas}}</td>
+                            </tr>
+                        {{/categoriasHabilitadas}}
+                        </tbody>
+                    </table>
+                </div>
+            {{/sinCategoriasHabilitadas}}
+        {{/categoriasCargadas}}
     </section>
 </main>

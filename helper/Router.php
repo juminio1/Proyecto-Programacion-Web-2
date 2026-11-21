@@ -80,7 +80,10 @@ class Router
                 'rechazar',
                 'reportes',
                 'detallereporte',
-                'resolverreporte'
+                'resolverreporte',
+                'mostrarcategoriassugeridaspendientes',
+                'aprobarcategoriasugerida',
+                'rechazarcategoriasugerida'
             ], true)) {
                 http_response_code(404);
                 exit;

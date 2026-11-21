@@ -52,6 +52,24 @@ class InicioController
 
         unset($jugador);
 
+        $categorias = $this->model->obtenerCategoriasHabilitadas();
+        $clases = [
+            'Historia' => 'categoria-historia',
+            'Deportes' => 'categoria-deportes',
+            'Ciencia' => 'categoria-ciencia',
+            'Entretenimiento' => 'categoria-entretenimiento'
+        ];
+        foreach ($categorias as &$categoria) {
+            $nombre = $categoria['nombre'];
+            $categoria['clase'] = $clases[$nombre] ?? 'categoria-nueva';
+            $categoria['esHistoria'] = $nombre === 'Historia';
+            $categoria['esDeportes'] = $nombre === 'Deportes';
+            $categoria['esCiencia'] = $nombre === 'Ciencia';
+            $categoria['esEntretenimiento'] = $nombre === 'Entretenimiento';
+            $categoria['esNueva'] = !isset($clases[$nombre]);
+        }
+        unset($categoria);
+
         $datosHome = [
             'usuarioEncontrado' => true,
             'nombre' => $usuario['nombre_completo'],
@@ -63,7 +81,8 @@ class InicioController
             'partidasJugadas' => $partidasSemanales,
             'ranking' => $ranking,
             'ultimasPartidas' => $ultimasPartidas,
-            'tienePartidas' => !empty($ultimasPartidas)
+            'tienePartidas' => !empty($ultimasPartidas),
+            'categorias' => $categorias
         ];
 
         $this->render->renderiza('inicio', $datosHome);
