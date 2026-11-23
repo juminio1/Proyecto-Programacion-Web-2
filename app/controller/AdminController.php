@@ -1,0 +1,104 @@
+<?php
+
+namespace app\controller;
+
+use app\model\AdminModel;
+use PDOException;
+use Request;
+
+class AdminController
+{
+    private const PERIODOS = [7, 30, 90];
+    private const PERIODO_POR_DEFECTO = 30;
+
+    private AdminModel $model;
+    private $render;
+
+    public function __construct(AdminModel $model, $render)
+    {
+        $this->model = $model;
+        $this->render = $render;
+    }
+
+    public function show(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+
+        header('Cache-Control: no-store');
+
+        $periodo = (int) Request::get('periodo', self::PERIODO_POR_DEFECTO);
+        if (!in_array($periodo, self::PERIODOS, true)) {
+            $periodo = self::PERIODO_POR_DEFECTO;
+        }
+
+        $datos = [
+            'nombreAdmin' => (string) ($_SESSION['usuario'] ?? 'Administrador'),
+            'periodo' => $periodo,
+            'periodos' => array_map(
+                fn (int $dias) => ['dias' => $dias, 'activo' => $dias === $periodo],
+                self::PERIODOS
+            ),
+        ];
+
+        try {
+            $datos += $this->cargarEstadisticas($periodo);
+            $datos['estadisticasCargadas'] = true;
+        } catch (PDOException $error) {
+            error_log('Error al cargar estadísticas del administrador: ' . $error->getMessage());
+            $datos['errorEstadisticas'] = 'No se pudieron cargar las estadísticas. Intentá nuevamente.';
+        }
+
+        $this->render->renderiza('admin', $datos);
+    }
+
+    private function cargarEstadisticas(int $periodo): array
+    {
+        $jugadores = $this->model->obtenerCantidadJugadores();
+        $partidas = $this->model->obtenerCantidadPartidas();
+        $preguntas = $this->model->obtenerCantidadPreguntas();
+        $porCategoria = $this->model->obtenerCantidadPreguntasPorCategoria();
+        $nuevosPorDia = $this->model->obtenerCantidadUsuariosNuevosPorDia($periodo);
+
+        $totalNuevos = array_sum(array_column($nuevosPorDia, 'cantidad'));
+
+        // Datos para los gráficos (Chart.js).
+        $graficos = [
+            'jugadores' => [
+                'etiquetas' => ['Activos', 'Sin activar'],
+                'valores' => [$jugadores['activos'], $jugadores['inactivos']],
+            ],
+            'partidas' => [
+                'etiquetas' => ['Finalizadas', 'Abandonadas', 'En juego'],
+                'valores' => [$partidas['finalizadas'], $partidas['abandonadas'], $partidas['enJuego']],
+            ],
+            'preguntas' => [
+                'etiquetas' => array_column($porCategoria, 'nombre'),
+                'valores' => array_column($porCategoria, 'disponibles'),
+            ],
+            'nuevos' => [
+                'etiquetas' => array_map(fn ($f) => date('d/m', strtotime($f['dia'])), $nuevosPorDia),
+                'valores' => array_column($nuevosPorDia, 'cantidad'),
+            ],
+        ];
+
+        return [
+            'jugadores' => $jugadores,
+            'partidas' => $partidas,
+            'preguntas' => $preguntas,
+            'preguntasPorCategoria' => $porCategoria,
+            'sinCategorias' => $porCategoria === [],
+            'usuariosNuevos' => $totalNuevos,
+            // Solo se listan en la tabla los días con altas (el gráfico muestra todos).
+            'nuevosPorDia' => array_values(array_map(
+                fn ($f) => ['dia' => date('d/m/Y', strtotime($f['dia'])), 'cantidad' => $f['cantidad']],
+                array_filter($nuevosPorDia, fn ($f) => $f['cantidad'] > 0)
+            )),
+            'sinNuevos' => $totalNuevos === 0,
+            'graficosJson' => json_encode($graficos, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR),
+        ];
+    }
+}

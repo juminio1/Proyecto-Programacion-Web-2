@@ -1,10 +1,155 @@
 <link rel="stylesheet" href="/css/editor.css?v=5">
-<main class="editor">
+<link rel="stylesheet" href="/css/admin.css?v=1">
+<main class="editor admin">
     <section class="editor-panel" aria-labelledby="editor-titulo">
         <p class="editor-etiqueta">ROL ADMIN</p>
         <h1 id="editor-titulo">Panel del administrador</h1>
-        <p>Esta cuenta está destinada a la administracion de la aplicacion. Para jugar, iniciá sesión con una cuenta de jugador.</p>
+        <p>Hola, {{nombreAdmin}}. Acá podés ver la actividad y el crecimiento de la aplicación.</p>
     </section>
 
-   
+    {{#errorEstadisticas}}
+        <p class="editor-aviso editor-aviso-error" role="alert">{{errorEstadisticas}}</p>
+    {{/errorEstadisticas}}
+
+    {{#estadisticasCargadas}}
+        <div id="admin-estadisticas" data-graficos="{{graficosJson}}">
+
+            <section id="resumen" class="editor-panel admin-seccion" aria-labelledby="admin-resumen-titulo">
+                <h2 id="admin-resumen-titulo">Resumen general</h2>
+                <div class="admin-resumen">
+                    <a class="admin-dato" href="#seccion-jugadores">
+                        <span class="admin-dato-numero">{{jugadores.total}}</span>
+                        <span class="admin-dato-texto">Jugadores</span>
+                    </a>
+                    <a class="admin-dato" href="#seccion-partidas">
+                        <span class="admin-dato-numero">{{partidas.jugadas}}</span>
+                        <span class="admin-dato-texto">Partidas jugadas</span>
+                    </a>
+                    <a class="admin-dato" href="#seccion-preguntas">
+                        <span class="admin-dato-numero">{{preguntas.disponibles}}</span>
+                        <span class="admin-dato-texto">Preguntas disponibles</span>
+                    </a>
+                    <a class="admin-dato" href="#seccion-preguntas">
+                        <span class="admin-dato-numero">{{preguntas.creadas}}</span>
+                        <span class="admin-dato-texto">Preguntas creadas</span>
+                    </a>
+                    <a class="admin-dato" href="#seccion-nuevos">
+                        <span class="admin-dato-numero">{{usuariosNuevos}}</span>
+                        <span class="admin-dato-texto">Usuarios nuevos (últimos {{periodo}} días)</span>
+                    </a>
+                </div>
+            </section>
+
+            <section id="seccion-jugadores" class="editor-panel admin-seccion" aria-labelledby="admin-jugadores-titulo">
+                <h2 id="admin-jugadores-titulo">Jugadores</h2>
+                <div class="admin-grafico-fila">
+                    <div class="admin-grafico">
+                        <canvas id="grafico-jugadores" role="img"
+                                aria-label="Gráfico de jugadores activos y sin activar"></canvas>
+                    </div>
+                    <table class="editor-categorias-tabla admin-tabla">
+                        <caption class="editor-texto-accesible">Cantidad de jugadores según su estado.</caption>
+                        <thead><tr><th scope="col">Estado</th><th scope="col">Cantidad</th></tr></thead>
+                        <tbody>
+                        <tr><th scope="row">Activos</th><td>{{jugadores.activos}}</td></tr>
+                        <tr><th scope="row">Sin activar</th><td>{{jugadores.inactivos}}</td></tr>
+                        <tr><th scope="row">Total</th><td>{{jugadores.total}}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <a class="admin-volver" href="#resumen">↑ Volver al resumen</a>
+            </section>
+
+            <section id="seccion-partidas" class="editor-panel admin-seccion" aria-labelledby="admin-partidas-titulo">
+                <h2 id="admin-partidas-titulo">Partidas</h2>
+                <p>Se consideran jugadas las partidas finalizadas y abandonadas.</p>
+                <div class="admin-grafico-fila">
+                    <div class="admin-grafico">
+                        <canvas id="grafico-partidas" role="img"
+                                aria-label="Gráfico de partidas finalizadas, abandonadas y en juego"></canvas>
+                    </div>
+                    <table class="editor-categorias-tabla admin-tabla">
+                        <caption class="editor-texto-accesible">Cantidad de partidas según su estado.</caption>
+                        <thead><tr><th scope="col">Estado</th><th scope="col">Cantidad</th></tr></thead>
+                        <tbody>
+                        <tr><th scope="row">Finalizadas</th><td>{{partidas.finalizadas}}</td></tr>
+                        <tr><th scope="row">Abandonadas</th><td>{{partidas.abandonadas}}</td></tr>
+                        <tr><th scope="row">Jugadas (total)</th><td>{{partidas.jugadas}}</td></tr>
+                        <tr><th scope="row">En juego ahora</th><td>{{partidas.enJuego}}</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <a class="admin-volver" href="#resumen">↑ Volver al resumen</a>
+            </section>
+
+            <section id="seccion-preguntas" class="editor-panel admin-seccion" aria-labelledby="admin-preguntas-titulo">
+                <h2 id="admin-preguntas-titulo">Preguntas</h2>
+                <p>Disponibles: habilitadas y de una categoría habilitada. Creadas: todas las cargadas en la aplicación.</p>
+                {{#sinCategorias}}
+                    <p class="editor-sin-pendientes">Todavía no hay categorías habilitadas.</p>
+                {{/sinCategorias}}
+                {{^sinCategorias}}
+                    <div class="admin-grafico-fila">
+                        <div class="admin-grafico">
+                            <canvas id="grafico-preguntas" role="img"
+                                    aria-label="Gráfico de preguntas disponibles por categoría"></canvas>
+                        </div>
+                        <table class="editor-categorias-tabla admin-tabla">
+                            <caption class="editor-texto-accesible">Preguntas disponibles y creadas por categoría.</caption>
+                            <thead>
+                            <tr>
+                                <th scope="col">Categoría</th>
+                                <th scope="col">Disponibles</th>
+                                <th scope="col">Creadas</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{#preguntasPorCategoria}}
+                                <tr><th scope="row">{{nombre}}</th><td>{{disponibles}}</td><td>{{creadas}}</td></tr>
+                            {{/preguntasPorCategoria}}
+                            <tr><th scope="row">Total</th><td>{{preguntas.disponibles}}</td><td>{{preguntas.creadas}}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                {{/sinCategorias}}
+                <a class="admin-volver" href="#resumen">↑ Volver al resumen</a>
+            </section>
+
+            <section id="seccion-nuevos" class="editor-panel admin-seccion" aria-labelledby="admin-nuevos-titulo">
+                <div class="admin-encabezado">
+                    <h2 id="admin-nuevos-titulo">Usuarios nuevos</h2>
+                    <nav class="admin-periodos" aria-label="Período de usuarios nuevos">
+                        {{#periodos}}
+                            <a href="/admin/show?periodo={{dias}}"{{#activo}} class="activo" aria-current="true"{{/activo}}>{{dias}} días</a>
+                        {{/periodos}}
+                    </nav>
+                </div>
+                <p>Jugadores registrados en los últimos {{periodo}} días: <strong>{{usuariosNuevos}}</strong>.</p>
+                <div class="admin-grafico-fila">
+                    <div class="admin-grafico admin-grafico-ancho">
+                        <canvas id="grafico-nuevos" role="img"
+                                aria-label="Gráfico de usuarios nuevos por día"></canvas>
+                    </div>
+                    {{#sinNuevos}}
+                        <p class="editor-sin-pendientes">No hubo registros nuevos en este período.</p>
+                    {{/sinNuevos}}
+                    {{^sinNuevos}}
+                        <table class="editor-categorias-tabla admin-tabla">
+                            <caption class="editor-texto-accesible">Usuarios registrados por día (solo días con altas).</caption>
+                            <thead><tr><th scope="col">Día</th><th scope="col">Usuarios nuevos</th></tr></thead>
+                            <tbody>
+                            {{#nuevosPorDia}}
+                                <tr><th scope="row">{{dia}}</th><td>{{cantidad}}</td></tr>
+                            {{/nuevosPorDia}}
+                            </tbody>
+                        </table>
+                    {{/sinNuevos}}
+                </div>
+                <a class="admin-volver" href="#resumen">↑ Volver al resumen</a>
+            </section>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script src="/js/admin-estadisticas.js?v=1"></script>
+    {{/estadisticasCargadas}}
 </main>
