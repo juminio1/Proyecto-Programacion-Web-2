@@ -408,10 +408,23 @@ INSERT INTO opciones (pregunta_id, letra, texto, es_correcta) VALUES (@pid, 'A',
 COMMIT;
 
 ALTER TABLE partidas ADD COLUMN motivo_fin VARCHAR(32) DEFAULT NULL;
+ALTER TABLE partidas ADD COLUMN desconectada_en DATETIME(6) DEFAULT NULL;
 ALTER TABLE partida_preguntas ADD COLUMN vence_en DATETIME DEFAULT NULL;
 ALTER TABLE usuarios  ADD COLUMN nivel ENUM('bajo','medio','alto') NOT NULL DEFAULT 'medio';
 ALTER TABLE preguntas ADD COLUMN dificultad ENUM('facil','media','dificil') NOT NULL DEFAULT 'media';
 ALTER TABLE partidas  ADD COLUMN nivel_inicial ENUM('bajo','medio','alto') NOT NULL DEFAULT 'medio';
+
+CREATE TABLE IF NOT EXISTS partida_pestanas (
+                                                  id INT AUTO_INCREMENT PRIMARY KEY,
+                                                  partida_id INT NOT NULL,
+                                                  pestana_id VARCHAR(64) NOT NULL,
+                                                  conectada TINYINT(1) NOT NULL DEFAULT 1,
+                                                  ultima_conexion DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                                                  desconectada_en DATETIME(6) DEFAULT NULL,
+                                                  es_recarga TINYINT(1) NOT NULL DEFAULT 0,
+                                                  FOREIGN KEY (partida_id) REFERENCES partidas(id) ON DELETE CASCADE,
+                                                  UNIQUE KEY uq_partida_pestana (partida_id, pestana_id)
+);
 
 CREATE TABLE IF NOT EXISTS reportes_preguntas (
                                                   id INT AUTO_INCREMENT PRIMARY KEY,
