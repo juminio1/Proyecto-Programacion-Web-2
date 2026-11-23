@@ -31,6 +31,8 @@ class MustacheRender
     {
         $sesionIniciada = (int) ($_SESSION['usuario_id'] ?? 0) > 0;
         $esEditor = $sesionIniciada && ($_SESSION['rol'] ?? null) === 'editor';
+        $esAdmin = $sesionIniciada && ($_SESSION['rol'] ?? null) === 'admin';
+        $esJugador = $sesionIniciada && !$esEditor && !$esAdmin;
         $nombre = (string) ($_SESSION['usuario'] ?? 'Jugador');
 
         if (function_exists('mb_substr')) {
@@ -52,15 +54,18 @@ class MustacheRender
         return [
             'sesionIniciada' => $sesionIniciada,
             'esEditor' => $esEditor,
+            'esAdmin' => $esAdmin,
+            'esJugador' => $esJugador,
             'nombre' => $nombre,
             'inicial' => $inicial,
-            'enlaceLogo' => $esEditor ? '/editor/show' : '/',
-            'enlaceInicio' => $esEditor ? '/editor/show' : '/inicio/show',
+            'enlaceLogo' => $esAdmin ? '/admin/show' : ($esEditor ? '/editor/show' : '/'),
+            'enlaceInicio' => $esAdmin ? '/admin/show' : ($esEditor ? '/editor/show' : '/inicio/show'),
             'paginaLogin' => $pagina === 'login',
             'editorActivo' => $pagina === 'editor',
+            'adminActivo' => $pagina === 'admin',
             'inicioActivo' => $pagina === 'inicio',
             'rankingActivo' => $pagina === 'ranking',
-            'perfilActivo' => !$esEditor && $pagina === 'perfil',
+            'perfilActivo' => $esJugador && $pagina === 'perfil',
         ];
     }
 }

@@ -53,13 +53,30 @@ class Router
         $idUsuario = (int) ($_SESSION['usuario_id'] ?? 0);
         $rol = $idUsuario > 0 ? ($this->obtenerRol)($idUsuario) : null;
 
-        if ($idUsuario > 0 && !in_array($rol, [RolUsuario::JUGADOR, RolUsuario::EDITOR], true)) {
+        if ($idUsuario > 0 && !in_array($rol, [RolUsuario::JUGADOR, RolUsuario::EDITOR, RolUsuario::ADMIN], true)) {
             $_SESSION = [];
             Redirect::to('/login/show');
         }
 
         if ($rol !== null) {
             $_SESSION['rol'] = $rol;
+        }
+
+        if ($controller === 'admin') {
+            if ($rol === null) {
+                Redirect::to('/login/show');
+            }
+            if ($rol !== RolUsuario::ADMIN) {
+                http_response_code(403);
+                header('Content-Type: text/plain; charset=utf-8');
+                echo 'Esta página es exclusiva para administradores.';
+                exit;
+            }
+            if (!in_array($method, ['', 'show'], true)) {
+                http_response_code(404);
+                exit;
+            }
+            return;
         }
 
         if ($controller === 'editor') {
@@ -89,6 +106,16 @@ class Router
                 exit;
             }
             return;
+        }
+
+        if ($rol === RolUsuario::ADMIN && !($controller === 'login' && $method === 'logout')) {
+            if ($controller === 'partida' || ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+                http_response_code(403);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode(['error' => 'Los administradores no pueden realizar esta acción.']);
+                exit;
+            }
+            Redirect::to('/admin/show');
         }
 
         if ($rol === RolUsuario::EDITOR && !($controller === 'login' && $method === 'logout')) {

@@ -1,0 +1,45 @@
+.admin .editor-panel + .editor-panel {
+    margin-top: 22px;
+}
+
+.admin-secciones h2 {
+    margin: 0;
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 900;
+}
+
+.admin-grilla {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.admin-tarjeta {
+    padding: 18px;
+    background: var(--bg-superficie, #fff);
+    border: 1px dashed var(--borde, #e6ddf4);
+    border-radius: 16px;
+}
+
+.admin-tarjeta h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.admin-tarjeta p {
+    margin: 6px 0 0;
+    color: var(--texto-secundario, #665a7d);
+}
+
+.admin-proximamente {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--bg-superficie-alt, #f5f0ff);
+    color: var(--morado-oscuro, #5227be);
+    font-size: 12px;
+    font-weight: 800;
+}

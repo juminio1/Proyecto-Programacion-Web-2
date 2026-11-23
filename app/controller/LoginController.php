@@ -65,7 +65,16 @@ class LoginController{
             'rol' => $usuario['rol'],
         ];
 
-        Redirect::to($usuario['rol'] === RolUsuario::EDITOR ? '/editor/show' : '/inicio/show');
+        Redirect::to($this->inicioSegunRol($usuario['rol']));
+    }
+
+    private function inicioSegunRol(?string $rol): string
+    {
+        return match ($rol) {
+            RolUsuario::ADMIN => '/admin/show',
+            RolUsuario::EDITOR => '/editor/show',
+            default => '/inicio/show',
+        };
     }
 
     public function logout()
