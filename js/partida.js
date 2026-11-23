@@ -33,6 +33,248 @@
     let consultandoEstado = false;
     let intervaloEstado = null;
 
+    const idPartida = pagina?.dataset.idPartida;
+    const navegacion = performance.getEntriesByType('navigation')[0];
+    const esRecarga = (navegacion?.type === 'reload');
+    let idPestana = null;
+    let canalPestanas = null;
+    const pestanasConectadas = new Set();
+    const temporizadoresDescargaPestanas = new Map();
+    const TIEMPO_GRACIA_RECARGA_MS = 2500;
+
+    function obtenerClaveOpcionSessionStorage(idPartidaActual, idPreguntaActual) {
+        return `partida_${idPartidaActual}_pregunta_${idPreguntaActual}_opcion`;
+    }
+
+    function guardarOpcionSeleccionadaEnSessionStorage(idPartidaActual, idPreguntaActual, idOpcion) {
+        if (!idPartidaActual || !idPreguntaActual || !idOpcion) return;
+        try {
+            sessionStorage.setItem(
+                obtenerClaveOpcionSessionStorage(idPartidaActual, idPreguntaActual),
+                String(idOpcion)
+            );
+        } catch (error) {
+            console.warn('No se pudo guardar la opción en sessionStorage:', error);
+        }
+    }
+
+    function restaurarOpcionSeleccionadaDesdeSessionStorage(idPartidaActual, idPreguntaActual) {
+        if (!idPartidaActual || !idPreguntaActual || !formulario) return;
+        try {
+            const clave = obtenerClaveOpcionSessionStorage(idPartidaActual, idPreguntaActual);
+            const opcionGuardada = sessionStorage.getItem(clave);
+            if (!opcionGuardada) return;
+
+            const radio = formulario.querySelector(
+                `input[name="respuesta"][value="${CSS.escape(opcionGuardada)}"]`
+            );
+            if (radio && !radio.checked) {
+                radio.checked = true;
+                habilitarRespuesta('Confirmá tu respuesta cuando estés listo.');
+            }
+        } catch (error) {
+            console.warn('No se pudo restaurar la opción de sessionStorage:', error);
+        }
+    }
+
+    function limpiarOpcionSeleccionadaEnSessionStorage(idPartidaActual, idPreguntaActual) {
+        if (!idPartidaActual || !idPreguntaActual) return;
+        try {
+            sessionStorage.removeItem(obtenerClaveOpcionSessionStorage(idPartidaActual, idPreguntaActual));
+        } catch (error) {
+            console.warn('No se pudo limpiar la opción de sessionStorage:', error);
+        }
+    }
+
+    function obtenerOEstablecerIdPestana() {
+        let idGuardado = sessionStorage.getItem('partida_id_pestana');
+        if (!esRecarga || !idGuardado) {
+            idGuardado = 'pes_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 9);
+            sessionStorage.setItem('partida_id_pestana', idGuardado);
+        }
+        return idGuardado;
+    }
+
+    async function registrarPestanaEnServidor(esRecargaActual) {
+        if (!idPartida || !idPestana) return;
+
+        try {
+            const datos = new FormData();
+            datos.append('id_partida', idPartida);
+            datos.append('id_pestana', idPestana);
+            if (esRecargaActual) {
+                datos.append('es_recarga', '1');
+            }
+
+            const respuesta = await fetch('/partida/registrarPestana', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: datos
+            });
+
+            if (respuesta.status === 401) {
+                window.location.assign('/login/show');
+                return;
+            }
+
+            if (!respuesta.ok) return;
+
+            const resultado = await respuesta.json();
+            if (resultado.estado === 'abandonada' || resultado.tiempoAgotado) {
+                mostrarFinalizacion(resultado);
+            }
+        } catch (error) {
+            console.warn('No se pudo registrar la pestaña en el servidor:', error);
+        }
+    }
+
+    function notificarDesconexionPestanaAlServidor() {
+        if (!idPartida || !idPestana || partidaFinalizada) return;
+
+        try {
+            const datos = new FormData();
+            datos.append('id_partida', idPartida);
+            datos.append('id_pestana', idPestana);
+            navigator.sendBeacon('/partida/desconectarPestana', datos);
+        } catch (error) {
+            console.warn('No se pudo enviar la desconexión con sendBeacon:', error);
+        }
+    }
+
+    async function solicitarAbandonoPorCierreMultipestana() {
+        if (partidaFinalizada || enviandoAbandono) return;
+        enviandoAbandono = true;
+
+        try {
+            const datos = new FormData();
+            datos.append('id_partida', idPartida);
+            datos.append('ajax', '1');
+            datos.append('motivo', 'cierre_multipestana');
+
+            const respuesta = await fetch('/partida/abandonar', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: datos
+            });
+
+            if (respuesta.status === 401) {
+                window.location.assign('/login/show');
+                return;
+            }
+
+            const resultado = await respuesta.json();
+            mostrarFinalizacion({
+                ...resultado,
+                estado: 'abandonada',
+                mensaje: 'Partida abandonada: cerraste una pestaña mientras otra seguía conectada.'
+            });
+        } catch (error) {
+            console.error('Error al solicitar abandono por cierre de pestaña:', error);
+        } finally {
+            enviandoAbandono = false;
+        }
+    }
+
+    function iniciarCoordinacionPestanas() {
+        if (!idPartida) return;
+
+        idPestana = obtenerOEstablecerIdPestana();
+        pestanasConectadas.add(idPestana);
+
+        if (typeof BroadcastChannel !== 'undefined') {
+            try {
+                canalPestanas = new BroadcastChannel('partida_pestanas_' + idPartida);
+
+                canalPestanas.onmessage = (evento) => {
+                    const mensajeCanal = evento.data;
+                    if (!mensajeCanal || typeof mensajeCanal !== 'object') return;
+
+                    const idPestanaRemota = mensajeCanal.idPestana;
+                    if (!idPestanaRemota || idPestanaRemota === idPestana) return;
+
+                    switch (mensajeCanal.tipo) {
+                        case 'pestana_conectada':
+                            pestanasConectadas.add(idPestanaRemota);
+                            canalPestanas.postMessage({
+                                tipo: 'pestana_presente',
+                                idPestana: idPestana
+                            });
+                            if (temporizadoresDescargaPestanas.has(idPestanaRemota)) {
+                                clearTimeout(temporizadoresDescargaPestanas.get(idPestanaRemota));
+                                temporizadoresDescargaPestanas.delete(idPestanaRemota);
+                            }
+                            break;
+
+                        case 'pestana_presente':
+                            pestanasConectadas.add(idPestanaRemota);
+                            break;
+
+                        case 'pestana_recargada':
+                            // Una recarga no cuenta como cierre
+                            if (temporizadoresDescargaPestanas.has(idPestanaRemota)) {
+                                clearTimeout(temporizadoresDescargaPestanas.get(idPestanaRemota));
+                                temporizadoresDescargaPestanas.delete(idPestanaRemota);
+                            }
+                            pestanasConectadas.add(idPestanaRemota);
+                            break;
+
+                        case 'pestana_descargando':
+                            // La otra pestaña comenzó a descargarse
+                            if (temporizadoresDescargaPestanas.has(idPestanaRemota)) {
+                                clearTimeout(temporizadoresDescargaPestanas.get(idPestanaRemota));
+                            }
+
+                            const temporizador = setTimeout(async () => {
+                                temporizadoresDescargaPestanas.delete(idPestanaRemota);
+                                pestanasConectadas.delete(idPestanaRemota);
+
+                                // Si pasaron los 2.5s y esta pestaña sigue conectada:
+                                // "Si se cierra una y otra sigue conectada, solicitar el abandono."
+                                if (!partidaFinalizada) {
+                                    await solicitarAbandonoPorCierreMultipestana();
+                                }
+                            }, TIEMPO_GRACIA_RECARGA_MS);
+
+                            temporizadoresDescargaPestanas.set(idPestanaRemota, temporizador);
+                            break;
+
+                        case 'partida_abandonada':
+                            mostrarFinalizacion(mensajeCanal.datos);
+                            break;
+                    }
+                };
+
+                if (esRecarga) {
+                    canalPestanas.postMessage({
+                        tipo: 'pestana_recargada',
+                        idPestana: idPestana
+                    });
+                }
+
+                canalPestanas.postMessage({
+                    tipo: 'pestana_conectada',
+                    idPestana: idPestana,
+                    esRecarga: esRecarga
+                });
+            } catch (error) {
+                console.warn('No se pudo inicializar BroadcastChannel:', error);
+            }
+        }
+
+        registrarPestanaEnServidor(esRecarga);
+
+        window.addEventListener('pagehide', () => {
+            if (partidaFinalizada) return;
+
+            canalPestanas?.postMessage({
+                tipo: 'pestana_descargando',
+                idPestana: idPestana
+            });
+
+            notificarDesconexionPestanaAlServidor();
+        });
+    }
+
     const ESPERA_MAXIMA_REPORTE_MS = 90000;
     const formularioReporte = document.getElementById('partida-reporte-formulario');
     const mensajeReporte = document.getElementById('partida-reporte-mensaje');
@@ -189,6 +431,7 @@
 
     formulario.addEventListener('change', (evento) => {
         if (evento.target.name === 'respuesta' && !enviando && !verificandoTiempo) {
+            guardarOpcionSeleccionadaEnSessionStorage(idPartida, inputPregunta?.value, evento.target.value);
             habilitarRespuesta('Confirmá tu respuesta cuando estés listo.');
         }
     });
@@ -230,6 +473,8 @@
             enviando = false;
 
             if (partidaFinalizada) return;
+
+            limpiarOpcionSeleccionadaEnSessionStorage(idPartida, inputPregunta?.value);
 
             if (data.error) {
                 if (data.ya_respondida) {
@@ -309,18 +554,18 @@
     });
 
     async function consultarAbandono() {
-        const idPartida = pagina?.dataset.idPartida;
         if (!idPartida || partidaFinalizada || consultandoEstado || document.hidden) return;
 
         consultandoEstado = true;
         try {
-            const respuesta = await fetch('/partida/estado?id_partida=' + encodeURIComponent(idPartida), {
+            const url = '/partida/estado?id_partida=' + encodeURIComponent(idPartida) + (idPestana ? '&id_pestana=' + encodeURIComponent(idPestana) : '');
+            const respuesta = await fetch(url, {
                 headers: { 'Accept': 'application/json' },
                 cache: 'no-store'
             });
             if (!respuesta.ok) return;
             const resultado = await respuesta.json();
-            if (resultado.estado === 'abandonada') mostrarFinalizacion(resultado);
+            if (resultado.estado === 'abandonada' || resultado.tiempoAgotado) mostrarFinalizacion(resultado);
         } catch {
             // Se vuelve a consultar al recuperar conexión o en el siguiente intervalo.
         } finally {
@@ -335,8 +580,9 @@
         document.addEventListener('visibilitychange', consultarAbandono);
     }
 
-    const navegacion = performance.getEntriesByType('navigation')[0];
+    iniciarCoordinacionPestanas();
     iniciarReloj(reloj.dataset.restanteMs, navegacion?.responseStart || performance.now());
+    restaurarOpcionSeleccionadaDesdeSessionStorage(idPartida, inputPregunta?.value);
 
     function formatearDuracion(segundos) {
         if (!Number.isInteger(segundos) || segundos < 0) {
@@ -356,6 +602,13 @@
         formularioAbandono = null;
         if (dialogoAbandono?.open) dialogoAbandono.close();
 
+        limpiarOpcionSeleccionadaEnSessionStorage(idPartida, inputPregunta?.value);
+        temporizadoresDescargaPestanas.forEach((t) => clearTimeout(t));
+        temporizadoresDescargaPestanas.clear();
+        try {
+            canalPestanas?.close();
+        } catch {}
+
         const abandonada = data.estado === 'abandonada';
         const tiempoAgotado = data.tiempoAgotado === true;
         const puntaje = Number(data.puntaje) || 0;
@@ -372,7 +625,7 @@
             trazoIcono = 'm5 12 4 4L19 6';
         } else if (abandonada) {
             titulo = 'Partida abandonada';
-            descripcion = 'Esta partida no suma puntos.';
+            descripcion = data.mensaje || 'Esta partida no suma puntos.';
         } else if (tiempoAgotado) {
             titulo = '¡Se te acabó el tiempo!';
             descripcion = 'No confirmaste una respuesta a tiempo. Conservás los puntos que ya ganaste.';
@@ -638,6 +891,8 @@
     }
 
     function actualizarPregunta(nuevaPregunta, recibidaEn) {
+        limpiarOpcionSeleccionadaEnSessionStorage(idPartida, inputPregunta?.value);
+
         if (tarjetaPregunta && nuevaPregunta.color) {
             tarjetaPregunta.style.setProperty('--color-categoria', nuevaPregunta.color);
         }

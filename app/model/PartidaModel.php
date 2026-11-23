@@ -7,6 +7,8 @@ use PDO;
 
 class PartidaModel
 {
+    public const MARGEN_RECONEXION_SEGUNDOS = 10;
+    public const MOTIVO_CIERRE_MULTIPESTANA = 'cierre_multipestana';
     private const DURACION_PREGUNTA = 15;
     private const MOTIVO_TIEMPO_AGOTADO = 'tiempo_agotado';
 
@@ -195,12 +197,26 @@ class PartidaModel
     public function prepararPregunta(int $partidaId, int $idUsuario): array
     {
         return $this->enTransaccion(function (PDO $pdo) use ($partidaId, $idUsuario) {
+            $this->garantizarEstructuraReconexion($pdo);
             $partida = $this->bloquearPartida($pdo, $partidaId, $idUsuario);
             if (!$this->estaActiva($partida)) {
                 return $this->resultadoPartidaCerrada($partida);
             }
 
             $pregunta = $this->obtenerPreguntaActual($partidaId);
+
+            // Si se había desconectado la última pestaña, verificar si venció algún plazo
+            if (!empty($partida['desconectada_en'])) {
+                if ($this->haVencidoMargenReconexion($partida) || ($pregunta && $pregunta['tiempoRestanteMs'] === 0)) {
+                    $idAsignacion = $pregunta ? (int) $pregunta['idAsignacion'] : 0;
+                    return $this->cerrarPorTiempo($pdo, $partida, $idAsignacion);
+                }
+
+                // Volvió dentro del margen de reconexión (10 segundos) y con tiempo en la pregunta
+                $consultaLimpiar = $pdo->prepare("UPDATE partidas SET desconectada_en = NULL WHERE id = :id");
+                $consultaLimpiar->execute(['id' => $partidaId]);
+                $partida['desconectada_en'] = null;
+            }
             if ($pregunta && $pregunta['tiempoRestanteMs'] === 0) {
                 return $this->cerrarPorTiempo($pdo, $partida, $pregunta['idAsignacion']);
             }
@@ -218,6 +234,10 @@ class PartidaModel
             $idUsuario,
             $idAsignacion,
             function (PDO $pdo, array $partida, array $pregunta): array {
+                if (!empty($partida['desconectada_en']) && $this->haVencidoMargenReconexion($partida)) {
+                    return $this->cerrarPorTiempo($pdo, $partida, $pregunta['idAsignacion']);
+                }
+
                 if ($pregunta['tiempoRestanteMs'] > 0) {
                     return [
                         'tiempoAgotado' => false,
@@ -252,6 +272,10 @@ class PartidaModel
             $idUsuario,
             $idAsignacion,
             function (PDO $pdo, array $partida, array $pregunta) use ($respuesta): array {
+                if (!empty($partida['desconectada_en']) && $this->haVencidoMargenReconexion($partida)) {
+                    return $this->cerrarPorTiempo($pdo, $partida, $pregunta['idAsignacion']);
+                }
+
                 if ($pregunta['tiempoRestanteMs'] === 0) {
                     return $this->cerrarPorTiempo($pdo, $partida, $pregunta['idAsignacion']);
                 }
@@ -424,9 +448,9 @@ class PartidaModel
         }
     }
 
-    public function abandonarPartidaPorId(int $idUsuario, int $idPartida, bool $respetarVencimiento = true)
+    public function abandonarPartidaPorId(int $idUsuario, int $idPartida, bool $respetarVencimiento = true, string $motivo = 'abandono')
     {
-        return $this->enTransaccion(function (PDO $pdo) use ($idUsuario, $idPartida, $respetarVencimiento) {
+        return $this->enTransaccion(function (PDO $pdo) use ($idUsuario, $idPartida, $respetarVencimiento, $motivo) {
             $partida = $this->bloquearPartida($pdo, $idPartida, $idUsuario);
             if (!$this->estaActiva($partida)) {
                 return $this->resultadoPartidaCerrada($partida);
@@ -444,7 +468,7 @@ class PartidaModel
                 $consulta->execute(['id' => $pregunta['idAsignacion'], 'partida' => $idPartida]);
             }
 
-            $this->cerrarPartida($idPartida, EstadoPartida::ABANDONADA, 'abandono');
+            $this->cerrarPartida($idPartida, EstadoPartida::ABANDONADA, $motivo);
 
             $consulta = $pdo->prepare("UPDATE partidas SET puntaje = 0 WHERE id = :id");
             $consulta->execute(['id' => $idPartida]);
@@ -456,14 +480,31 @@ class PartidaModel
                 $consulta->execute(['puntos' => (int) $partida['puntaje'], 'id' => $idUsuario]);
             }
 
-            return $this->resultadoAbandono();
+            $resultado = $this->resultadoAbandono();
+            if ($motivo === self::MOTIVO_CIERRE_MULTIPESTANA) {
+                $resultado['mensaje'] = 'Partida abandonada: cerraste una pestaña mientras otra seguía conectada.';
+            }
+
+            return $resultado;
         });
     }
 
-    public function consultarEstadoPartida(int $idUsuario, int $idPartida){
+    public function consultarEstadoPartida(int $idUsuario, int $idPartida, ?string $idPestana = null)
+    {
         $pdo = $this->database->getConexion();
-        $consulta = $pdo->prepare("SELECT estado FROM partidas
-            WHERE id = :id AND usuario_id = :usuario");
+        $this->garantizarEstructuraReconexion($pdo);
+
+        if (!empty($idPestana)) {
+            $sqlPing = "UPDATE partida_pestanas
+                        SET ultima_conexion = CURRENT_TIMESTAMP(6), conectada = 1
+                        WHERE partida_id = :partida_id AND pestana_id = :pestana_id";
+            $consultaPing = $pdo->prepare($sqlPing);
+            $consultaPing->execute(['partida_id' => $idPartida, 'pestana_id' => $idPestana]);
+        }
+
+        $consulta = $pdo->prepare("SELECT id, usuario_id, estado, puntaje, motivo_fin, desconectada_en
+                                  FROM partidas
+                                  WHERE id = :id AND usuario_id = :usuario");
         $consulta->execute(['id' => $idPartida, 'usuario' => $idUsuario]);
         $partida = $consulta->fetch(PDO::FETCH_ASSOC);
 
@@ -471,9 +512,35 @@ class PartidaModel
             return null;
         }
 
-        return $partida['estado'] === EstadoPartida::ABANDONADA->value
-            ? $this->resultadoAbandono()
-            : ['estado' => $partida['estado']];
+        if ($partida['estado'] === EstadoPartida::ABANDONADA->value) {
+            $resultado = $this->resultadoAbandono();
+            if (($partida['motivo_fin'] ?? null) === self::MOTIVO_CIERRE_MULTIPESTANA) {
+                $resultado['mensaje'] = 'Partida abandonada: cerraste una pestaña mientras otra seguía conectada.';
+            }
+            return $resultado;
+        }
+
+        if (($partida['motivo_fin'] ?? null) === self::MOTIVO_TIEMPO_AGOTADO) {
+            return $this->resultadoTiempoAgotado((int) $partida['puntaje']);
+        }
+
+        if ($this->estaActiva($partida)) {
+            $pregunta = $this->obtenerPreguntaActual($idPartida);
+            if (!empty($partida['desconectada_en']) && $this->haVencidoMargenReconexion($partida)) {
+                $idAsignacion = $pregunta ? (int) $pregunta['idAsignacion'] : 0;
+                return $this->enTransaccion(fn (PDO $tPdo) => $this->cerrarPorTiempo($tPdo, $partida, $idAsignacion));
+            }
+
+            if ($pregunta && $pregunta['tiempoRestanteMs'] === 0) {
+                return $this->enTransaccion(fn (PDO $tPdo) => $this->cerrarPorTiempo($tPdo, $partida, (int) $pregunta['idAsignacion']));
+            }
+        }
+
+        return [
+            'estado' => $partida['estado'],
+            'puntaje' => (int) $partida['puntaje'],
+            'totalPestanas' => $this->contarPestanasConectadas($pdo, $idPartida)
+        ];
     }
 
     //Es un unico punto de cierre. Se ejecuta una sola vez
@@ -555,7 +622,7 @@ class PartidaModel
 
     private function bloquearPartida(PDO $pdo, int $partidaId, int $idUsuario)
     {
-        $consulta = $pdo->prepare("SELECT id, usuario_id, estado, puntaje, motivo_fin
+        $consulta = $pdo->prepare("SELECT id, usuario_id, estado, puntaje, motivo_fin, desconectada_en
                                   FROM partidas
                                   WHERE id = :id AND usuario_id = :usuario
                                   FOR UPDATE");
@@ -573,14 +640,196 @@ class PartidaModel
 
     private function cerrarPorTiempo(PDO $pdo, array $partida, int $idAsignacion)
     {
-        $consulta = $pdo->prepare("UPDATE partida_preguntas
-                                  SET es_correcta = 0, fecha_respuesta = CURRENT_TIMESTAMP
-                                  WHERE id = :asignacion AND partida_id = :partida
-                                    AND fecha_respuesta IS NULL");
-        $consulta->execute(['asignacion' => $idAsignacion, 'partida' => $partida['id']]);
+        if ($idAsignacion > 0) {
+            $consulta = $pdo->prepare("UPDATE partida_preguntas
+                                      SET es_correcta = 0, fecha_respuesta = CURRENT_TIMESTAMP
+                                      WHERE id = :asignacion AND partida_id = :partida
+                                        AND fecha_respuesta IS NULL");
+            $consulta->execute(['asignacion' => $idAsignacion, 'partida' => $partida['id']]);
+        }
+
+        $consultaLimpiar = $pdo->prepare("UPDATE partidas SET desconectada_en = NULL WHERE id = :id");
+        $consultaLimpiar->execute(['id' => $partida['id']]);
 
         $this->cerrarPartida($partida['id'], EstadoPartida::FINALIZADA, self::MOTIVO_TIEMPO_AGOTADO);
         return $this->resultadoTiempoAgotado((int) $partida['puntaje']);
+    }
+
+    public function registrarConexionPestana(int $idUsuario, int $idPartida, string $idPestana, bool $esRecarga): array
+    {
+        return $this->enTransaccion(function (PDO $pdo) use ($idUsuario, $idPartida, $idPestana, $esRecarga) {
+            $this->garantizarEstructuraReconexion($pdo);
+
+            $partida = $this->bloquearPartida($pdo, $idPartida, $idUsuario);
+            if (!$this->estaActiva($partida)) {
+                return $this->resultadoPartidaCerrada($partida);
+            }
+
+            $pregunta = $this->obtenerPreguntaActual($idPartida);
+
+            // Si se había desconectado la última pestaña, verificar si venció el margen de reconexión o la pregunta
+            if (!empty($partida['desconectada_en'])) {
+                if ($this->haVencidoMargenReconexion($partida) || ($pregunta && $pregunta['tiempoRestanteMs'] === 0)) {
+                    $idAsignacion = $pregunta ? (int) $pregunta['idAsignacion'] : 0;
+                    return $this->cerrarPorTiempo($pdo, $partida, $idAsignacion);
+                }
+
+                // Reconexión exitosa dentro de los 10 segundos: reanudar tiempo restante y limpiar marca
+                $consultaLimpiar = $pdo->prepare("UPDATE partidas SET desconectada_en = NULL WHERE id = :id");
+                $consultaLimpiar->execute(['id' => $idPartida]);
+                $partida['desconectada_en'] = null;
+            }
+
+            // Registrar pestaña como conectada en la base de datos
+            $sql = "INSERT INTO partida_pestanas (partida_id, pestana_id, conectada, ultima_conexion, es_recarga)
+                    VALUES (:partida_id, :pestana_id, 1, CURRENT_TIMESTAMP(6), :es_recarga)
+                    ON DUPLICATE KEY UPDATE
+                        conectada = 1,
+                        ultima_conexion = CURRENT_TIMESTAMP(6),
+                        desconectada_en = NULL,
+                        es_recarga = :es_recarga_update";
+
+            $consulta = $pdo->prepare($sql);
+            $consulta->execute([
+                'partida_id' => $idPartida,
+                'pestana_id' => $idPestana,
+                'es_recarga' => $esRecarga ? 1 : 0,
+                'es_recarga_update' => $esRecarga ? 1 : 0
+            ]);
+
+            $totalPestanas = $this->contarPestanasConectadas($pdo, $idPartida);
+
+            return [
+                'ok' => true,
+                'partidaId' => $idPartida,
+                'idPestana' => $idPestana,
+                'totalPestanasConectadas' => $totalPestanas,
+                'tiempoRestanteMs' => $pregunta ? $pregunta['tiempoRestanteMs'] : 0
+            ];
+        });
+    }
+
+    public function registrarDesconexionPestana(int $idUsuario, int $idPartida, string $idPestana): array
+    {
+        return $this->enTransaccion(function (PDO $pdo) use ($idUsuario, $idPartida, $idPestana) {
+            $this->garantizarEstructuraReconexion($pdo);
+
+            $partida = $this->bloquearPartida($pdo, $idPartida, $idUsuario);
+            if (!$this->estaActiva($partida)) {
+                return $this->resultadoPartidaCerrada($partida);
+            }
+
+            // Marcar esta pestaña específica como desconectada
+            $sql = "UPDATE partida_pestanas
+                    SET conectada = 0, desconectada_en = CURRENT_TIMESTAMP(6)
+                    WHERE partida_id = :partida_id AND pestana_id = :pestana_id";
+            $consulta = $pdo->prepare($sql);
+            $consulta->execute([
+                'partida_id' => $idPartida,
+                'pestana_id' => $idPestana
+            ]);
+
+            // Contar cuántas OTRAS pestañas siguen conectadas
+            $otrasConectadas = $this->contarOtrasPestanasConectadas($pdo, $idPartida, $idPestana);
+
+            if ($otrasConectadas > 0) {
+                // Criterio: Cerrar una pestaña mientras otra sigue conectada si abandona la partida.
+                return $this->abandonarPartidaPorId(
+                    $idUsuario,
+                    $idPartida,
+                    respetarVencimiento: true,
+                    motivo: self::MOTIVO_CIERRE_MULTIPESTANA
+                );
+            }
+
+            // Si es la última pestaña conectada, registrar momento de desconexión:
+            // Criterio: Si se desconecta la última pestaña, permitir volver en hasta 10 segundos.
+            $sqlDesconexion = "UPDATE partidas
+                               SET desconectada_en = CURRENT_TIMESTAMP(6)
+                               WHERE id = :id AND desconectada_en IS NULL";
+            $consultaDesconexion = $pdo->prepare($sqlDesconexion);
+            $consultaDesconexion->execute(['id' => $idPartida]);
+
+            return [
+                'ok' => true,
+                'ultimaPestana' => true,
+                'margenReconexionSegundos' => self::MARGEN_RECONEXION_SEGUNDOS
+            ];
+        });
+    }
+
+    public function contarPestanasConectadas(PDO $pdo, int $partidaId): int
+    {
+        $this->garantizarEstructuraReconexion($pdo);
+        $sql = "SELECT COUNT(*) FROM partida_pestanas
+                WHERE partida_id = :partida_id
+                  AND conectada = 1
+                  AND ultima_conexion >= DATE_SUB(CURRENT_TIMESTAMP(6), INTERVAL 6 SECOND)";
+        $consulta = $pdo->prepare($sql);
+        $consulta->execute(['partida_id' => $partidaId]);
+        return (int) $consulta->fetchColumn();
+    }
+
+    public function contarOtrasPestanasConectadas(PDO $pdo, int $partidaId, string $idPestanaExcluida): int
+    {
+        $this->garantizarEstructuraReconexion($pdo);
+        $sql = "SELECT COUNT(*) FROM partida_pestanas
+                WHERE partida_id = :partida_id
+                  AND pestana_id != :pestana_id
+                  AND conectada = 1
+                  AND ultima_conexion >= DATE_SUB(CURRENT_TIMESTAMP(6), INTERVAL 6 SECOND)";
+        $consulta = $pdo->prepare($sql);
+        $consulta->execute([
+            'partida_id' => $partidaId,
+            'pestana_id' => $idPestanaExcluida
+        ]);
+        return (int) $consulta->fetchColumn();
+    }
+
+    private function haVencidoMargenReconexion(array $partida): bool
+    {
+        if (empty($partida['desconectada_en'])) {
+            return false;
+        }
+
+        $pdo = $this->database->getConexion();
+        $sql = "SELECT TIMESTAMPDIFF(MICROSECOND, :desconectada_en, CURRENT_TIMESTAMP(6)) AS microsegundos";
+        $consulta = $pdo->prepare($sql);
+        $consulta->execute(['desconectada_en' => $partida['desconectada_en']]);
+        $microsegundos = (int) ($consulta->fetchColumn() ?: 0);
+
+        return $microsegundos > (self::MARGEN_RECONEXION_SEGUNDOS * 1000000);
+    }
+
+    private function garantizarEstructuraReconexion(PDO $pdo): void
+    {
+        static $verificado = false;
+        if ($verificado) {
+            return;
+        }
+
+        try {
+            $pdo->query("SELECT desconectada_en FROM partidas LIMIT 1");
+        } catch (\Throwable $e) {
+            try {
+                $pdo->exec("ALTER TABLE partidas ADD COLUMN desconectada_en DATETIME(6) DEFAULT NULL");
+            } catch (\Throwable $ignored) {
+            }
+        }
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS partida_pestanas (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            partida_id INT NOT NULL,
+            pestana_id VARCHAR(64) NOT NULL,
+            conectada TINYINT(1) NOT NULL DEFAULT 1,
+            ultima_conexion DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+            desconectada_en DATETIME(6) DEFAULT NULL,
+            es_recarga TINYINT(1) NOT NULL DEFAULT 0,
+            FOREIGN KEY (partida_id) REFERENCES partidas(id) ON DELETE CASCADE,
+            UNIQUE KEY uq_partida_pestana (partida_id, pestana_id)
+        )");
+
+        $verificado = true;
     }
 
     private function resultadoPartidaCerrada(?array $partida)
