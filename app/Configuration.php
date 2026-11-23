@@ -2,6 +2,7 @@
 
 namespace app;
 
+use app\controller\AdminController;
 use app\controller\CategoriaSugeridaController;
 use app\model\CategoriaSugeridaModel;
 use app\model\CategoriaModel;
@@ -122,6 +123,11 @@ class Configuration
             new CategoriaModel($this->getDatabase()),
             $this->getRender()
         );
+    }
+
+    public function getAdminController()
+    {
+        return new AdminController($this->getRender());
     }
 
     private function getPartidaModel()

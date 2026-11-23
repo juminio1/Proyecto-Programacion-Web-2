@@ -6,4 +6,5 @@ final class RolUsuario
 {
     public const JUGADOR = 'jugador';
     public const EDITOR = 'editor';
+    public const ADMIN = 'admin';
 }
