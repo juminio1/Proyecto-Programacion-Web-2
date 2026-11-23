@@ -72,7 +72,7 @@ class Router
                 echo 'Esta página es exclusiva para administradores.';
                 exit;
             }
-            if (!in_array($method, ['', 'show'], true)) {
+            if (!in_array($method, ['', 'show', 'usuarios'], true)) {
                 http_response_code(404);
                 exit;
             }

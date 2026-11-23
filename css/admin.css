@@ -180,3 +180,81 @@ a.admin-dato:focus-visible {
     outline: 2px solid var(--morado-oscuro, #5227be);
     outline-offset: 3px;
 }
+
+/* ---------- Filtro y tabla de aciertos por usuario ---------- */
+
+.admin-filtro {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: end;
+    margin-top: 20px;
+}
+
+.admin-filtro-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.admin-filtro-campo label {
+    font-weight: 800;
+}
+
+.admin-filtro-campo input,
+.admin-filtro-campo select {
+    min-height: 44px;
+    padding: 8px 12px;
+    background: var(--color-input-bg, #fff);
+    color: var(--texto-principal, #25154d);
+    border: 1px solid var(--color-input-borde, #d8cdef);
+    border-radius: 12px;
+    font: inherit;
+}
+
+.admin-filtro-campo input:focus-visible,
+.admin-filtro-campo select:focus-visible {
+    outline: 2px solid var(--morado-oscuro, #5227be);
+    outline-offset: 2px;
+}
+
+.admin-filtro-botones {
+    display: flex;
+    gap: 10px;
+}
+
+.admin-filtro-botones .editor-boton {
+    margin: 0;
+}
+
+.admin-tabla th small {
+    display: block;
+    color: var(--texto-secundario, #665a7d);
+    font-weight: 600;
+}
+
+.admin-porcentaje {
+    display: block;
+    font-weight: 900;
+}
+
+.admin-barra {
+    display: block;
+    height: 8px;
+    margin-top: 4px;
+    background: var(--borde, #e6ddf4);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.admin-barra span {
+    display: block;
+    height: 100%;
+    background: #2fa866;
+}
+
+.admin-sin-respuestas {
+    color: var(--texto-secundario, #665a7d);
+    font-style: italic;
+    font-weight: 700;
+}

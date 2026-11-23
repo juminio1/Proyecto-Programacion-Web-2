@@ -1,0 +1,92 @@
+<link rel="stylesheet" href="/css/editor.css?v=5">
+<link rel="stylesheet" href="/css/admin.css?v=3">
+<main class="editor admin">
+    <section class="editor-panel" aria-labelledby="admin-usuarios-titulo">
+        <a class="editor-volver" href="/admin/show#seccion-jugadores">← Volver al panel</a>
+        <p class="editor-etiqueta">ROL ADMIN</p>
+        <h1 id="admin-usuarios-titulo">Porcentaje de aciertos por usuario</h1>
+        <p>Porcentaje de respuestas correctas sobre el total de respuestas de cada jugador.</p>
+
+        <form class="admin-filtro" method="get" action="/admin/usuarios">
+            <div class="admin-filtro-campo">
+                <label for="filtro-buscar">Buscar por nombre de usuario</label>
+                <input id="filtro-buscar" type="search" name="buscar" value="{{buscar}}"
+                       maxlength="50" placeholder="Ej: dorian" autocomplete="off">
+            </div>
+            <div class="admin-filtro-campo">
+                <label for="filtro-usuario">O elegir de la lista</label>
+                <select id="filtro-usuario" name="usuario">
+                    <option value="0">Todos los jugadores</option>
+                    {{#listaJugadores}}
+                        <option value="{{id}}"{{#seleccionado}} selected{{/seleccionado}}>{{nombre_usuario}}</option>
+                    {{/listaJugadores}}
+                </select>
+            </div>
+            <div class="admin-filtro-botones">
+                <button type="submit" class="editor-boton">Filtrar</button>
+                {{#hayFiltro}}
+                    <a class="editor-boton editor-boton-rechazar" href="/admin/usuarios">Limpiar</a>
+                {{/hayFiltro}}
+            </div>
+        </form>
+    </section>
+
+    {{#errorUsuarios}}
+        <p class="editor-aviso editor-aviso-error" role="alert">{{errorUsuarios}}</p>
+    {{/errorUsuarios}}
+
+    {{#usuariosCargados}}
+        <section class="editor-panel admin-seccion" aria-labelledby="admin-resultados-titulo">
+            <div class="admin-encabezado">
+                <h2 id="admin-resultados-titulo">Resultados</h2>
+                <span class="editor-categorias-total">{{cantidadJugadores}} jugador(es)</span>
+            </div>
+
+            {{#sinResultados}}
+                <p class="editor-sin-pendientes">No se encontraron jugadores con ese filtro.</p>
+            {{/sinResultados}}
+
+            {{^sinResultados}}
+                <div class="editor-categorias-tabla-contenedor" role="region" aria-label="Porcentaje de aciertos por jugador" tabindex="0">
+                    <table class="editor-categorias-tabla admin-tabla">
+                        <caption class="editor-texto-accesible">Respuestas correctas, total de respuestas y porcentaje de aciertos de cada jugador.</caption>
+                        <thead>
+                        <tr>
+                            <th scope="col">Jugador</th>
+                            <th scope="col">Correctas</th>
+                            <th scope="col">Incorrectas</th>
+                            <th scope="col">Total</th>
+                            <th scope="col">% de aciertos</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#jugadores}}
+                            <tr>
+                                <th scope="row">
+                                    {{nombre_usuario}}
+                                    <small>{{nombre_completo}}</small>
+                                </th>
+                                {{#tieneRespuestas}}
+                                    <td>{{correctas}}</td>
+                                    <td>{{incorrectas}}</td>
+                                    <td>{{totalRespuestas}}</td>
+                                    <td>
+                                        <span class="admin-porcentaje">{{porcentajeTexto}}</span>
+                                        <span class="admin-barra" aria-hidden="true"><span style="width: {{porcentajeAncho}}%"></span></span>
+                                    </td>
+                                {{/tieneRespuestas}}
+                                {{^tieneRespuestas}}
+                                    <td>0</td>
+                                    <td>0</td>
+                                    <td>0</td>
+                                    <td><span class="admin-sin-respuestas">Sin respuestas</span></td>
+                                {{/tieneRespuestas}}
+                            </tr>
+                        {{/jugadores}}
+                        </tbody>
+                    </table>
+                </div>
+            {{/sinResultados}}
+        </section>
+    {{/usuariosCargados}}
+</main>
