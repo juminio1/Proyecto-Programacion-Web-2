@@ -111,4 +111,55 @@ class AdminModel
 
         return $resultado;
     }
+
+    public function obtenerListaJugadores(): array
+    {
+        return $this->pdo->query(
+            "SELECT id, nombre_usuario FROM usuarios WHERE rol = 'jugador' ORDER BY nombre_usuario"
+        )->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function obtenerDesempenoJugadores(string $buscar = '', int $idUsuario = 0): array
+    {
+        $consulta = $this->pdo->prepare(
+            "SELECT u.id, u.nombre_usuario, u.nombre_completo,
+                    COUNT(pp.es_correcta) AS total_respuestas,
+                    COALESCE(SUM(pp.es_correcta = 1), 0) AS correctas
+             FROM usuarios u
+             LEFT JOIN partidas pa ON pa.usuario_id = u.id
+             LEFT JOIN partida_preguntas pp ON pp.partida_id = pa.id
+             WHERE u.rol = 'jugador'
+               AND (:id_usuario = 0 OR u.id = :id_usuario_igual)
+               AND (:buscar_vacio = '' OR u.nombre_usuario LIKE :patron)
+             GROUP BY u.id, u.nombre_usuario, u.nombre_completo
+             ORDER BY u.nombre_usuario"
+        );
+        $consulta->bindValue('id_usuario', $idUsuario, PDO::PARAM_INT);
+        $consulta->bindValue('id_usuario_igual', $idUsuario, PDO::PARAM_INT);
+        $consulta->bindValue('buscar_vacio', $buscar);
+        // Se escapan % y _ para que se busquen como texto común.
+        $consulta->bindValue('patron', '%' . addcslashes($buscar, '%_\\') . '%');
+        $consulta->execute();
+
+        $jugadores = [];
+        foreach ($consulta->fetchAll(PDO::FETCH_ASSOC) as $fila) {
+            $total = (int) $fila['total_respuestas'];
+            $correctas = (int) $fila['correctas'];
+            $porcentaje = $total > 0 ? round($correctas * 100 / $total, 1) : null;
+
+            $jugadores[] = [
+                'id' => (int) $fila['id'],
+                'nombre_usuario' => $fila['nombre_usuario'],
+                'nombre_completo' => $fila['nombre_completo'],
+                'totalRespuestas' => $total,
+                'correctas' => $correctas,
+                'incorrectas' => $total - $correctas,
+                'tieneRespuestas' => $total > 0,
+                'porcentajeTexto' => $porcentaje === null ? null : number_format($porcentaje, 1, ',', '') . ' %',
+                'porcentajeAncho' => $porcentaje === null ? 0 : $porcentaje,
+            ];
+        }
+
+        return $jugadores;
+    }
 }

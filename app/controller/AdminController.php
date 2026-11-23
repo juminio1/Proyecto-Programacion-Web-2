@@ -55,6 +55,49 @@ class AdminController
         $this->render->renderiza('admin', $datos);
     }
 
+    public function usuarios(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+
+        header('Cache-Control: no-store');
+
+        $buscar = trim((string) Request::get('buscar', ''));
+        $buscar = mb_substr($buscar, 0, 50);
+        $idUsuario = max(0, (int) Request::get('usuario', 0));
+
+        $datos = [
+            'buscar' => $buscar,
+            'hayFiltro' => $buscar !== '' || $idUsuario > 0,
+        ];
+
+        try {
+            $lista = array_map(
+                fn (array $j) => [
+                    'id' => (int) $j['id'],
+                    'nombre_usuario' => $j['nombre_usuario'],
+                    'seleccionado' => (int) $j['id'] === $idUsuario,
+                ],
+                $this->model->obtenerListaJugadores()
+            );
+            $jugadores = $this->model->obtenerDesempenoJugadores($buscar, $idUsuario);
+
+            $datos['listaJugadores'] = $lista;
+            $datos['jugadores'] = $jugadores;
+            $datos['cantidadJugadores'] = count($jugadores);
+            $datos['sinResultados'] = $jugadores === [];
+            $datos['usuariosCargados'] = true;
+        } catch (PDOException $error) {
+            error_log('Error al cargar desempeño de jugadores: ' . $error->getMessage());
+            $datos['errorUsuarios'] = 'No se pudo cargar el desempeño de los jugadores. Intentá nuevamente.';
+        }
+
+        $this->render->renderiza('adminUsuarios', $datos);
+    }
+
     private function cargarEstadisticas(int $periodo): array
     {
         $jugadores = $this->model->obtenerCantidadJugadores();
