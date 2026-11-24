@@ -51,52 +51,17 @@
 .logo {
     display: flex;
     align-items: center;
-
     flex-shrink: 0;
-
-    gap: 12px;
-
-    color: #1d1050;
-
+    width: 256px;
+    max-width: 100%;
+    min-height: 44px;
     text-decoration: none;
 }
 
-.logo-icono {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    flex-shrink: 0;
-
-    width: 46px;
-    height: 46px;
-
-    border-radius: 50%;
-
-    background: linear-gradient(
-            180deg,
-            #7a4af0,
-            #4d25c6
-    );
-
-    color: #ffffff;
-
-    font-size: 28px;
-    font-weight: 900;
-
-    box-shadow:
-            0 3px 8px rgba(91, 47, 217, 0.22);
-}
-
-.logo-texto {
-    color: inherit;
-
-    font-size: 27px;
-    font-weight: 900;
-
-    letter-spacing: -0.03em;
-
-    white-space: nowrap;
+.logo-imagen {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 
@@ -470,18 +435,9 @@
     }
 
     .logo {
-        gap: 9px;
-    }
-
-    .logo-icono {
-        width: 42px;
-        height: 42px;
-
-        font-size: 25px;
-    }
-
-    .logo-texto {
-        font-size: 23px;
+        flex-shrink: 1;
+        width: 220px;
+        min-width: 0;
     }
 
     .barra-nav {
@@ -539,28 +495,9 @@
     .logo {
         grid-area: logo;
 
+        width: 220px;
         min-width: 0;
-
-        gap: 9px;
-
         justify-self: start;
-    }
-
-    .logo-icono {
-        width: 38px;
-        height: 38px;
-
-        font-size: 23px;
-    }
-
-    .logo-texto {
-        overflow: hidden;
-
-        font-size: 22px;
-
-        text-overflow: ellipsis;
-
-        white-space: nowrap;
     }
 
 
@@ -712,17 +649,6 @@
     .barra-contenido {
         padding-left: 12px;
         padding-right: 12px;
-    }
-
-    .logo-icono {
-        width: 36px;
-        height: 36px;
-
-        font-size: 21px;
-    }
-
-    .logo-texto {
-        font-size: 20px;
     }
 
     .boton-tema {
