@@ -30,7 +30,7 @@ class PreguntaSugeridaModel
         return $consulta->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function categoriaExiste(int $categoriaId): bool
+    public function categoriaExiste(int $categoriaId, bool $bloquear = false): bool
     {
         $pdo = $this->database->getConexion();
 
@@ -39,6 +39,10 @@ class PreguntaSugeridaModel
                 WHERE id = :categoria_id
                   AND habilitada = 1
                 LIMIT 1";
+
+        if ($bloquear) {
+            $sql .= " LOCK IN SHARE MODE";
+        }
 
         $consulta = $pdo->prepare($sql);
         $consulta->execute([
@@ -78,7 +82,7 @@ class PreguntaSugeridaModel
                 throw new DomainException('La sugerencia no existe o ya fue revisada.');
             }
 
-            if (!$this->categoriaExiste((int) $sugerencia['categoria_id'])) {
+            if (!$this->categoriaExiste((int) $sugerencia['categoria_id'], true)) {
                 throw new DomainException('La categoría de esta pregunta ya no está habilitada.');
             }
 

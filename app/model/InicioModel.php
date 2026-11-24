@@ -31,7 +31,7 @@ class InicioModel
     public function obtenerCategoriasHabilitadas(): array
     {
         $consulta = $this->database->getConexion()->prepare(
-            'SELECT c.nombre
+            'SELECT c.nombre, c.color
              FROM categorias c
              WHERE c.habilitada = 1
                AND EXISTS (

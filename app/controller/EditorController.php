@@ -7,6 +7,7 @@ use app\model\EditorModel;
 use app\model\CategoriaSugeridaModel;
 use app\model\CategoriaModel;
 use DomainException;
+use OutOfBoundsException;
 use PDOException;
 use Request;
 
@@ -43,6 +44,245 @@ class EditorController
         header('Cache-Control: no-store');
 
         $this->render->renderiza('editor');
+    }
+
+    public function mostrarGestionCategorias(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+
+        header('Cache-Control: no-store');
+        $_SESSION['editor_categoria_baja_csrf'] ??= bin2hex(random_bytes(32));
+        $datos = $_SESSION['editor_categorias_aviso_gestion'] ?? [];
+        unset($_SESSION['editor_categorias_aviso_gestion']);
+        $datos['tokenBaja'] = $_SESSION['editor_categoria_baja_csrf'];
+
+        try {
+            $categorias = $this->categoriaModel->obtenerCategoriasParaGestion();
+            foreach ($categorias as &$categoria) {
+                $categoria['color'] = $this->colorCategoriaParaVista($categoria['color']);
+                $categoria['habilitada'] = (bool) $categoria['habilitada'];
+            }
+            unset($categoria);
+
+            $datos['categorias'] = $categorias;
+            $datos['hayCategorias'] = $categorias !== [];
+            $datos['sinCategorias'] = $categorias === [];
+        } catch (PDOException $error) {
+            error_log('Error al listar categorías: ' . $error->getMessage());
+            http_response_code(500);
+            $datos['mensajeError'] = 'No se pudieron cargar las categorías. Intentá nuevamente.';
+        }
+
+        $this->render->renderiza('editorGestionCategorias', $datos);
+    }
+
+    public function darDeBajaCategoria(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            return;
+        }
+
+        $token = Request::post('csrf_token');
+        $esperado = $_SESSION['editor_categoria_baja_csrf'] ?? null;
+        if (!is_string($token) || !is_string($esperado) || !hash_equals($esperado, $token)) {
+            http_response_code(403);
+            echo 'Volvé al listado de categorías para confirmar la baja.';
+            return;
+        }
+
+        $id = $this->validarIdCategoria(Request::post('categoria_id'));
+        try {
+            if ($id === null) {
+                throw new DomainException('Seleccioná una categoría válida.');
+            }
+            $this->categoriaModel->darDeBajaCategoria($id);
+            $aviso = ['mensajeExito' => 'La categoría se dio de baja correctamente.'];
+        } catch (DomainException $error) {
+            $aviso = ['mensajeError' => $error->getMessage()];
+        } catch (PDOException $error) {
+            error_log('Error al dar de baja la categoría: ' . $error->getMessage());
+            $aviso = ['mensajeError' => 'No se pudo dar de baja la categoría. Intentá nuevamente.'];
+        }
+
+        $_SESSION['editor_categorias_aviso_gestion'] = $aviso;
+        header('Location: /editor/mostrarGestionCategorias', true, 303);
+    }
+
+    public function nuevaCategoria(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+
+        $this->mostrarAltaCategoria();
+    }
+
+    public function guardarCategoria(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            return;
+        }
+
+        $nombre = Request::post('nombre');
+        $color = Request::post('color');
+        $nombre = is_string($nombre) ? $nombre : '';
+        $color = is_string($color) ? $color : '';
+
+        $token = Request::post('csrf_token');
+        $esperado = $_SESSION['editor_categoria_alta_csrf'] ?? null;
+        if (!is_string($token) || !is_string($esperado) || !hash_equals($esperado, $token)) {
+            http_response_code(403);
+            $this->mostrarAltaCategoria($nombre, $color, 'La sesión del formulario cambió. Revisá los datos y volvé a enviarlo.');
+            return;
+        }
+
+        try {
+            $this->categoriaModel->crearCategoria($nombre, $color);
+        } catch (DomainException $error) {
+            http_response_code(422);
+            $this->mostrarAltaCategoria($nombre, $color, $error->getMessage());
+            return;
+        } catch (PDOException $error) {
+            error_log('Error al crear categoría: ' . $error->getMessage());
+            http_response_code(500);
+            $this->mostrarAltaCategoria($nombre, $color, 'No se pudo guardar la categoría. Intentá nuevamente.');
+            return;
+        }
+
+        $_SESSION['editor_categorias_aviso_gestion']['mensajeExito'] = 'Categoría creada y habilitada. Ya podés agregarle preguntas.';
+        header('Location: /editor/mostrarGestionCategorias', true, 303);
+    }
+
+    private function mostrarAltaCategoria(string $nombre = '', string $color = '', string $error = ''): void
+    {
+        header('Cache-Control: no-store');
+        $_SESSION['editor_categoria_alta_csrf'] ??= bin2hex(random_bytes(32));
+        $this->render->renderiza('editorNuevaCategoria', [
+            'nombre' => $nombre,
+            'color' => $this->colorCategoriaParaVista($color),
+            'mensajeError' => $error,
+            'tokenCSRF' => $_SESSION['editor_categoria_alta_csrf']
+        ]);
+    }
+
+    private function colorCategoriaParaVista(?string $color): string
+    {
+        $color = strtoupper(trim($color ?? ''));
+        return preg_match('/\A#[0-9A-F]{6}\z/', $color) === 1 ? $color : '#7C4EE6';
+    }
+
+    public function mostrarFormularioEditarCategoria(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+
+        $id = $this->validarIdCategoria(Request::get('id'));
+        if ($id === null) {
+            $this->mostrarErrorEdicionCategoria(400, 'Seleccioná una categoría válida.');
+            return;
+        }
+
+        try {
+            $categoria = $this->categoriaModel->obtenerCategoriaParaEditar($id);
+        } catch (OutOfBoundsException $error) {
+            $this->mostrarErrorEdicionCategoria(404, $error->getMessage());
+            return;
+        } catch (PDOException $error) {
+            error_log('Error al consultar la categoría: ' . $error->getMessage());
+            $this->mostrarErrorEdicionCategoria(500, 'No se pudo cargar la categoría. Intentá nuevamente.');
+            return;
+        }
+
+        $exito = isset($_SESSION['editor_categorias_guardadas'][$id]);
+        unset($_SESSION['editor_categorias_guardadas'][$id]);
+        $this->mostrarEdicionCategoria($categoria, '', $exito);
+    }
+
+    public function guardarCambiosCategoria(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            return;
+        }
+
+        $token = Request::post('csrf_token');
+        $esperado = $_SESSION['editor_categoria_editar_csrf'] ?? null;
+        if (!is_string($token) || !is_string($esperado) || !hash_equals($esperado, $token)) {
+            $this->mostrarErrorEdicionCategoria(403, 'Volvé a abrir la categoría desde el listado para editarla.');
+            return;
+        }
+
+        $id = $this->validarIdCategoria(Request::post('categoria_id'));
+        if ($id === null) {
+            $this->mostrarErrorEdicionCategoria(400, 'Seleccioná una categoría válida.');
+            return;
+        }
+
+        $nombre = Request::post('nombre');
+        $color = Request::post('color');
+        $categoria = [
+            'id' => $id,
+            'nombre' => is_string($nombre) ? $nombre : '',
+            'color' => is_string($color) ? $color : ''
+        ];
+        try {
+            $this->categoriaModel->actualizarCategoria($id, $categoria['nombre'], $categoria['color']);
+        } catch (OutOfBoundsException $error) {
+            $this->mostrarErrorEdicionCategoria(404, $error->getMessage());
+            return;
+        } catch (DomainException $error) {
+            http_response_code(422);
+            $this->mostrarEdicionCategoria($categoria, $error->getMessage());
+            return;
+        } catch (PDOException $error) {
+            error_log('Error al editar la categoría: ' . $error->getMessage());
+            http_response_code(500);
+            $this->mostrarEdicionCategoria($categoria, 'No se pudieron guardar los cambios. Intentá nuevamente.');
+            return;
+        }
+
+        $_SESSION['editor_categorias_guardadas'][$id] = true;
+        header('Location: /editor/mostrarFormularioEditarCategoria?id=' . $id, true, 303);
+    }
+
+    private function validarIdCategoria($valor): ?int
+    {
+        $id = filter_var($valor, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        return $id === false ? null : $id;
+    }
+
+    private function mostrarErrorEdicionCategoria(int $estado, string $mensaje): void
+    {
+        http_response_code($estado);
+        header('Cache-Control: no-store');
+        $this->render->renderiza('editorEditarCategoria', ['mensajeError' => $mensaje]);
+    }
+
+    private function mostrarEdicionCategoria(array $categoria, string $error = '', bool $exito = false): void
+    {
+        header('Cache-Control: no-store');
+        $_SESSION['editor_categoria_editar_csrf'] ??= bin2hex(random_bytes(32));
+        $categoria['color'] = $this->colorCategoriaParaVista($categoria['color']);
+        $this->render->renderiza('editorEditarCategoria', [
+            'categoria' => $categoria,
+            'tokenCSRF' => $_SESSION['editor_categoria_editar_csrf'],
+            'mensajeError' => $error,
+            'exito' => $exito
+        ]);
     }
 
     public function mostrarGestionPreguntas(): void

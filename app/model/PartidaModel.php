@@ -132,12 +132,17 @@ class PartidaModel
         $dificultad = $this->dificultadParaNivel($this->obtenerNivelInicial($partidaId));
 
         // Backend: Seleccionar una pregunta habilitada
-        // que no haya sido respondida ni entregada aún en esta partida
+        // que no haya sido respondida ni entregada aún en esta partida.
+        // La lectura compartida del estado coordina la asignación con una baja simultánea.
         $sql = "SELECT p.id, p.pregunta, c.nombre AS categoria, c.color AS color
         FROM preguntas p
         INNER JOIN categorias c ON p.categoria_id = c.id
         WHERE p.habilitada = 1
-          AND c.habilitada = 1
+          AND 1 = (
+              SELECT estado.habilitada FROM categorias estado
+              WHERE estado.id = p.categoria_id
+              LOCK IN SHARE MODE
+          )
           AND p.id NOT IN (
               SELECT pregunta_id FROM partida_preguntas WHERE partida_id = :partida_id
           )
@@ -607,6 +612,9 @@ class PartidaModel
             return $operacion($pdo);
         }
 
+        // La preparación puede ejecutar DDL, que cierra la transacción en MySQL.
+        // Debe completarse antes de comenzar las operaciones de la partida.
+        $this->garantizarEstructuraReconexion($pdo);
         $pdo->beginTransaction();
         try {
             $resultado = $operacion($pdo);
