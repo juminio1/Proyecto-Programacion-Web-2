@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/css/inicio.css?v=20261121-2">
+<link rel="stylesheet" href="/css/inicio.css?v=editar-categoria-1">
 <main>
     {{#hayErroresPartida}}
         <div class="w3-panel w3-pale-red w3-leftbar w3-border-red"
@@ -71,7 +71,7 @@
         <section class="banner-jugar">
             <div class="banner-texto">
                 <h2>¿Cuánto sabés?</h2>
-                <p>Respondé, sumá puntos y subí en el ranking.</p>
+                <p>Responde, suma puntos y subí en el ranking.</p>
 
                 <form method="post" action="/partida/crear">
                     <button type="submit" class="boton-jugar">
@@ -190,7 +190,7 @@
 
         <ul class="categorias-lista">
             {{#categorias}}
-                <li class="categoria {{clase}}">
+                <li class="categoria {{clase}}{{#color}} categoria-con-color{{/color}}"{{#color}} style="--c: {{color}};"{{/color}}>
                 <span class="categoria-icono" aria-hidden="true">
                     {{#esHistoria}}
                         <svg viewBox="0 0 24 24" fill="currentColor">
@@ -265,7 +265,7 @@
 
             {{^tienePartidas}}
                 <p class="mensaje-vacio">
-                    Todavía no jugaste ninguna partida. ¡Animate a jugar tu primera!
+                    Todavía no jugaste ninguna partida. ¡Animáte a jugar tu primera!
                 </p>
             {{/tienePartidas}}
         </section>
@@ -290,7 +290,7 @@
                 </svg>
 
                 <div class="sugerir-contenido">
-                    <h2 id="sugerir-titulo">¿Tenés una idea para el juego?</h2>
+                    <h2 id="sugerir-titulo">¿Tenes una idea para el juego?</h2>
                     <p>Ayuda a que el juego siga creciendo.</p>
                 </div>
             </div>

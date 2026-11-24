@@ -1,0 +1,25 @@
+<div class="editor-categoria-campo">
+    <label for="categoria-nombre">Nombre de la categoría</label>
+    <input id="categoria-nombre" name="nombre" type="text" style="box-sizing: border-box;" value="{{nombre}}"
+           maxlength="50" required placeholder="Por ejemplo: Tecnología"
+           aria-describedby="categoria-nombre-ayuda">
+    <small id="categoria-nombre-ayuda">Obligatorio. Hasta 50 caracteres. Elegí un nombre único.</small>
+</div>
+
+<div class="editor-categoria-campo">
+    <label for="categoria-color">Color de la categoría</label>
+    <div class="editor-categoria-selector">
+        <input id="categoria-color" name="color" type="color" value="{{color}}" required
+               aria-describedby="categoria-color-ayuda">
+        <output id="categoria-color-valor" for="categoria-color">{{color}}</output>
+    </div>
+    <small id="categoria-color-ayuda">Obligatorio. Seleccioná el color con el que se identificarán sus preguntas durante la partida.</small>
+</div>
+
+<div class="editor-categoria-vista-previa">
+    <span>Vista previa</span>
+    <span id="categoria-vista-previa" class="editor-categoria-etiqueta" style="--categoria-color: {{color}};">
+        <span class="editor-categoria-punto" aria-hidden="true"></span>
+        <span id="categoria-vista-previa-nombre">{{#nombre}}{{nombre}}{{/nombre}}{{^nombre}}Nombre de la categoría{{/nombre}}</span>
+    </span>
+</div>

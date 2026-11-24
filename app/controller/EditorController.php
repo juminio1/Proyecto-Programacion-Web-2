@@ -7,6 +7,7 @@ use app\model\EditorModel;
 use app\model\CategoriaSugeridaModel;
 use app\model\CategoriaModel;
 use DomainException;
+use OutOfBoundsException;
 use PDOException;
 use Request;
 
@@ -142,6 +143,111 @@ class EditorController
     {
         $color = strtoupper(trim($color ?? ''));
         return preg_match('/\A#[0-9A-F]{6}\z/', $color) === 1 ? $color : '#7C4EE6';
+    }
+
+    public function mostrarFormularioEditarCategoria(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+
+        $id = $this->validarIdCategoria(Request::get('id'));
+        if ($id === null) {
+            $this->mostrarErrorEdicionCategoria(400, 'Seleccioná una categoría válida.');
+            return;
+        }
+
+        try {
+            $categoria = $this->categoriaModel->obtenerCategoriaPorId($id);
+        } catch (PDOException $error) {
+            error_log('Error al consultar la categoría: ' . $error->getMessage());
+            $this->mostrarErrorEdicionCategoria(500, 'No se pudo cargar la categoría. Intentá nuevamente.');
+            return;
+        }
+        if ($categoria === null) {
+            $this->mostrarErrorEdicionCategoria(404, 'La categoría seleccionada ya no existe.');
+            return;
+        }
+
+        $exito = isset($_SESSION['editor_categorias_guardadas'][$id]);
+        unset($_SESSION['editor_categorias_guardadas'][$id]);
+        $this->mostrarEdicionCategoria($categoria, '', $exito);
+    }
+
+    public function guardarCambiosCategoria(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            return;
+        }
+
+        $token = Request::post('csrf_token');
+        $esperado = $_SESSION['editor_categoria_editar_csrf'] ?? null;
+        if (!is_string($token) || !is_string($esperado) || !hash_equals($esperado, $token)) {
+            $this->mostrarErrorEdicionCategoria(403, 'Volvé a abrir la categoría desde el listado para editarla.');
+            return;
+        }
+
+        $id = $this->validarIdCategoria(Request::post('categoria_id'));
+        if ($id === null) {
+            $this->mostrarErrorEdicionCategoria(400, 'Seleccioná una categoría válida.');
+            return;
+        }
+
+        $nombre = Request::post('nombre');
+        $color = Request::post('color');
+        $categoria = [
+            'id' => $id,
+            'nombre' => is_string($nombre) ? $nombre : '',
+            'color' => is_string($color) ? $color : ''
+        ];
+        try {
+            $this->categoriaModel->actualizarCategoria($id, $categoria['nombre'], $categoria['color']);
+        } catch (OutOfBoundsException $error) {
+            $this->mostrarErrorEdicionCategoria(404, $error->getMessage());
+            return;
+        } catch (DomainException $error) {
+            http_response_code(422);
+            $this->mostrarEdicionCategoria($categoria, $error->getMessage());
+            return;
+        } catch (PDOException $error) {
+            error_log('Error al editar la categoría: ' . $error->getMessage());
+            http_response_code(500);
+            $this->mostrarEdicionCategoria($categoria, 'No se pudieron guardar los cambios. Intentá nuevamente.');
+            return;
+        }
+
+        $_SESSION['editor_categorias_guardadas'][$id] = true;
+        header('Location: /editor/mostrarFormularioEditarCategoria?id=' . $id, true, 303);
+    }
+
+    private function validarIdCategoria($valor): ?int
+    {
+        $id = filter_var($valor, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        return $id === false ? null : $id;
+    }
+
+    private function mostrarErrorEdicionCategoria(int $estado, string $mensaje): void
+    {
+        http_response_code($estado);
+        header('Cache-Control: no-store');
+        $this->render->renderiza('editorEditarCategoria', ['mensajeError' => $mensaje]);
+    }
+
+    private function mostrarEdicionCategoria(array $categoria, string $error = '', bool $exito = false): void
+    {
+        header('Cache-Control: no-store');
+        $_SESSION['editor_categoria_editar_csrf'] ??= bin2hex(random_bytes(32));
+        $categoria['color'] = $this->colorCategoriaParaVista($categoria['color']);
+        $this->render->renderiza('editorEditarCategoria', [
+            'categoria' => $categoria,
+            'tokenCSRF' => $_SESSION['editor_categoria_editar_csrf'],
+            'mensajeError' => $error,
+            'exito' => $exito
+        ]);
     }
 
     public function mostrarGestionPreguntas(): void

@@ -1,0 +1,29 @@
+<link rel="stylesheet" href="/css/preguntaSugerida.css?v=2">
+<link rel="stylesheet" href="/css/editor.css?v=13">
+
+<main class="pregunta-sugerida-pagina">
+    <div style="max-width: 850px; margin: 0 auto 16px;">
+        <a href="/editor/mostrarGestionCategorias" class="editor-volver">← Volver a gestión de categorías</a>
+    </div>
+    <section class="pregunta-sugerida-contenedor" aria-labelledby="editar-categoria-titulo">
+        <div class="pregunta-sugerida-encabezado">
+            <h1 id="editar-categoria-titulo">Editar categoría</h1>
+        </div>
+        {{#mensajeError}}
+            <div class="pregunta-sugerida-errores" role="alert">{{mensajeError}}</div>
+        {{/mensajeError}}
+        {{#exito}}
+            <div class="pregunta-sugerida-exito" role="status">Los cambios de la categoría se guardaron correctamente.</div>
+        {{/exito}}
+        {{#categoria}}
+            <form id="editor-categoria-formulario" class="pregunta-sugerida-formulario" method="post"
+                  action="/editor/guardarCambiosCategoria">
+                <input type="hidden" name="csrf_token" value="{{tokenCSRF}}">
+                <input type="hidden" name="categoria_id" value="{{id}}">
+                {{> editorCamposCategoria}}
+                <button type="submit" class="boton-enviar">Guardar cambios</button>
+            </form>
+        {{/categoria}}
+    </section>
+</main>
+<script src="/js/editor-categoria.js?v=20261123" defer></script>

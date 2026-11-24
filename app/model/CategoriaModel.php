@@ -3,6 +3,7 @@
 namespace app\model;
 
 use DomainException;
+use OutOfBoundsException;
 use PDO;
 use PDOException;
 use Throwable;
@@ -16,7 +17,26 @@ class CategoriaModel
         $this->database = $database;
     }
 
+    public function obtenerCategoriaPorId(int $id): ?array
+    {
+        $consulta = $this->database->getConexion()->prepare(
+            'SELECT id, nombre, color FROM categorias WHERE id = :id'
+        );
+        $consulta->execute(['id' => $id]);
+        return $consulta->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
     public function crearCategoria(string $nombre, string $color): int
+    {
+        return $this->guardarDatosCategoria(null, $nombre, $color);
+    }
+
+    public function actualizarCategoria(int $id, string $nombre, string $color): void
+    {
+        $this->guardarDatosCategoria($id, $nombre, $color);
+    }
+
+    private function guardarDatosCategoria(?int $id, string $nombre, string $color): int
     {
         $nombre = preg_replace('/[\s\p{Z}\x{200B}\x{FEFF}]+/u', ' ', $nombre);
         if (!is_string($nombre)) {
@@ -43,22 +63,34 @@ class CategoriaModel
         try {
             // Usa el mismo bloqueo que la aprobación de sugerencias de categorías.
             $pdo->query('SELECT id FROM categorias ORDER BY id FOR UPDATE')->fetchAll(PDO::FETCH_COLUMN);
+            if ($id !== null && $this->obtenerCategoriaPorId($id) === null) {
+                throw new OutOfBoundsException('La categoría seleccionada ya no existe.');
+            }
+
             $consulta = $pdo->prepare(
                 'SELECT EXISTS(
                     SELECT 1 FROM categorias
-                    WHERE CONVERT(TRIM(nombre) USING utf8mb4) COLLATE utf8mb4_unicode_ci = :nombre
+                    WHERE id <> :id_excluido
+                      AND CONVERT(TRIM(nombre) USING utf8mb4) COLLATE utf8mb4_unicode_ci = :nombre
                 )'
             );
-            $consulta->execute(['nombre' => $nombre]);
+            $consulta->execute(['nombre' => $nombre, 'id_excluido' => $id ?? 0]);
             if ((bool) $consulta->fetchColumn()) {
                 throw new DomainException('Ya existe una categoría con ese nombre, aunque esté deshabilitada.');
             }
 
-            $consulta = $pdo->prepare(
-                'INSERT INTO categorias (nombre, color, habilitada) VALUES (:nombre, :color, 1)'
-            );
-            $consulta->execute(['nombre' => $nombre, 'color' => $color]);
-            $id = (int) $pdo->lastInsertId();
+            if ($id === null) {
+                $consulta = $pdo->prepare(
+                    'INSERT INTO categorias (nombre, color, habilitada) VALUES (:nombre, :color, 1)'
+                );
+                $consulta->execute(['nombre' => $nombre, 'color' => $color]);
+                $id = (int) $pdo->lastInsertId();
+            } else {
+                $consulta = $pdo->prepare(
+                    'UPDATE categorias SET nombre = :nombre, color = :color WHERE id = :id'
+                );
+                $consulta->execute(['nombre' => $nombre, 'color' => $color, 'id' => $id]);
+            }
             $pdo->commit();
             return $id;
         } catch (Throwable $error) {

@@ -61,6 +61,8 @@ class InicioController
         ];
         foreach ($categorias as &$categoria) {
             $nombre = $categoria['nombre'];
+            $color = trim($categoria['color'] ?? '');
+            $categoria['color'] = preg_match('/\A#[0-9A-Fa-f]{6}\z/', $color) === 1 ? $color : null;
             $categoria['clase'] = $clases[$nombre] ?? 'categoria-nueva';
             $categoria['esHistoria'] = $nombre === 'Historia';
             $categoria['esDeportes'] = $nombre === 'Deportes';
