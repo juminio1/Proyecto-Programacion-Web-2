@@ -463,6 +463,11 @@ nav a[aria-current="page"] {
     user-select: none;
 }
 
+.categoria-con-color {
+    background-color: color-mix(in srgb, var(--c) 16%, var(--bg-superficie, #fff));
+    color: color-mix(in srgb, var(--c) 18%, var(--texto-principal, #25154d));
+}
+
 .categoria-icono {
     flex: none;
     display: flex;

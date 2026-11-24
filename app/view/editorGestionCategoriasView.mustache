@@ -1,0 +1,68 @@
+<link rel="stylesheet" href="/css/editor.css?v=13">
+
+<main class="editor" aria-labelledby="categorias-titulo">
+    <a class="editor-volver" href="/editor/show">← Volver al panel del editor</a>
+
+    <section class="editor-panel">
+        <div class="editor-preguntas-cabecera">
+            <div class="editor-preguntas-cabecera-texto">
+                <p class="editor-etiqueta">GESTIÓN DEL EDITOR</p>
+                <h1 id="categorias-titulo">Categorías</h1>
+            </div>
+            <div class="editor-preguntas-acciones">
+                <a href="/editor/nuevaCategoria" class="editor-boton editor-boton-nueva-pregunta">
+                    <span aria-hidden="true">+</span> Nueva categoría
+                </a>
+            </div>
+        </div>
+        {{#mensajeExito}}
+            <p class="editor-aviso editor-aviso-exito" role="status">{{mensajeExito}}</p>
+        {{/mensajeExito}}
+        {{#mensajeError}}
+            <p class="editor-aviso editor-aviso-error" role="alert">{{mensajeError}}</p>
+        {{/mensajeError}}
+        {{#hayCategorias}}
+            <div id="herramientas-categorias" hidden>
+                <div class="editor-preguntas-herramientas">
+                    <div class="editor-preguntas-buscador">
+                        <label for="buscar-categoria">Buscar categoría</label>
+                        <input id="buscar-categoria" type="search" placeholder="Nombre de la categoría" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+            <div id="tabla-categorias" class="editor-categorias-tabla-contenedor"
+                 role="region" aria-label="Categorías registradas" tabindex="0">
+                <table class="editor-categorias-tabla">
+                    <caption class="editor-texto-accesible">Categorías registradas</caption>
+                    <thead>
+                    <tr>
+                        <th scope="col">Categoría</th>
+                        <th scope="col">Color</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col">Preguntas habilitadas</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#categorias}}
+                        <tr>
+                            <th scope="row">{{nombre}}</th>
+                            <td>
+                                    <span class="editor-categoria-muestra" style="--categoria-color: {{color}};">
+                                        <span class="editor-categoria-punto" aria-hidden="true"></span>{{color}}
+                                    </span>
+                            </td>
+                            <td>{{#habilitada}}Habilitada{{/habilitada}}{{^habilitada}}Deshabilitada{{/habilitada}}</td>
+                            <td class="editor-categoria-cantidad">{{cantidad_preguntas}}</td>
+                        </tr>
+                    {{/categorias}}
+                    </tbody>
+                </table>
+            </div>
+            <p id="categorias-sin-coincidencias" role="status" hidden>No se encontraron categorías con ese nombre.</p>
+        {{/hayCategorias}}
+        {{#sinCategorias}}
+            <p>Todavía no hay categorías registradas.</p>
+        {{/sinCategorias}}
+    </section>
+</main>
+<script src="/js/editorGestionCategorias.js" defer></script>

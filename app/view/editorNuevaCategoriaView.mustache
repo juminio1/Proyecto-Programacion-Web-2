@@ -1,0 +1,53 @@
+<link rel="stylesheet" href="/css/editor.css?v=13">
+
+<main class="editor editor-alta-categoria">
+    <a class="editor-volver" href="/editor/mostrarGestionCategorias">← Volver a gestión de categorías</a>
+    <section class="editor-panel" aria-labelledby="alta-categoria-titulo">
+        <p class="editor-etiqueta">GESTIÓN DE CATEGORÍAS</p>
+        <h1 id="alta-categoria-titulo">Nueva categoría</h1>
+        <p>Elegí un nombre y un color para organizar las preguntas del juego.</p>
+
+        {{#mensajeError}}
+            <p id="alta-categoria-error" class="editor-aviso editor-aviso-error" role="alert">{{mensajeError}}</p>
+        {{/mensajeError}}
+
+        <form id="editor-categoria-formulario" class="editor-categoria-formulario" method="post" action="/editor/guardarCategoria"
+              {{#mensajeError}}aria-describedby="alta-categoria-error"{{/mensajeError}}>
+            <input type="hidden" name="csrf_token" value="{{tokenCSRF}}">
+
+            <div class="editor-categoria-campo">
+                <label for="categoria-nombre">Nombre de la categoría</label>
+                <input id="categoria-nombre" name="nombre" type="text" value="{{nombre}}"
+                       maxlength="50" required placeholder="Por ejemplo: Tecnología"
+                       aria-describedby="categoria-nombre-ayuda">
+                <small id="categoria-nombre-ayuda">Obligatorio. Hasta 50 caracteres. El nombre no puede estar registrado.</small>
+            </div>
+
+            <div class="editor-categoria-campo">
+                <label for="categoria-color">Color de la categoría</label>
+                <div class="editor-categoria-selector">
+                    <input id="categoria-color" name="color" type="color" value="{{color}}" required
+                           aria-describedby="categoria-color-ayuda">
+                    <output id="categoria-color-valor" for="categoria-color">{{color}}</output>
+                </div>
+                <small id="categoria-color-ayuda">Obligatorio. Seleccioná el color con el que se identificarán sus preguntas durante la partida.</small>
+            </div>
+
+            <div class="editor-categoria-vista-previa">
+                <span>Vista previa</span>
+                <span id="categoria-vista-previa" class="editor-categoria-etiqueta" style="--categoria-color: {{color}};">
+                    <span class="editor-categoria-punto" aria-hidden="true"></span>
+                    <span id="categoria-vista-previa-nombre">{{#nombre}}{{nombre}}{{/nombre}}{{^nombre}}Nombre de la categoría{{/nombre}}</span>
+                </span>
+            </div>
+
+            <p class="editor-categoria-aclaracion">La categoría quedará habilitada para agregar preguntas. Aparecerá en el inicio y las partidas cuando tenga preguntas habilitadas.</p>
+
+            <div class="editor-sugerencia-acciones">
+                <button class="editor-boton" type="submit">Crear categoría</button>
+                <a class="editor-boton editor-boton-rechazar" href="/editor/mostrarGestionCategorias">Cancelar</a>
+            </div>
+        </form>
+    </section>
+</main>
+<script src="/js/editor-categoria.js?v=20261123" defer></script>

@@ -1,53 +1,40 @@
-<link rel="stylesheet" href="/css/editor.css?v=alta-categorias-20261123">
+<link rel="stylesheet" href="/css/editor.css?v=13">
 
-<main class="editor editor-alta-categoria">
-    <section class="editor-panel" aria-labelledby="alta-categoria-titulo">
+<main class="editor" aria-labelledby="editor-categorias-titulo">
+    <header class="editor-panel">
         <a class="editor-volver" href="/editor/show">Volver al panel del editor</a>
-        <p class="editor-etiqueta">GESTIÓN DE CATEGORÍAS</p>
-        <h1 id="alta-categoria-titulo">Dar de alta categoría</h1>
-        <p>Elegí un nombre y un color para organizar las preguntas del juego.</p>
+        <p class="editor-etiqueta">REVISIÓN DEL EDITOR</p>
+        <h1 id="editor-categorias-titulo">Categorías sugeridas</h1>
+        <p>Al aprobar una categoría, estará disponible para agregar preguntas. Aparecerá en las partidas cuando tenga preguntas habilitadas.</p>
+    </header>
 
-        {{#mensajeError}}
-            <p id="alta-categoria-error" class="editor-aviso editor-aviso-error" role="alert">{{mensajeError}}</p>
-        {{/mensajeError}}
+    {{#mensajeExito}}
+        <p class="editor-aviso editor-aviso-exito" role="status">{{mensajeExito}}</p>
+    {{/mensajeExito}}
+    {{#mensajeError}}
+        <p class="editor-aviso editor-aviso-error" role="alert">{{mensajeError}}</p>
+    {{/mensajeError}}
 
-        <form id="editor-categoria-formulario" class="editor-categoria-formulario" method="post" action="/editor/guardarCategoria"
-              {{#mensajeError}}aria-describedby="alta-categoria-error"{{/mensajeError}}>
-            <input type="hidden" name="csrf_token" value="{{tokenCSRF}}">
+    <section class="editor-pendientes" aria-labelledby="categorias-pendientes-titulo">
+        <h2 id="categorias-pendientes-titulo">Pendientes de revisión</h2>
+        {{#sinPendientes}}
+            <p class="editor-sin-pendientes">No hay categorías sugeridas pendientes.</p>
+        {{/sinPendientes}}
 
-            <div class="editor-categoria-campo">
-                <label for="categoria-nombre">Nombre de la categoría</label>
-                <input id="categoria-nombre" name="nombre" type="text" value="{{nombre}}"
-                       maxlength="50" required placeholder="Por ejemplo: Tecnología"
-                       aria-describedby="categoria-nombre-ayuda">
-                <small id="categoria-nombre-ayuda">Obligatorio. Hasta 50 caracteres. El nombre no puede estar registrado.</small>
-            </div>
-
-            <div class="editor-categoria-campo">
-                <label for="categoria-color">Color de la categoría</label>
-                <div class="editor-categoria-selector">
-                    <input id="categoria-color" name="color" type="color" value="{{color}}" required
-                           aria-describedby="categoria-color-ayuda">
-                    <output id="categoria-color-valor" for="categoria-color">{{color}}</output>
-                </div>
-                <small id="categoria-color-ayuda">Obligatorio. Seleccioná el color con el que se identificarán sus preguntas durante la partida.</small>
-            </div>
-
-            <div class="editor-categoria-vista-previa">
-                <span>Vista previa</span>
-                <span id="categoria-vista-previa" class="editor-categoria-etiqueta" style="--categoria-color: {{color}};">
-                    <span class="editor-categoria-punto" aria-hidden="true"></span>
-                    <span id="categoria-vista-previa-nombre">{{#nombre}}{{nombre}}{{/nombre}}{{^nombre}}Nombre de la categoría{{/nombre}}</span>
-                </span>
-            </div>
-
-            <p class="editor-categoria-aclaracion">La categoría quedará habilitada para agregar preguntas. Aparecerá en el inicio y las partidas cuando tenga preguntas habilitadas.</p>
-
-            <div class="editor-sugerencia-acciones">
-                <button class="editor-boton" type="submit">Crear categoría</button>
-                <a class="editor-boton editor-boton-rechazar" href="/editor/show">Cancelar</a>
-            </div>
-        </form>
+        {{#pendientes}}
+            <article class="editor-panel">
+                <h2>{{nombre}}</h2>
+                <p>Enviada por {{autor}} · {{fecha}}</p>
+                <form action="/editor/aprobarCategoriaSugerida" method="post">
+                    <input type="hidden" name="id_sugerencia" value="{{id}}">
+                    <input type="hidden" name="csrf_token" value="{{tokenCSRF}}">
+                    <div class="editor-sugerencia-acciones">
+                        <button type="submit" class="editor-boton">Aprobar categoría</button>
+                        <button type="submit" class="editor-boton editor-boton-rechazar"
+                                formaction="/editor/rechazarCategoriaSugerida">Rechazar sugerencia</button>
+                    </div>
+                </form>
+            </article>
+        {{/pendientes}}
     </section>
 </main>
-<script src="/js/editor-categoria.js?v=20261123" defer></script>

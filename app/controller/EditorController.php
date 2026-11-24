@@ -45,6 +45,105 @@ class EditorController
         $this->render->renderiza('editor');
     }
 
+    public function mostrarGestionCategorias(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+
+        header('Cache-Control: no-store');
+        $datos = ['mensajeExito' => $_SESSION['editor_categoria_alta_exito'] ?? ''];
+        unset($_SESSION['editor_categoria_alta_exito']);
+
+        try {
+            $categorias = $this->categoriaModel->obtenerCategoriasParaGestion();
+            foreach ($categorias as &$categoria) {
+                $categoria['color'] = $this->colorCategoriaParaVista($categoria['color']);
+                $categoria['habilitada'] = (bool) $categoria['habilitada'];
+            }
+            unset($categoria);
+
+            $datos['categorias'] = $categorias;
+            $datos['hayCategorias'] = $categorias !== [];
+            $datos['sinCategorias'] = $categorias === [];
+        } catch (PDOException $error) {
+            error_log('Error al listar categorías: ' . $error->getMessage());
+            http_response_code(500);
+            $datos['mensajeError'] = 'No se pudieron cargar las categorías. Intentá nuevamente.';
+        }
+
+        $this->render->renderiza('editorGestionCategorias', $datos);
+    }
+
+    public function nuevaCategoria(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+
+        $this->mostrarAltaCategoria();
+    }
+
+    public function guardarCategoria(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            return;
+        }
+
+        $nombre = Request::post('nombre');
+        $color = Request::post('color');
+        $nombre = is_string($nombre) ? $nombre : '';
+        $color = is_string($color) ? $color : '';
+
+        $token = Request::post('csrf_token');
+        $esperado = $_SESSION['editor_categoria_alta_csrf'] ?? null;
+        if (!is_string($token) || !is_string($esperado) || !hash_equals($esperado, $token)) {
+            http_response_code(403);
+            $this->mostrarAltaCategoria($nombre, $color, 'La sesión del formulario cambió. Revisá los datos y volvé a enviarlo.');
+            return;
+        }
+
+        try {
+            $this->categoriaModel->crearCategoria($nombre, $color);
+        } catch (DomainException $error) {
+            http_response_code(422);
+            $this->mostrarAltaCategoria($nombre, $color, $error->getMessage());
+            return;
+        } catch (PDOException $error) {
+            error_log('Error al crear categoría: ' . $error->getMessage());
+            http_response_code(500);
+            $this->mostrarAltaCategoria($nombre, $color, 'No se pudo guardar la categoría. Intentá nuevamente.');
+            return;
+        }
+
+        $_SESSION['editor_categoria_alta_exito'] = 'Categoría creada y habilitada. Ya podés agregarle preguntas.';
+        header('Location: /editor/mostrarGestionCategorias', true, 303);
+    }
+
+    private function mostrarAltaCategoria(string $nombre = '', string $color = '', string $error = ''): void
+    {
+        header('Cache-Control: no-store');
+        $_SESSION['editor_categoria_alta_csrf'] ??= bin2hex(random_bytes(32));
+        $this->render->renderiza('editorNuevaCategoria', [
+            'nombre' => $nombre,
+            'color' => $this->colorCategoriaParaVista($color),
+            'mensajeError' => $error,
+            'tokenCSRF' => $_SESSION['editor_categoria_alta_csrf']
+        ]);
+    }
+
+    private function colorCategoriaParaVista(?string $color): string
+    {
+        $color = strtoupper(trim($color ?? ''));
+        return preg_match('/\A#[0-9A-F]{6}\z/', $color) === 1 ? $color : '#7C4EE6';
+    }
+
     public function mostrarGestionPreguntas(): void
     {
         if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {

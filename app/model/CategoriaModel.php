@@ -73,18 +73,15 @@ class CategoriaModel
         }
     }
 
-    public function obtenerCategoriasHabilitadasConPreguntas(): array
+    public function obtenerCategoriasParaGestion(): array
     {
-        // El LEFT JOIN conserva las categorías habilitadas que todavía están vacías.
-        $consulta = $this->database->getConexion()->prepare(
-            'SELECT c.id, c.nombre, c.color, COUNT(p.id) AS cantidad_preguntas
+        $consulta = $this->database->getConexion()->query(
+            'SELECT c.id, c.nombre, c.color, c.habilitada, COUNT(p.id) AS cantidad_preguntas
              FROM categorias c
              LEFT JOIN preguntas p ON p.categoria_id = c.id AND p.habilitada = 1
-             WHERE c.habilitada = 1
-             GROUP BY c.id, c.nombre, c.color
+             GROUP BY c.id, c.nombre, c.color, c.habilitada
              ORDER BY c.nombre ASC'
         );
-        $consulta->execute();
 
         return $consulta->fetchAll(PDO::FETCH_ASSOC);
     }
