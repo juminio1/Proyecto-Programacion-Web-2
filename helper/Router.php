@@ -100,7 +100,13 @@ class Router
                 'resolverreporte',
                 'mostrarcategoriassugeridaspendientes',
                 'aprobarcategoriasugerida',
-                'rechazarcategoriasugerida'
+                'rechazarcategoriasugerida',
+                'mostrargestionpreguntas',
+                'mostrarformularionuevapregunta',
+                'crearnuevapregunta',
+                'dardebajapregunta',
+                'mostrarformularioeditarpregunta',
+                'guardarcambiospregunta',
             ], true)) {
                 http_response_code(404);
                 exit;
