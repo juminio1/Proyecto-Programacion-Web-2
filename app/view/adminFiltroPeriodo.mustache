@@ -1,0 +1,57 @@
+{{#avisoFiltro}}
+    <p class="editor-aviso editor-aviso-error" role="alert">{{avisoFiltro}}</p>
+{{/avisoFiltro}}
+<form class="admin-filtro" data-filtro-periodo data-detalle="{{detalle}}" method="post" action="{{rutaFiltro}}">
+    <input type="hidden" name="csrf_token" value="{{tokenFiltro}}">
+    <div class="admin-filtro-campo">
+        <label for="filtro-periodo">Período</label>
+        <select id="filtro-periodo" name="periodo">
+            {{#periodos}}
+                <option value="{{valor}}"{{#activo}} selected{{/activo}}>{{nombre}}</option>
+            {{/periodos}}
+        </select>
+    </div>
+    <div class="admin-filtro-campo" id="filtro-campo-fecha">
+        <label for="filtro-fecha" id="filtro-fecha-etiqueta">Fecha de referencia</label>
+        <input id="filtro-fecha" type="date" name="fecha" value="{{fecha}}" min="1001-01-01" max="9998-12-31" required>
+    </div>
+    <div class="admin-filtro-campo" id="filtro-campo-anio" hidden>
+        <label for="filtro-anio">Año</label>
+        <input id="filtro-anio" type="number" min="1001" max="9998" step="1" disabled>
+    </div>
+    <div class="admin-filtro-campo" id="filtro-campo-mes" hidden>
+        <label for="filtro-mes">Mes</label>
+        <select id="filtro-mes" disabled></select>
+    </div>
+    <div class="admin-filtro-campo" id="filtro-campo-dia" hidden>
+        <label for="filtro-dia">Día</label>
+        <select id="filtro-dia" disabled></select>
+    </div>
+    <input id="filtro-detalle" type="hidden" name="detalle" disabled>
+    {{#vistaUsuarios}}
+        <div class="admin-filtro-campo">
+            <label for="filtro-buscar">Buscar por nombre de usuario</label>
+            <input id="filtro-buscar" type="search" name="buscar" value="{{buscar}}"
+                   maxlength="50" placeholder="Ej: dorian" autocomplete="off">
+        </div>
+        <div class="admin-filtro-campo">
+            <label for="filtro-usuario">O elegir de la lista</label>
+            <select id="filtro-usuario" name="usuario">
+                <option value="0">Todos los jugadores</option>
+                {{#listaJugadores}}
+                    <option value="{{id}}"{{#seleccionado}} selected{{/seleccionado}}>{{nombre_usuario}}</option>
+                {{/listaJugadores}}
+            </select>
+        </div>
+    {{/vistaUsuarios}}
+    <div class="admin-filtro-botones">
+        <button type="submit" class="editor-boton">Aplicar filtro</button>
+        {{#hayFiltro}}
+            <button type="submit" class="editor-boton editor-boton-rechazar" name="limpiar" value="1" formnovalidate>Limpiar jugador</button>
+        {{/hayFiltro}}
+    </div>
+</form>
+<p id="filtro-rango-semana" aria-live="polite" hidden></p>
+<p>Período aplicado <strong>{{rangoAplicado}}</strong></p>
+<p id="filtro-periodo-pendiente" role="status" hidden>Para actualizar las estadísticas con esta selección, presioná «Aplicar filtro».</p>
+<script src="/js/admin-filtro-periodo.js?v=3" defer></script>

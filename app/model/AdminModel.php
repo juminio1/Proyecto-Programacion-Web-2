@@ -15,13 +15,26 @@ class AdminModel
         $this->pdo = $database->getConexion();
     }
 
-    public function obtenerCantidadJugadores(): array
+    private function filtroFecha(PeriodoEstadisticoModel $periodo, string $columna): string
     {
-        $fila = $this->pdo->query(
+        return $periodo->esGeneral() ? '' : "AND {$columna} >= :desde AND {$columna} < :hasta";
+    }
+
+    private function consultarPeriodo(string $sql, PeriodoEstadisticoModel $periodo): \PDOStatement
+    {
+        $consulta = $this->pdo->prepare($sql);
+        $consulta->execute($periodo->esGeneral() ? [] : $periodo->parametrosSql());
+        return $consulta;
+    }
+
+    public function obtenerCantidadJugadores(PeriodoEstadisticoModel $periodo): array
+    {
+        $filtro = $this->filtroFecha($periodo, 'fecha_registro');
+        $fila = $this->consultarPeriodo(
             "SELECT COUNT(*) AS total,
                     COALESCE(SUM(activo = 1), 0) AS activos
              FROM usuarios
-             WHERE rol = 'jugador'"
+             WHERE rol = 'jugador' $filtro", $periodo
         )->fetch(PDO::FETCH_ASSOC);
 
         return [
@@ -31,10 +44,13 @@ class AdminModel
         ];
     }
 
-    public function obtenerCantidadPartidas(): array
+    public function obtenerCantidadPartidas(PeriodoEstadisticoModel $periodo): array
     {
-        $filas = $this->pdo->query(
-            "SELECT estado, COUNT(*) AS cantidad FROM partidas GROUP BY estado"
+        $filtro = $this->filtroFecha($periodo, 'fecha_creacion');
+        $filas = $this->consultarPeriodo(
+            "SELECT estado, COUNT(*) AS cantidad FROM partidas
+             WHERE 1 = 1 $filtro
+             GROUP BY estado", $periodo
         )->fetchAll(PDO::FETCH_KEY_PAIR);
 
         $finalizadas = (int) ($filas['finalizada'] ?? 0);
@@ -50,37 +66,18 @@ class AdminModel
         ];
     }
 
-    public function obtenerCantidadPreguntas(): array
+    public function obtenerCantidadPreguntasPorCategoria(PeriodoEstadisticoModel $periodo): array
     {
-        $fila = $this->pdo->query(
-            "SELECT COUNT(*) AS creadas,
-                    COALESCE(SUM(p.habilitada = 1 AND c.habilitada = 1), 0) AS disponibles
-             FROM preguntas p
-             JOIN categorias c ON c.id = p.categoria_id"
-        )->fetch(PDO::FETCH_ASSOC);
-
-        $creadas = (int) $fila['creadas'];
-        $disponibles = (int) $fila['disponibles'];
-
-        return [
-            'creadas' => $creadas,
-            'disponibles' => $disponibles,
-            'noDisponibles' => $creadas - $disponibles,
-        ];
-    }
-
-    /** Preguntas disponibles agrupadas por categoría (incluye categorías sin preguntas). */
-    public function obtenerCantidadPreguntasPorCategoria(): array
-    {
-        $filas = $this->pdo->query(
+        $filtro = $this->filtroFecha($periodo, 'p.fecha_creacion');
+        $filas = $this->consultarPeriodo(
             "SELECT c.nombre,
-                    COALESCE(SUM(p.habilitada = 1), 0) AS disponibles,
+                    COALESCE(SUM(p.habilitada = 1 AND c.habilitada = 1), 0) AS disponibles,
                     COUNT(p.id) AS creadas
              FROM categorias c
-             LEFT JOIN preguntas p ON p.categoria_id = c.id
-             WHERE c.habilitada = 1
+             JOIN preguntas p ON p.categoria_id = c.id
+             WHERE 1 = 1 $filtro
              GROUP BY c.id, c.nombre
-             ORDER BY c.nombre"
+             ORDER BY c.nombre", $periodo
         )->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($filas as &$fila) {
@@ -92,37 +89,41 @@ class AdminModel
         return $filas;
     }
 
-    public function obtenerCantidadUsuariosNuevosPorDia(int $dias): array
+    public function obtenerCantidadUsuariosNuevosPorDia(PeriodoEstadisticoModel $periodo): array
     {
         $consulta = $this->pdo->prepare(
             "SELECT DATE(fecha_registro) AS dia, COUNT(*) AS cantidad
              FROM usuarios
-             WHERE rol = 'jugador'
-               AND fecha_registro >= DATE_SUB(CURDATE(), INTERVAL :dias DAY)
+             WHERE rol = 'jugador' AND fecha_registro >= :desde AND fecha_registro < :hasta
              GROUP BY DATE(fecha_registro)"
         );
-        $consulta->bindValue('dias', $dias - 1, PDO::PARAM_INT);
-        $consulta->execute();
+        $consulta->execute($periodo->parametrosSql());
         $porDia = $consulta->fetchAll(PDO::FETCH_KEY_PAIR);
 
         $resultado = [];
-        for ($i = $dias - 1; $i >= 0; $i--) {
-            $dia = date('Y-m-d', strtotime("-{$i} days"));
-            $resultado[] = ['dia' => $dia, 'cantidad' => (int) ($porDia[$dia] ?? 0)];
+        for ($dia = $periodo->desde; $dia < $periodo->hasta; $dia = $dia->modify('+1 day')) {
+            $fecha = $dia->format('Y-m-d');
+            $resultado[] = ['dia' => $fecha, 'cantidad' => (int) ($porDia[$fecha] ?? 0)];
         }
-
         return $resultado;
     }
 
-    public function obtenerListaJugadores(): array
+    public function obtenerListaJugadores(PeriodoEstadisticoModel $periodo): array
     {
-        return $this->pdo->query(
-            "SELECT id, nombre_usuario FROM usuarios WHERE rol = 'jugador' ORDER BY nombre_usuario"
-        )->fetchAll(PDO::FETCH_ASSOC);
+        $filtro = $periodo->esGeneral() ? '' : 'AND (fecha_registro < :hasta OR fecha_registro IS NULL)';
+        $consulta = $this->pdo->prepare(
+            "SELECT id, nombre_usuario FROM usuarios
+             WHERE rol = 'jugador' $filtro
+             ORDER BY nombre_usuario"
+        );
+        $consulta->execute($periodo->esGeneral() ? [] : ['hasta' => $periodo->hasta->format('Y-m-d')]);
+        return $consulta->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerDesempenoJugadores(string $buscar = '', int $idUsuario = 0): array
+    public function obtenerDesempenoJugadores(PeriodoEstadisticoModel $periodo, string $buscar = '', int $idUsuario = 0): array
     {
+        $filtroRespuesta = $this->filtroFecha($periodo, 'pp.fecha_respuesta');
+        $filtroRegistro = $periodo->esGeneral() ? '' : 'AND (u.fecha_registro < :fin_registro OR u.fecha_registro IS NULL)';
         $consulta = $this->pdo->prepare(
             "SELECT u.id, u.nombre_usuario, u.nombre_completo,
                     COUNT(pp.es_correcta) AS total_respuestas,
@@ -130,12 +131,19 @@ class AdminModel
              FROM usuarios u
              LEFT JOIN partidas pa ON pa.usuario_id = u.id
              LEFT JOIN partida_preguntas pp ON pp.partida_id = pa.id
-             WHERE u.rol = 'jugador'
+                 $filtroRespuesta
+             WHERE u.rol = 'jugador' $filtroRegistro
                AND (:id_usuario = 0 OR u.id = :id_usuario_igual)
                AND (:buscar_vacio = '' OR u.nombre_usuario LIKE :patron)
              GROUP BY u.id, u.nombre_usuario, u.nombre_completo
              ORDER BY u.nombre_usuario"
         );
+        if (!$periodo->esGeneral()) {
+            foreach ($periodo->parametrosSql() as $clave => $fecha) {
+                $consulta->bindValue($clave, $fecha);
+            }
+            $consulta->bindValue('fin_registro', $periodo->hasta->format('Y-m-d'));
+        }
         $consulta->bindValue('id_usuario', $idUsuario, PDO::PARAM_INT);
         $consulta->bindValue('id_usuario_igual', $idUsuario, PDO::PARAM_INT);
         $consulta->bindValue('buscar_vacio', $buscar);
@@ -165,14 +173,15 @@ class AdminModel
         return $jugadores;
     }
 
-    public function obtenerUsuariosPorPais(): array
+    public function obtenerUsuariosPorPais(PeriodoEstadisticoModel $periodo): array
     {
-        $filas = $this->pdo->query(
+        $filtro = $this->filtroFecha($periodo, 'fecha_registro');
+        $filas = $this->consultarPeriodo(
             "SELECT MIN(TRIM(pais)) AS pais, COUNT(*) AS cantidad
              FROM usuarios
-             WHERE rol = 'jugador'
+             WHERE rol = 'jugador' $filtro
              GROUP BY LOWER(TRIM(pais))
-             ORDER BY cantidad DESC, pais"
+             ORDER BY cantidad DESC, pais", $periodo
         )->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($filas as &$fila) {
@@ -186,13 +195,14 @@ class AdminModel
         return $filas;
     }
 
-    public function obtenerUsuariosPorSexo(): array
+    public function obtenerUsuariosPorSexo(PeriodoEstadisticoModel $periodo): array
     {
-        $filas = $this->pdo->query(
+        $filtro = $this->filtroFecha($periodo, 'fecha_registro');
+        $filas = $this->consultarPeriodo(
             "SELECT sexo, COUNT(*) AS cantidad
              FROM usuarios
-             WHERE rol = 'jugador'
-             GROUP BY sexo"
+             WHERE rol = 'jugador' $filtro
+             GROUP BY sexo", $periodo
         )->fetchAll(PDO::FETCH_KEY_PAIR);
 
         $resultado = [];
@@ -203,22 +213,22 @@ class AdminModel
         return $resultado;
     }
 
-    public function obtenerUsuariosPorGrupoEdad(): array
+    public function obtenerUsuariosPorGrupoEdad(PeriodoEstadisticoModel $periodo): array
     {
+        $filtro = $this->filtroFecha($periodo, 'fecha_registro');
+        $anio = $periodo->esGeneral() ? 'YEAR(CURDATE())' : 'YEAR(fecha_registro)';
         $consulta = $this->pdo->prepare(
             "SELECT
-                COALESCE(SUM((:anio_menores - anio_nacimiento) < :mayoria), 0) AS menores,
-                COALESCE(SUM((:anio_jubilados - anio_nacimiento) >= :jubilacion), 0) AS jubilados,
+                COALESCE(SUM($anio - anio_nacimiento < :mayoria), 0) AS menores,
+                COALESCE(SUM($anio - anio_nacimiento >= :jubilacion), 0) AS jubilados,
                 COUNT(*) AS total
              FROM usuarios
-             WHERE rol = 'jugador'"
+             WHERE rol = 'jugador' $filtro"
         );
-        $anio = (int) date('Y');
-        $consulta->bindValue('anio_menores', $anio, PDO::PARAM_INT);
-        $consulta->bindValue('anio_jubilados', $anio, PDO::PARAM_INT);
-        $consulta->bindValue('mayoria', self::EDAD_MAYORIA, PDO::PARAM_INT);
-        $consulta->bindValue('jubilacion', self::EDAD_JUBILACION, PDO::PARAM_INT);
-        $consulta->execute();
+        $parametros = $periodo->esGeneral() ? [] : $periodo->parametrosSql();
+        $consulta->execute($parametros + [
+                'mayoria' => self::EDAD_MAYORIA, 'jubilacion' => self::EDAD_JUBILACION,
+            ]);
         $fila = $consulta->fetch(PDO::FETCH_ASSOC);
 
         $menores = (int) $fila['menores'];

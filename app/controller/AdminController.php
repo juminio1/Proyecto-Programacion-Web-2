@@ -3,14 +3,13 @@
 namespace app\controller;
 
 use app\model\AdminModel;
+use app\model\PeriodoEstadisticoModel;
+use InvalidArgumentException;
 use PDOException;
 use Request;
 
 class AdminController
 {
-    private const PERIODOS = [7, 30, 90];
-    private const PERIODO_POR_DEFECTO = 30;
-
     private AdminModel $model;
     private $render;
 
@@ -22,27 +21,8 @@ class AdminController
 
     public function show(): void
     {
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-            http_response_code(405);
-            header('Allow: GET');
-            return;
-        }
-
-        header('Cache-Control: no-store');
-
-        $periodo = (int) Request::get('periodo', self::PERIODO_POR_DEFECTO);
-        if (!in_array($periodo, self::PERIODOS, true)) {
-            $periodo = self::PERIODO_POR_DEFECTO;
-        }
-
-        $datos = [
-            'nombreAdmin' => (string) ($_SESSION['usuario'] ?? 'Administrador'),
-            'periodo' => $periodo,
-            'periodos' => array_map(
-                fn (int $dias) => ['dias' => $dias, 'activo' => $dias === $periodo],
-                self::PERIODOS
-            ),
-        ];
+        [$periodo, $datos] = $this->prepararFiltro('/admin/show');
+        $datos['nombreAdmin'] = (string) ($_SESSION['usuario'] ?? 'Administrador');
 
         try {
             $datos += $this->cargarEstadisticas($periodo);
@@ -57,19 +37,12 @@ class AdminController
 
     public function usuarios(): void
     {
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-            http_response_code(405);
-            header('Allow: GET');
-            return;
-        }
+        [$periodo, $datos] = $this->prepararFiltro('/admin/usuarios');
+        $buscar = $_SESSION['admin_buscar_jugador'] ?? '';
+        $idUsuario = $_SESSION['admin_id_jugador'] ?? 0;
 
-        header('Cache-Control: no-store');
-
-        $buscar = trim((string) Request::get('buscar', ''));
-        $buscar = mb_substr($buscar, 0, 50);
-        $idUsuario = max(0, (int) Request::get('usuario', 0));
-
-        $datos = [
+        $datos += [
+            'vistaUsuarios' => true,
             'buscar' => $buscar,
             'hayFiltro' => $buscar !== '' || $idUsuario > 0,
         ];
@@ -81,14 +54,15 @@ class AdminController
                     'nombre_usuario' => $j['nombre_usuario'],
                     'seleccionado' => (int) $j['id'] === $idUsuario,
                 ],
-                $this->model->obtenerListaJugadores()
+                $this->model->obtenerListaJugadores($periodo)
             );
-            $jugadores = $this->model->obtenerDesempenoJugadores($buscar, $idUsuario);
+            $jugadores = $this->model->obtenerDesempenoJugadores($periodo, $buscar, $idUsuario);
 
             $datos['listaJugadores'] = $lista;
             $datos['jugadores'] = $jugadores;
             $datos['cantidadJugadores'] = count($jugadores);
             $datos['sinResultados'] = $jugadores === [];
+            $datos['sinRespuestas'] = $jugadores !== [] && array_sum(array_column($jugadores, 'totalRespuestas')) === 0;
             $datos['usuariosCargados'] = true;
         } catch (PDOException $error) {
             error_log('Error al cargar desempeño de jugadores: ' . $error->getMessage());
@@ -100,20 +74,12 @@ class AdminController
 
     public function caracteristicas(): void
     {
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-            http_response_code(405);
-            header('Allow: GET');
-            return;
-        }
-
-        header('Cache-Control: no-store');
-
-        $datos = [];
+        [$periodo, $datos] = $this->prepararFiltro('/admin/caracteristicas');
 
         try {
-            $paises = $this->model->obtenerUsuariosPorPais();
-            $sexos = $this->model->obtenerUsuariosPorSexo();
-            $edades = $this->model->obtenerUsuariosPorGrupoEdad();
+            $paises = $this->model->obtenerUsuariosPorPais($periodo);
+            $sexos = $this->model->obtenerUsuariosPorSexo($periodo);
+            $edades = $this->model->obtenerUsuariosPorGrupoEdad($periodo);
             $total = array_sum(array_column($sexos, 'cantidad'));
 
             $paisesGrafico = array_slice($paises, 0, 8);
@@ -159,12 +125,101 @@ class AdminController
         $this->render->renderiza('adminCaracteristicas', $datos);
     }
 
-    private function cargarEstadisticas(int $periodo): array
+    private function prepararFiltro(string $ruta): array
     {
-        $jugadores = $this->model->obtenerCantidadJugadores();
-        $partidas = $this->model->obtenerCantidadPartidas();
-        $preguntas = $this->model->obtenerCantidadPreguntas();
-        $porCategoria = $this->model->obtenerCantidadPreguntasPorCategoria();
+        header('Cache-Control: no-store');
+        $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        if (!in_array($metodo, ['GET', 'POST'], true)) {
+            http_response_code(405);
+            header('Allow: GET, POST');
+            exit;
+        }
+
+        $_SESSION['admin_filtro_csrf'] ??= bin2hex(random_bytes(32));
+        if ($metodo === 'POST') {
+            $this->guardarFiltro($ruta);
+            header('Location: ' . $ruta, true, 303);
+            exit;
+        }
+
+        if (isset($_GET['periodo']) || isset($_GET['fecha']) || isset($_GET['detalle'])
+            || isset($_GET['buscar']) || isset($_GET['usuario'])) {
+            header('Location: ' . $ruta, true, 302);
+            exit;
+        }
+
+        $filtro = $_SESSION['admin_periodo'] ?? [];
+        $periodo = new PeriodoEstadisticoModel(
+            $filtro['periodo'] ?? 'general',
+            $filtro['fecha'] ?? date('Y-m-d'),
+            $filtro['detalle'] ?? ''
+        );
+        $aviso = $_SESSION['admin_aviso_filtro'] ?? null;
+        unset($_SESSION['admin_aviso_filtro']);
+
+        return [$periodo, $periodo->datosParaVista() + [
+                'rutaFiltro' => $ruta,
+                'avisoFiltro' => $aviso,
+                'tokenFiltro' => $_SESSION['admin_filtro_csrf'],
+            ]];
+    }
+
+    private function guardarFiltro(string $ruta): void
+    {
+        $token = Request::post('csrf_token');
+        if (!is_string($token) || !hash_equals($_SESSION['admin_filtro_csrf'], $token)) {
+            http_response_code(403);
+            exit;
+        }
+
+        if ($ruta === '/admin/usuarios' && Request::post('limpiar') === '1') {
+            unset($_SESSION['admin_buscar_jugador'], $_SESSION['admin_id_jugador']);
+            return;
+        }
+
+        try {
+            $periodo = new PeriodoEstadisticoModel(
+                Request::post('periodo'),
+                Request::post('fecha', date('Y-m-d')),
+                Request::post('detalle', '')
+            );
+            $datos = $periodo->datosParaVista();
+            $_SESSION['admin_periodo'] = [
+                'periodo' => $datos['periodo'],
+                'fecha' => $datos['fecha'],
+                'detalle' => $datos['detalle'],
+            ];
+
+            if ($ruta === '/admin/usuarios') {
+                $nombre = Request::post('buscar', '');
+                $_SESSION['admin_buscar_jugador'] = is_string($nombre) ? mb_substr(trim($nombre), 0, 50) : '';
+                $_SESSION['admin_id_jugador'] = max(0, (int) filter_var(Request::post('usuario'), FILTER_VALIDATE_INT));
+            }
+        } catch (InvalidArgumentException $error) {
+            $_SESSION['admin_aviso_filtro'] = $error->getMessage() . ' Se conserva el filtro aplicado.';
+        }
+    }
+
+    private function cargarEstadisticas(PeriodoEstadisticoModel $periodo): array
+    {
+        $jugadores = $this->model->obtenerCantidadJugadores($periodo);
+        $partidas = $this->model->obtenerCantidadPartidas($periodo);
+        $errorPreguntas = null;
+        try {
+            $porCategoria = $this->model->obtenerCantidadPreguntasPorCategoria($periodo);
+        } catch (PDOException $error) {
+            error_log('Error al cargar estadísticas de preguntas: ' . $error->getMessage());
+            $porCategoria = [];
+            $errorPreguntas = 'No se pudieron cargar las estadísticas de preguntas.';
+            if (($error->errorInfo[0] ?? null) === '42S22'
+                && str_contains($error->errorInfo[2] ?? '', 'p.fecha_creacion')) {
+                $errorPreguntas = 'Para ver las estadísticas de preguntas, aplicá la migración fecha_preguntas.sql.';
+            }
+        }
+        $preguntas = [
+            'creadas' => array_sum(array_column($porCategoria, 'creadas')),
+            'disponibles' => array_sum(array_column($porCategoria, 'disponibles')),
+        ];
         $nuevosPorDia = $this->model->obtenerCantidadUsuariosNuevosPorDia($periodo);
 
         $totalNuevos = array_sum(array_column($nuevosPorDia, 'cantidad'));
@@ -194,7 +249,10 @@ class AdminController
             'partidas' => $partidas,
             'preguntas' => $preguntas,
             'preguntasPorCategoria' => $porCategoria,
-            'sinCategorias' => $porCategoria === [],
+            'errorPreguntas' => $errorPreguntas,
+            'sinPreguntas' => $porCategoria === [],
+            'sinActividad' => $errorPreguntas === null && $jugadores['total'] === 0
+                && $partidas['total'] === 0 && $porCategoria === [],
             'usuariosNuevos' => $totalNuevos,
             // Solo se listan en la tabla los días con altas (el gráfico muestra todos).
             'nuevosPorDia' => array_values(array_map(

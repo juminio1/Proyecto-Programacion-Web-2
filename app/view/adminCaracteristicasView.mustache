@@ -1,11 +1,12 @@
 <link rel="stylesheet" href="/css/editor.css?v=5">
-<link rel="stylesheet" href="/css/admin.css?v=4">
+<link rel="stylesheet" href="/css/admin.css?v=5">
 <main class="editor admin">
     <section class="editor-panel" aria-labelledby="admin-caract-titulo">
-        <a class="editor-volver" href="/admin/show#seccion-jugadores">← Volver al panel</a>
+        <a class="editor-volver" href="/admin/show">← Volver al panel</a>
         <p class="editor-etiqueta">ROL ADMIN</p>
         <h1 id="admin-caract-titulo">Estadísticas de los usuarios</h1>
-        <p>Distribución de los jugadores por país, sexo y grupo de edad.</p>
+        <p>Distribución por país, sexo y grupo de edad{{#vistaGeneral}} de todos los jugadores.{{/vistaGeneral}}{{^vistaGeneral}} de quienes se registraron en el período. El grupo de edad se calcula según el año de registro.{{/vistaGeneral}}</p>
+        {{> adminFiltroPeriodo}}
     </section>
 
     {{#errorCaracteristicas}}
@@ -17,7 +18,7 @@
 
             {{#sinJugadores}}
                 <section class="editor-panel admin-seccion">
-                    <p class="editor-sin-pendientes">Todavía no hay jugadores registrados.</p>
+                    <p class="editor-sin-pendientes">{{#vistaGeneral}}Todavía no hay jugadores registrados.{{/vistaGeneral}}{{^vistaGeneral}}No se registraron jugadores en este período.{{/vistaGeneral}}</p>
                 </section>
             {{/sinJugadores}}
 

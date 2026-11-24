@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS preguntas (
                                          id INT AUTO_INCREMENT PRIMARY KEY,
                                          categoria_id INT NOT NULL,
                                          pregunta TEXT NOT NULL,
+                                         fecha_creacion DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
                                          habilitada TINYINT(1) NOT NULL DEFAULT 1,
                                          FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
 );
@@ -415,15 +416,15 @@ ALTER TABLE preguntas ADD COLUMN dificultad ENUM('facil','media','dificil') NOT 
 ALTER TABLE partidas  ADD COLUMN nivel_inicial ENUM('bajo','medio','alto') NOT NULL DEFAULT 'medio';
 
 CREATE TABLE IF NOT EXISTS partida_pestanas (
-                                                  id INT AUTO_INCREMENT PRIMARY KEY,
-                                                  partida_id INT NOT NULL,
-                                                  pestana_id VARCHAR(64) NOT NULL,
-                                                  conectada TINYINT(1) NOT NULL DEFAULT 1,
-                                                  ultima_conexion DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-                                                  desconectada_en DATETIME(6) DEFAULT NULL,
-                                                  es_recarga TINYINT(1) NOT NULL DEFAULT 0,
-                                                  FOREIGN KEY (partida_id) REFERENCES partidas(id) ON DELETE CASCADE,
-                                                  UNIQUE KEY uq_partida_pestana (partida_id, pestana_id)
+                                                id INT AUTO_INCREMENT PRIMARY KEY,
+                                                partida_id INT NOT NULL,
+                                                pestana_id VARCHAR(64) NOT NULL,
+                                                conectada TINYINT(1) NOT NULL DEFAULT 1,
+                                                ultima_conexion DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                                                desconectada_en DATETIME(6) DEFAULT NULL,
+                                                es_recarga TINYINT(1) NOT NULL DEFAULT 0,
+                                                FOREIGN KEY (partida_id) REFERENCES partidas(id) ON DELETE CASCADE,
+                                                UNIQUE KEY uq_partida_pestana (partida_id, pestana_id)
 );
 
 CREATE TABLE IF NOT EXISTS reportes_preguntas (
@@ -472,7 +473,7 @@ CREATE TABLE IF NOT EXISTS categoriasSugeridas (
                                                    editor_id INT DEFAULT NULL,
                                                    fecha_revision DATETIME DEFAULT NULL,
 
-    -- Sólo las pendientes ocupan el nombre: una rechazada permite otra propuesta.
+    -- Solo las pendientes ocupan el nombre: una rechazada permite otra propuesta.
                                                    nombre_pendiente VARCHAR(50) GENERATED ALWAYS AS (
                                                        CASE WHEN estado = 'pendiente' THEN nombre ELSE NULL END
                                                        ) STORED,
