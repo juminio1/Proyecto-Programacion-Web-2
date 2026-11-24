@@ -291,3 +291,262 @@ a.admin-dato:focus-visible {
 .admin-filtro-campo[hidden] {
     display: none;
 }
+
+
+/* ==========================================================
+   BOTÓN IMPRIMIR REPORTE
+   ========================================================== */
+
+.admin-acciones-reporte {
+    display: flex;
+    margin-top: 18px;
+}
+
+.admin-boton-imprimir {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-boton-imprimir svg {
+    width: 20px;
+    height: 20px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+
+    flex-shrink: 0;
+}
+
+
+/* ==========================================================
+   IMPRESIÓN DEL REPORTE
+   ========================================================== */
+
+@media print {
+
+    @page {
+        size: A4 portrait;
+        margin: 12mm;
+    }
+
+
+    /* Página */
+
+    html,
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+
+    /* Ocultar elementos de navegación y controles */
+
+    header,
+    footer,
+    .admin-acciones-reporte,
+    .admin-filtro,
+    .admin-acciones,
+    .admin-volver,
+    #filtro-rango-semana,
+    #filtro-periodo-pendiente {
+        display: none !important;
+    }
+
+
+    /* Contenedor principal */
+
+    .editor.admin {
+        width: 100% !important;
+        max-width: none !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+
+
+    /* Paneles */
+
+    .admin .editor-panel,
+    .admin .admin-seccion {
+        width: 100% !important;
+
+        margin: 0 0 18px !important;
+        padding: 16px !important;
+
+        background: #ffffff !important;
+        color: #000000 !important;
+
+        border: 1px solid #bdbdbd !important;
+        border-radius: 0 !important;
+
+        box-shadow: none !important;
+    }
+
+
+    /* Evita cortes feos */
+
+    .admin-seccion,
+    .admin-dato,
+    .admin-tabla,
+    table,
+    tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+
+    /* Títulos */
+
+    .admin h1,
+    .admin h2,
+    .admin h3,
+    .admin p,
+    .admin strong,
+    .admin span {
+        color: #000000 !important;
+    }
+
+    .admin h1 {
+        font-size: 26px !important;
+    }
+
+    .admin h2 {
+        font-size: 20px !important;
+        margin-bottom: 10px !important;
+    }
+
+    .editor-etiqueta {
+        color: #555555 !important;
+    }
+
+
+    /* Resumen */
+
+    .admin-resumen {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+
+        gap: 8px !important;
+    }
+
+    .admin-dato {
+        padding: 10px !important;
+
+        background: #ffffff !important;
+
+        border: 1px solid #bdbdbd !important;
+        border-radius: 0 !important;
+
+        color: #000000 !important;
+        text-decoration: none !important;
+    }
+
+    .admin-dato-numero {
+        color: #000000 !important;
+
+        font-size: 22px !important;
+    }
+
+    .admin-dato-texto {
+        color: #333333 !important;
+
+        font-size: 11px !important;
+    }
+
+
+    /* Gráficos + tablas */
+
+    .admin-grafico-fila {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+
+        gap: 12px !important;
+    }
+
+    .admin-grafico {
+        height: 220px !important;
+
+        padding: 8px !important;
+
+        background: #ffffff !important;
+
+        border: 1px solid #bdbdbd !important;
+        border-radius: 0 !important;
+    }
+
+    .admin-grafico-ancho {
+        grid-column: 1 / -1 !important;
+        height: 220px !important;
+    }
+
+
+    /* Tablas */
+
+    .admin-tabla-scroll {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .admin-tabla {
+        width: 100% !important;
+
+        background: #ffffff !important;
+        color: #000000 !important;
+
+        border-collapse: collapse !important;
+        border: 1px solid #777777 !important;
+        border-radius: 0 !important;
+    }
+
+    .admin-tabla th,
+    .admin-tabla td {
+        padding: 6px 8px !important;
+
+        background: #ffffff !important;
+        color: #000000 !important;
+
+        border: 1px solid #aaaaaa !important;
+
+        font-size: 10px !important;
+    }
+
+    .admin-tabla th {
+        font-weight: 800 !important;
+    }
+
+
+    /* Mensajes */
+
+    .editor-sin-pendientes,
+    .editor-aviso {
+        background: #ffffff !important;
+        color: #000000 !important;
+
+        border: 1px solid #bdbdbd !important;
+    }
+
+
+    /* El período aplicado queda visible */
+
+    .admin > .editor-panel:first-child > p:last-child {
+        display: block !important;
+
+        margin-top: 12px !important;
+
+        color: #000000 !important;
+
+        font-weight: 700 !important;
+    }
+}
