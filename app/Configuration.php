@@ -4,6 +4,7 @@ namespace app;
 
 use app\controller\AdminController;
 use app\controller\CategoriaSugeridaController;
+use app\model\AdminModel;
 use app\model\CategoriaSugeridaModel;
 use app\model\CategoriaModel;
 use app\controller\PreguntaSugeridaController;
@@ -127,7 +128,10 @@ class Configuration
 
     public function getAdminController()
     {
-        return new AdminController($this->getRender());
+        return new AdminController(
+            new AdminModel($this->getDatabase()),
+            $this->getRender()
+        );
     }
 
     private function getPartidaModel()

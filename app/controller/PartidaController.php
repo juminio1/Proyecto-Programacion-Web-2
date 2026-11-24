@@ -2,6 +2,7 @@
 
 namespace app\controller;
 
+use app\model\PartidaModel;
 use Log;
 use PDOException;
 use Redirect;
@@ -51,8 +52,13 @@ class PartidaController
             Redirect::to('/inicio/show');
         }
 
+        $motivo = (string) Request::post('motivo', 'abandono');
+        if ($motivo !== PartidaModel::MOTIVO_CIERRE_MULTIPESTANA) {
+            $motivo = 'abandono';
+        }
+
         try {
-            $resultado = $this->partidaModel->abandonarPartidaPorId($idUsuario, $idPartida);
+            $resultado = $this->partidaModel->abandonarPartidaPorId($idUsuario, $idPartida, true, $motivo);
             if ($ajax) {
                 $this->responderJson($resultado, isset($resultado['error']) ? 409 : 200);
             }
@@ -91,8 +97,10 @@ class PartidaController
             $this->responderJson(['error' => 'La partida indicada no es válida.'], 400);
         }
 
+        $idPestana = trim((string) Request::get('id_pestana', ''));
+
         try {
-            $estado = $this->partidaModel->consultarEstadoPartida($idUsuario, $idPartida);
+            $estado = $this->partidaModel->consultarEstadoPartida($idUsuario, $idPartida, $idPestana ?: null);
             if ($estado === null) {
                 $this->responderJson(['error' => 'No se encontró la partida.'], 404);
             }
@@ -100,6 +108,76 @@ class PartidaController
         } catch (PDOException $error) {
             Log::error('Error al consultar la partida: ' . $error->getMessage());
             $this->responderJson(['error' => 'No se pudo consultar la partida.'], 500);
+        }
+    }
+
+    public function registrarPestana()
+    {
+        $idUsuario = (int) ($_SESSION['usuario_id'] ?? 0);
+        if ($idUsuario <= 0) {
+            $this->responderJson(['error' => 'Sesión no iniciada.'], 401);
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            $this->responderJson(['error' => 'Método no permitido.'], 405);
+        }
+
+        $idPartida = filter_var(Request::post('id_partida'), FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1]
+        ]);
+        $idPestana = trim((string) Request::post('id_pestana', ''));
+        $esRecarga = (bool) Request::post('es_recarga', false);
+
+        if ($idPartida === false || $idPestana === '') {
+            $this->responderJson(['error' => 'Datos de pestaña o partida inválidos.'], 400);
+        }
+
+        try {
+            $resultado = $this->partidaModel->registrarConexionPestana(
+                $idUsuario,
+                $idPartida,
+                $idPestana,
+                $esRecarga
+            );
+
+            $this->responderJson($resultado, isset($resultado['error']) ? 409 : 200);
+        } catch (PDOException $error) {
+            Log::error('Error al registrar pestaña: ' . $error->getMessage());
+            $this->responderJson(['error' => 'No se pudo registrar la conexión de la pestaña.'], 500);
+        }
+    }
+
+    public function desconectarPestana()
+    {
+        $idUsuario = (int) ($_SESSION['usuario_id'] ?? 0);
+        if ($idUsuario <= 0) {
+            $this->responderJson(['error' => 'Sesión no iniciada.'], 401);
+        }
+
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            $this->responderJson(['error' => 'Método no permitido.'], 405);
+        }
+
+        $idPartida = filter_var(Request::post('id_partida'), FILTER_VALIDATE_INT, [
+            'options' => ['min_range' => 1]
+        ]);
+        $idPestana = trim((string) Request::post('id_pestana', ''));
+
+        if ($idPartida === false || $idPestana === '') {
+            $this->responderJson(['error' => 'Datos de pestaña o partida inválidos.'], 400);
+        }
+
+        try {
+            $resultado = $this->partidaModel->registrarDesconexionPestana(
+                $idUsuario,
+                $idPartida,
+                $idPestana
+            );
+
+            $this->responderJson($resultado, isset($resultado['error']) ? 409 : 200);
+        } catch (PDOException $error) {
+            Log::error('Error al desconectar pestaña: ' . $error->getMessage());
+            $this->responderJson(['error' => 'No se pudo registrar la desconexión de la pestaña.'], 500);
         }
     }
 
