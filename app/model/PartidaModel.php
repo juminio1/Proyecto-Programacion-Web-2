@@ -607,6 +607,9 @@ class PartidaModel
             return $operacion($pdo);
         }
 
+        // La preparación puede ejecutar DDL, que cierra la transacción en MySQL.
+        // Debe completarse antes de comenzar las operaciones de la partida.
+        $this->garantizarEstructuraReconexion($pdo);
         $pdo->beginTransaction();
         try {
             $resultado = $operacion($pdo);
