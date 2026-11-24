@@ -62,9 +62,20 @@ class EditorController
             $categoriasConPreguntas =
                 $this->agruparPreguntasPorCategoria($preguntas);
 
+            $cantidadTotalPreguntas = count($preguntas);
+
+            $cantidadTotalCategorias =
+                count($categoriasConPreguntas);
+
             $this->render->renderiza('editorPreguntas', [
                 'categoriasConPreguntas' => $categoriasConPreguntas,
-                'sinPreguntas' => empty($preguntas)
+                'sinPreguntas' => empty($preguntas),
+
+                'cantidadTotalPreguntas' =>
+                    $cantidadTotalPreguntas,
+
+                'cantidadTotalCategorias' =>
+                    $cantidadTotalCategorias
             ]);
 
         } catch (PDOException $error) {
