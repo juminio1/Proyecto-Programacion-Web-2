@@ -6,6 +6,7 @@ use app\model\PreguntaSugeridaModel;
 use app\model\EditorModel;
 use app\model\CategoriaSugeridaModel;
 use app\model\CategoriaModel;
+use app\model\enums\RolUsuario;
 use DomainException;
 use PDOException;
 use Request;
@@ -41,7 +42,8 @@ class EditorController
         }
 
         header('Cache-Control: no-store');
-        $datos = [];
+        $datos = ['mensajeExitoCategoria' => $_SESSION['editor_categoria_exito'] ?? ''];
+        unset($_SESSION['editor_categoria_exito']);
 
         try {
             $categorias = $this->categoriaModel->obtenerCategoriasHabilitadasConPreguntas();
@@ -49,6 +51,7 @@ class EditorController
             foreach ($categorias as &$categoria) {
                 $categoria['cantidad_preguntas'] = (int) $categoria['cantidad_preguntas'];
                 $categoria['tienePreguntas'] = $categoria['cantidad_preguntas'] > 0;
+                $categoria['color'] = $this->colorParaFormulario($categoria['color'] ?? '');
             }
             unset($categoria);
 
@@ -62,6 +65,90 @@ class EditorController
         }
 
         $this->render->renderiza('editor', $datos);
+    }
+
+    public function nuevaCategoria(): void
+    {
+        if (!$this->esEditorAutenticado()) {
+            return;
+        }
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+        $this->renderizarAltaCategoria();
+    }
+
+    public function guardarCategoria(): void
+    {
+        if (!$this->esEditorAutenticado()) {
+            return;
+        }
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            return;
+        }
+
+        $nombre = Request::post('nombre', '');
+        $color = Request::post('color', '');
+        $nombre = is_string($nombre) ? $nombre : '';
+        $color = is_string($color) ? $color : '';
+        $datos = ['nombre' => $nombre, 'color' => $this->colorParaFormulario($color)];
+        $token = Request::post('csrf_token');
+        $tokenGuardado = $_SESSION['editor_categoria_alta_csrf'] ?? null;
+        if (!is_string($token) || !is_string($tokenGuardado) || !hash_equals($tokenGuardado, $token)) {
+            http_response_code(403);
+            $datos['mensajeError'] = 'Volvé a abrir el formulario para dar de alta una categoría.';
+            $this->renderizarAltaCategoria($datos);
+            return;
+        }
+
+        try {
+            $this->categoriaModel->crearCategoria($nombre, $color);
+            $_SESSION['editor_categoria_exito'] = 'Categoría creada y habilitada. Ya está disponible para agregar preguntas.';
+            // Recargar la confirmación no vuelve a ejecutar el alta.
+            header('Location: /editor/show', true, 303);
+            return;
+        } catch (DomainException $error) {
+            http_response_code(422);
+            $datos['mensajeError'] = $error->getMessage();
+        } catch (PDOException $error) {
+            error_log('Error al crear categoría: ' . $error->getMessage());
+            http_response_code(500);
+            $datos['mensajeError'] = 'No se pudo guardar la categoría. Intentá nuevamente.';
+        }
+        $this->renderizarAltaCategoria($datos);
+    }
+
+    private function esEditorAutenticado(): bool
+    {
+        if ((int) ($_SESSION['usuario_id'] ?? 0) <= 0) {
+            header('Location: /login/show', true, 303);
+            return false;
+        }
+        if (($_SESSION['rol'] ?? null) !== RolUsuario::EDITOR) {
+            http_response_code(403);
+            header('Content-Type: text/plain; charset=utf-8');
+            echo 'Esta página es exclusiva para editores.';
+            return false;
+        }
+        return true;
+    }
+
+    private function colorParaFormulario(string $color): string
+    {
+        return preg_match('/\A#[0-9a-fA-F]{6}\z/', $color) === 1 ? strtoupper($color) : '#7C4EE6';
+    }
+
+    private function renderizarAltaCategoria(array $datos = []): void
+    {
+        header('Cache-Control: no-store');
+        $_SESSION['editor_categoria_alta_csrf'] ??= bin2hex(random_bytes(32));
+        $datos += ['nombre' => '', 'color' => '#7C4EE6'];
+        $datos['tokenCSRF'] = $_SESSION['editor_categoria_alta_csrf'];
+        $this->render->renderiza('editorCategoria', $datos);
     }
 
     public function sugerencias(): void

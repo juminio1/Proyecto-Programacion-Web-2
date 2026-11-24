@@ -1,7 +1,6 @@
-<link rel="stylesheet" href="/css/partida.css?v=temporizador15">
-<link rel="stylesheet" href="/css/partida.css?v=animaciones2">
+<link rel="stylesheet" href="/css/partida.css?v=categorias-20261123">
 
-<main class="partida-pagina" data-id-partida="{{idPartida}}">
+<main class="partida-pagina" data-id-partida="{{idPartida}}" style="--color-categoria: {{colorCategoria}};">
     <form class="partida-formulario-salida"
           method="post"
           action="/partida/abandonar">
@@ -81,7 +80,7 @@
                    class="partida-mensaje"
                    role="status"
                    aria-live="polite">
-                    Seleccioná una opción para responder.
+                    Selecciona una opción para responder.
                 </p>
 
                 <button class="partida-confirmar"
@@ -219,5 +218,5 @@
     </dialog>
 </main>
 
-<script src="/js/partida.js?v=reporte1" defer></script>
+<script src="/js/partida.js?v=categorias-20261123" defer></script>
 <script src="/js/reporte-pregunta.js?v=2" defer></script>

@@ -92,6 +92,8 @@ class Router
             if (!in_array($method, [
                 '',
                 'show',
+                'nuevacategoria',
+                'guardarcategoria',
                 'sugerencias',
                 'aprobar',
                 'rechazar',

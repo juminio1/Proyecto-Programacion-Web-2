@@ -638,11 +638,13 @@
     }
 
     function actualizarPregunta(nuevaPregunta, recibidaEn) {
-        if (tarjetaPregunta && nuevaPregunta.color) {
-            tarjetaPregunta.style.setProperty('--color-categoria', nuevaPregunta.color);
+        const colorCategoria = /^#[0-9a-f]{6}$/i.test(nuevaPregunta.color || '')
+            ? nuevaPregunta.color : '#7C4EE6';
+        if (tarjetaPregunta) {
+            tarjetaPregunta.style.setProperty('--color-categoria', colorCategoria);
         }
-        if (pagina && nuevaPregunta.color) {
-            pagina.style.setProperty('--color-categoria', nuevaPregunta.color);
+        if (pagina) {
+            pagina.style.setProperty('--color-categoria', colorCategoria);
         }
 
         if (elementoCategoria && nuevaPregunta.categoria) {
