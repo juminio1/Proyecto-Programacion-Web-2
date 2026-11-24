@@ -1,45 +1,260 @@
-.admin .editor-panel + .editor-panel {
+.admin .editor-panel + .editor-panel,
+.admin .editor-aviso + #admin-estadisticas,
+.admin #admin-estadisticas .admin-seccion {
     margin-top: 22px;
 }
 
-.admin-secciones h2 {
+.admin-seccion h2 {
     margin: 0;
     font-size: clamp(20px, 3vw, 28px);
     font-weight: 900;
 }
 
-.admin-grilla {
+/* ---------- Tarjetas de resumen ---------- */
+
+.admin-resumen {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
     gap: 16px;
     margin-top: 20px;
 }
 
-.admin-tarjeta {
+.admin-dato {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     padding: 18px;
     background: var(--bg-superficie, #fff);
-    border: 1px dashed var(--borde, #e6ddf4);
+    border: 1px solid var(--borde, #e6ddf4);
     border-radius: 16px;
 }
 
-.admin-tarjeta h3 {
+.admin-dato-numero {
+    color: var(--morado-oscuro, #5227be);
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.admin-dato-texto {
+    color: var(--texto-secundario, #665a7d);
+    font-weight: 700;
+}
+
+/* ---------- Gráfico + tabla ---------- */
+
+.admin-grafico-fila {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+    margin-top: 20px;
+}
+
+.admin-grafico {
+    position: relative;
+    height: 280px;
+    padding: 12px;
+    background: var(--bg-superficie, #fff);
+    border: 1px solid var(--borde, #e6ddf4);
+    border-radius: 16px;
+}
+
+.admin-grafico-ancho {
+    grid-column: 1 / -1;
+    height: 320px;
+}
+
+.admin-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-superficie, #fff);
+    border: 1px solid var(--borde, #e6ddf4);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.admin-tabla th,
+.admin-tabla td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--borde, #e6ddf4);
+}
+
+.admin-tabla tbody tr:last-child th,
+.admin-tabla tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.admin-tabla td {
+    font-weight: 800;
+}
+
+/* ---------- Selector de período ---------- */
+
+.admin-encabezado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.admin-periodos {
+    display: flex;
+    gap: 8px;
+}
+
+.admin-periodos a {
+    padding: 6px 14px;
+    border: 1px solid var(--borde, #e6ddf4);
+    border-radius: 999px;
+    color: var(--texto-principal, #25154d);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.admin-periodos a.activo {
+    background: #572acf;
+    border-color: #572acf;
+    color: #fff;
+}
+
+.admin-periodos a:focus-visible {
+    outline: 2px solid var(--morado-oscuro, #5227be);
+    outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+    .admin-grafico-fila {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ---------- Tarjetas de resumen como enlaces ---------- */
+
+html {
+    scroll-behavior: smooth;
+}
+
+.admin-seccion {
+    scroll-margin-top: 90px;
+}
+
+a.admin-dato {
+    color: inherit;
+    text-decoration: none;
+    transition: transform .15s ease, border-color .15s ease;
+}
+
+a.admin-dato:hover {
+    border-color: var(--morado-oscuro, #5227be);
+    transform: translateY(-2px);
+}
+
+a.admin-dato:focus-visible {
+    outline: 2px solid var(--morado-oscuro, #5227be);
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    a.admin-dato { transition: none; }
+}
+
+/* ---------- Volver al resumen ---------- */
+
+.admin-volver {
+    display: inline-block;
+    margin-top: 18px;
+    color: var(--morado-oscuro, #5227be);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.admin-volver:hover {
+    text-decoration: underline;
+}
+
+.admin-volver:focus-visible {
+    outline: 2px solid var(--morado-oscuro, #5227be);
+    outline-offset: 3px;
+}
+
+/* ---------- Filtro y tabla de aciertos por usuario ---------- */
+
+.admin-filtro {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    align-items: end;
+    margin-top: 20px;
+}
+
+.admin-filtro-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.admin-filtro-campo label {
+    font-weight: 800;
+}
+
+.admin-filtro-campo input,
+.admin-filtro-campo select {
+    min-height: 44px;
+    padding: 8px 12px;
+    background: var(--color-input-bg, #fff);
+    color: var(--texto-principal, #25154d);
+    border: 1px solid var(--color-input-borde, #d8cdef);
+    border-radius: 12px;
+    font: inherit;
+}
+
+.admin-filtro-campo input:focus-visible,
+.admin-filtro-campo select:focus-visible {
+    outline: 2px solid var(--morado-oscuro, #5227be);
+    outline-offset: 2px;
+}
+
+.admin-filtro-botones {
+    display: flex;
+    gap: 10px;
+}
+
+.admin-filtro-botones .editor-boton {
     margin: 0;
-    font-size: 18px;
+}
+
+.admin-tabla th small {
+    display: block;
+    color: var(--texto-secundario, #665a7d);
+    font-weight: 600;
+}
+
+.admin-porcentaje {
+    display: block;
     font-weight: 900;
 }
 
-.admin-tarjeta p {
-    margin: 6px 0 0;
-    color: var(--texto-secundario, #665a7d);
+.admin-barra {
+    display: block;
+    height: 8px;
+    margin-top: 4px;
+    background: var(--borde, #e6ddf4);
+    border-radius: 999px;
+    overflow: hidden;
 }
 
-.admin-proximamente {
-    display: inline-block;
-    margin-top: 12px;
-    padding: 3px 10px;
-    border-radius: 999px;
-    background: var(--bg-superficie-alt, #f5f0ff);
-    color: var(--morado-oscuro, #5227be);
-    font-size: 12px;
-    font-weight: 800;
+.admin-barra span {
+    display: block;
+    height: 100%;
+    background: #2fa866;
+}
+
+.admin-sin-respuestas {
+    color: var(--texto-secundario, #665a7d);
+    font-style: italic;
+    font-weight: 700;
 }
