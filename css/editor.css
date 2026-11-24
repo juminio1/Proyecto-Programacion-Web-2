@@ -750,3 +750,770 @@ html.dark-mode .reporte-error {
         animation: none !important;
     }
 }
+
+/* ==========================================================
+   NUEVO PANEL PRINCIPAL DEL EDITOR
+   ========================================================== */
+
+.editor-inicio {
+    width: min(1180px, calc(100% - 40px));
+}
+
+.editor-hero {
+    padding: 8px 20px 30px;
+    text-align: center;
+}
+
+.editor-hero .editor-etiqueta {
+    margin: 0 0 8px;
+    color: #a987ff;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: .08em;
+}
+
+.editor-hero h1 {
+    margin: 0;
+    font-size: clamp(36px, 5vw, 58px);
+    font-weight: 900;
+    line-height: 1.05;
+}
+
+.editor-hero-descripcion {
+    margin: 14px 0 0;
+    color: var(--texto-secundario, #746986);
+    font-size: clamp(17px, 2vw, 22px);
+}
+
+
+/* ---------- Tarjetas principales ---------- */
+
+.editor-gestion {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.editor-gestion-card {
+    display: flex;
+    min-height: 390px;
+    padding: 32px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--borde, #ddd2f2);
+    border-radius: 24px;
+
+    background: var(--bg-superficie-alt, #f5f0ff);
+
+    text-align: center;
+}
+
+.editor-gestion-icono {
+    display: grid;
+    width: 104px;
+    height: 104px;
+    margin-bottom: 20px;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background: linear-gradient(
+            145deg,
+            #5425d7,
+            #8d35ff
+    );
+
+    color: #fff;
+
+    box-shadow: 0 14px 35px rgba(92, 44, 210, .25);
+}
+
+.editor-gestion-card h2 {
+    margin: 0;
+    font-size: clamp(30px, 4vw, 42px);
+    font-weight: 900;
+}
+
+.editor-gestion-card p {
+    max-width: 460px;
+    margin: 12px auto 28px;
+    color: var(--texto-secundario, #746986);
+    font-size: 18px;
+    line-height: 1.45;
+}
+
+.editor-gestion-boton {
+    display: flex;
+    width: min(100%, 420px);
+    min-height: 64px;
+    margin-top: auto;
+    padding: 14px 24px;
+
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+
+    border-radius: 13px;
+
+    background: linear-gradient(
+            100deg,
+            #5624dc,
+            #8b31f5
+    );
+
+    color: #fff;
+
+    font-size: 19px;
+    font-weight: 900;
+    text-decoration: none;
+
+    transition:
+            transform .18s ease,
+            box-shadow .18s ease;
+}
+
+.editor-gestion-boton:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(92, 44, 210, .28);
+}
+
+
+/* ---------- Pendientes ---------- */
+
+.editor-revisiones {
+    margin-top: 26px;
+    padding: 24px 28px;
+
+    border: 1px solid var(--borde, #ddd2f2);
+    border-radius: 22px;
+
+    background: var(--bg-superficie-alt, #f5f0ff);
+}
+
+.editor-revisiones h2 {
+    margin: 0 0 18px;
+    font-size: 26px;
+    font-weight: 900;
+}
+
+.editor-revisiones-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.editor-revision-link {
+    display: flex;
+    min-height: 68px;
+    padding: 14px 18px;
+
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+
+    border: 1px solid var(--borde, #d8caef);
+    border-radius: 14px;
+
+    color: var(--texto-principal, #25154d);
+
+    font-size: 16px;
+    font-weight: 900;
+    text-decoration: none;
+
+    transition:
+            border-color .18s ease,
+            transform .18s ease,
+            background .18s ease;
+}
+
+.editor-revision-link:hover {
+    border-color: #8154e8;
+    background: rgba(114, 65, 220, .07);
+    color: var(--texto-principal, #25154d);
+    transform: translateY(-1px);
+}
+
+
+/* ---------- Dark ---------- */
+
+html[data-theme="dark"] .editor-gestion-card,
+html.dark-mode .editor-gestion-card,
+html[data-theme="dark"] .editor-revisiones,
+html.dark-mode .editor-revisiones {
+    background: #21183a;
+    border-color: #49386e;
+}
+
+html[data-theme="dark"] .editor-revision-link,
+html.dark-mode .editor-revision-link {
+    border-color: #624b8e;
+    color: #f7f3ff;
+}
+
+html[data-theme="dark"] .editor-revision-link:hover,
+html.dark-mode .editor-revision-link:hover {
+    background: #30234c;
+    border-color: #9470e8;
+}
+
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 800px) {
+
+    .editor-gestion {
+        grid-template-columns: 1fr;
+    }
+
+    .editor-gestion-card {
+        min-height: 340px;
+    }
+
+    .editor-revisiones-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .editor-inicio {
+        width: calc(100% - 20px);
+    }
+
+    .editor-hero {
+        padding-inline: 6px;
+    }
+
+    .editor-gestion-card {
+        min-height: auto;
+        padding: 26px 18px;
+    }
+
+    .editor-gestion-icono {
+        width: 84px;
+        height: 84px;
+    }
+
+    .editor-gestion-card p {
+        font-size: 16px;
+    }
+
+    .editor-gestion-boton {
+        min-height: 56px;
+        font-size: 17px;
+    }
+
+    .editor-revisiones {
+        padding: 20px 16px;
+    }
+}
+
+/* ==========================================================
+   GESTIÓN DE PREGUNTAS
+   ========================================================== */
+
+.editor-preguntas-acciones {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.editor-boton-nueva-pregunta {
+    margin: 0;
+}
+
+
+/* ==========================================================
+   POPUP - DAR DE BAJA PREGUNTA
+   ========================================================== */
+
+.editor-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.editor-modal.editor-modal-visible {
+    display: flex;
+}
+
+.editor-modal-fondo {
+    position: absolute;
+    inset: 0;
+
+    background: rgba(8, 5, 20, 0.75);
+    backdrop-filter: blur(4px);
+}
+
+.editor-modal-contenido {
+    position: relative;
+    z-index: 1;
+
+    width: min(460px, 100%);
+    padding: 32px;
+
+    background: #21183a;
+    color: #f7f3ff;
+
+    border: 1px solid #4d3b70;
+    border-radius: 20px;
+
+    text-align: center;
+
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.editor-modal-icono {
+    display: grid;
+    place-items: center;
+
+    width: 58px;
+    height: 58px;
+
+    margin: 0 auto 18px;
+
+    border-radius: 50%;
+
+    background: #4a1d2a;
+    color: #ff7589;
+
+    font-size: 30px;
+    font-weight: 900;
+}
+
+.editor-modal-contenido h2 {
+    margin: 0;
+
+    font-size: 26px;
+    font-weight: 900;
+}
+
+.editor-modal-contenido > p {
+    margin: 14px 0 0;
+}
+
+.editor-modal-aclaracion {
+    color: #b9adc9;
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.editor-modal-acciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.editor-modal-cancelar,
+.editor-modal-confirmar {
+    min-height: 46px;
+    padding: 10px 16px;
+
+    border-radius: 11px;
+
+    font: inherit;
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+.editor-modal-cancelar {
+    border: 1px solid #65537f;
+
+    background: transparent;
+    color: #f7f3ff;
+}
+
+.editor-modal-cancelar:hover {
+    background: #30264b;
+}
+
+.editor-modal-confirmar {
+    border: none;
+
+    background: #c33f52;
+    color: #ffffff;
+}
+
+.editor-modal-confirmar:hover {
+    background: #a92f41;
+}
+
+.editor-modal-abierto {
+    overflow: hidden;
+}
+
+@media (max-width: 480px) {
+
+    .editor-modal-contenido {
+        padding: 26px 20px;
+    }
+
+    .editor-modal-acciones {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================================
+   HERRAMIENTAS - GESTIÓN DE PREGUNTAS
+   ========================================================== */
+
+.editor-preguntas-herramientas {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+
+    margin-top: 24px;
+    padding-top: 24px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.editor-preguntas-buscador,
+.editor-preguntas-filtro {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.editor-preguntas-herramientas label {
+    font-size: 13px;
+    font-weight: 800;
+    color: #b9adc9;
+}
+
+.editor-preguntas-herramientas input,
+.editor-preguntas-herramientas select {
+    width: 100%;
+    min-height: 46px;
+
+    padding: 10px 14px;
+
+    border: 1px solid #4c3d69;
+    border-radius: 10px;
+
+    background: #181126;
+    color: #ffffff;
+
+    font: inherit;
+}
+
+.editor-preguntas-herramientas input:focus,
+.editor-preguntas-herramientas select:focus {
+    outline: none;
+
+    border-color: #8b5cf6;
+
+    box-shadow:
+            0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+.editor-categoria-preguntas {
+    margin-top: 24px;
+}
+
+@media (max-width: 700px) {
+
+    .editor-preguntas-herramientas {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==========================================================
+   BADGES DE DIFICULTAD
+   ========================================================== */
+
+.editor-badge-dificultad {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 6px 10px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.editor-badge-punto {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: currentColor;
+}
+
+.editor-dificultad-facil {
+    background: rgba(34, 197, 94, 0.12);
+    color: #4ade80;
+}
+
+.editor-dificultad-media {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+}
+
+.editor-dificultad-dificil {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fb7185;
+}
+
+
+/* ==========================================================
+   ACCIONES DE PREGUNTA
+   ========================================================== */
+
+.editor-pregunta-acciones {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.editor-accion {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+
+    padding: 0;
+
+    border-radius: 9px;
+
+    text-decoration: none;
+    cursor: pointer;
+
+    transition:
+            background 0.15s ease,
+            border-color 0.15s ease,
+            transform 0.15s ease;
+}
+
+.editor-accion svg {
+    width: 17px;
+    height: 17px;
+
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* EDITAR */
+
+.editor-accion-editar {
+    border: 1px solid #514070;
+
+    background: #211832;
+    color: #bca7ff;
+}
+
+.editor-accion-editar:hover {
+    background: #332351;
+    border-color: #785be8;
+
+    transform: translateY(-1px);
+}
+
+
+/* DAR DE BAJA */
+
+.editor-accion-baja {
+    border: 1px solid #563443;
+
+    background: #291720;
+    color: #fb7185;
+}
+
+.editor-accion-baja:hover {
+    background: #3b1c28;
+    border-color: #b74459;
+
+    transform: translateY(-1px);
+}
+
+/* ==========================================================
+   CABECERA - GESTIÓN DE PREGUNTAS
+   ========================================================== */
+
+.editor-preguntas-cabecera {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 32px;
+}
+
+.editor-preguntas-cabecera-texto {
+    min-width: 0;
+}
+
+.editor-preguntas-cabecera-texto h1 {
+    margin: 6px 0 8px;
+
+    font-size: 42px;
+    line-height: 1;
+}
+
+.editor-preguntas-descripcion {
+    margin: 0;
+
+    color: #b9adc9;
+
+    line-height: 1.5;
+}
+
+.editor-preguntas-acciones {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    margin: 0;
+    padding-top: 14px;
+}
+
+.editor-boton-nueva-pregunta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    min-height: 44px;
+    padding: 0 18px;
+
+    border-radius: 11px;
+
+    background: #6737e8;
+    color: #ffffff;
+
+    font-weight: 800;
+    text-decoration: none;
+
+    transition:
+            background 0.15s ease,
+            transform 0.15s ease,
+            box-shadow 0.15s ease;
+}
+
+.editor-boton-nueva-pregunta:hover {
+    background: #7548eb;
+
+    transform: translateY(-1px);
+
+    box-shadow:
+            0 8px 24px rgba(103, 55, 232, 0.25);
+}
+
+@media (max-width: 700px) {
+
+    .editor-preguntas-cabecera {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .editor-preguntas-acciones {
+        width: 100%;
+        padding-top: 0;
+    }
+
+    .editor-boton-nueva-pregunta {
+        width: 100%;
+    }
+}
+
+/* ==========================================================
+   RESUMEN - GESTIÓN DE PREGUNTAS
+   ========================================================== */
+
+.editor-preguntas-resumen {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    margin-top: 26px;
+    margin-bottom: 22px;
+}
+
+.editor-resumen-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-width: 190px;
+
+    padding: 14px 16px;
+
+    border: 1px solid #40335b;
+    border-radius: 12px;
+
+    background: #1b142b;
+}
+
+.editor-resumen-icono {
+    display: grid;
+    place-items: center;
+
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    border-radius: 10px;
+
+    background: rgba(103, 55, 232, 0.14);
+    color: #a98cff;
+
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.editor-resumen-item div {
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-resumen-item strong {
+    color: #ffffff;
+
+    font-size: 20px;
+    line-height: 1.1;
+}
+
+.editor-resumen-item div span {
+    margin-top: 3px;
+
+    color: #9f93b3;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+
+    .editor-preguntas-resumen {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .editor-resumen-item {
+        width: 100%;
+    }
+}

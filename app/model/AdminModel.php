@@ -6,6 +6,8 @@ use PDO;
 
 class AdminModel
 {
+    public const EDAD_MAYORIA = 18;
+    public const EDAD_JUBILACION = 65;
     private PDO $pdo;
 
     public function __construct($database)
@@ -162,4 +164,72 @@ class AdminModel
 
         return $jugadores;
     }
+
+    public function obtenerUsuariosPorPais(): array
+    {
+        $filas = $this->pdo->query(
+            "SELECT MIN(TRIM(pais)) AS pais, COUNT(*) AS cantidad
+             FROM usuarios
+             WHERE rol = 'jugador'
+             GROUP BY LOWER(TRIM(pais))
+             ORDER BY cantidad DESC, pais"
+        )->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($filas as &$fila) {
+            $fila['cantidad'] = (int) $fila['cantidad'];
+            if ($fila['pais'] === null || $fila['pais'] === '') {
+                $fila['pais'] = 'Sin especificar';
+            }
+        }
+        unset($fila);
+
+        return $filas;
+    }
+
+    public function obtenerUsuariosPorSexo(): array
+    {
+        $filas = $this->pdo->query(
+            "SELECT sexo, COUNT(*) AS cantidad
+             FROM usuarios
+             WHERE rol = 'jugador'
+             GROUP BY sexo"
+        )->fetchAll(PDO::FETCH_KEY_PAIR);
+
+        $resultado = [];
+        foreach (['Masculino', 'Femenino', 'Prefiero no cargarlo'] as $sexo) {
+            $resultado[] = ['sexo' => $sexo, 'cantidad' => (int) ($filas[$sexo] ?? 0)];
+        }
+
+        return $resultado;
+    }
+
+    public function obtenerUsuariosPorGrupoEdad(): array
+    {
+        $consulta = $this->pdo->prepare(
+            "SELECT
+                COALESCE(SUM((:anio_menores - anio_nacimiento) < :mayoria), 0) AS menores,
+                COALESCE(SUM((:anio_jubilados - anio_nacimiento) >= :jubilacion), 0) AS jubilados,
+                COUNT(*) AS total
+             FROM usuarios
+             WHERE rol = 'jugador'"
+        );
+        $anio = (int) date('Y');
+        $consulta->bindValue('anio_menores', $anio, PDO::PARAM_INT);
+        $consulta->bindValue('anio_jubilados', $anio, PDO::PARAM_INT);
+        $consulta->bindValue('mayoria', self::EDAD_MAYORIA, PDO::PARAM_INT);
+        $consulta->bindValue('jubilacion', self::EDAD_JUBILACION, PDO::PARAM_INT);
+        $consulta->execute();
+        $fila = $consulta->fetch(PDO::FETCH_ASSOC);
+
+        $menores = (int) $fila['menores'];
+        $jubilados = (int) $fila['jubilados'];
+        $medio = (int) $fila['total'] - $menores - $jubilados;
+
+        return [
+            ['grupo' => 'Menores', 'rango' => 'menos de ' . self::EDAD_MAYORIA . ' años', 'cantidad' => $menores],
+            ['grupo' => 'Medio', 'rango' => 'de ' . self::EDAD_MAYORIA . ' a ' . (self::EDAD_JUBILACION - 1) . ' años', 'cantidad' => $medio],
+            ['grupo' => 'Jubilados', 'rango' => self::EDAD_JUBILACION . ' años o más', 'cantidad' => $jubilados],
+        ];
+    }
+
 }

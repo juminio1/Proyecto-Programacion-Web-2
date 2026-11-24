@@ -1,69 +1,144 @@
-<link rel="stylesheet" href="/css/editor.css?v=alta-categorias-20261123">
-<main class="editor">
-    <section class="editor-panel" aria-labelledby="editor-titulo">
+<link rel="stylesheet" href="/css/editor.css?v=6">
+
+<main class="editor editor-inicio">
+
+    <section class="editor-hero" aria-labelledby="editor-titulo">
         <p class="editor-etiqueta">ROL EDITOR</p>
+
         <h1 id="editor-titulo">Panel del editor</h1>
-        <p>Esta cuenta está destinada a la gestión de preguntas y categorías. Para jugar, inicia sesión con una cuenta de jugador.</p>
-        <a class="editor-boton" href="/editor/nuevaCategoria">Dar de alta categoría</a>
-        <a class="editor-boton" href="/editor/sugerencias">Revisar preguntas sugeridas</a>
-        <a class="editor-boton" href="/editor/reportes">Revisar preguntas reportadas</a>
-        <a class="editor-boton" href="/editor/mostrarCategoriasSugeridasPendientes">Revisar categorías sugeridas</a>
+
+        <p class="editor-hero-descripcion">
+            Gestioná las categorías y las preguntas del juego.
+        </p>
     </section>
 
-    <section class="editor-categorias editor-panel" aria-labelledby="editor-categorias-titulo">
-        {{#mensajeExitoCategoria}}
-            <p class="editor-aviso editor-aviso-exito" role="status">{{mensajeExitoCategoria}}</p>
-        {{/mensajeExitoCategoria}}
-        <div class="editor-categorias-encabezado">
-            <h2 id="editor-categorias-titulo">Categorías habilitadas</h2>
-            {{#categoriasCargadas}}
-                <span class="editor-categorias-total">{{cantidadCategoriasHabilitadas}} en total</span>
-            {{/categoriasCargadas}}
+
+    <section class="editor-gestion" aria-label="Gestión del juego">
+
+        <!-- CATEGORÍAS -->
+        <article class="editor-gestion-card">
+
+            <div class="editor-gestion-icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24"
+                     width="46"
+                     height="46"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <path d="m12 2 9 5-9 5-9-5 9-5Z"/>
+                    <path d="m3 12 9 5 9-5"/>
+                    <path d="m3 17 9 5 9-5"/>
+                </svg>
+            </div>
+
+            <h2>Categorías</h2>
+
+            <p>
+                Consultá el listado y administrá sus altas,
+                bajas y modificaciones.
+            </p>
+
+            <a href="/editor/mostrarGestionCategorias"
+               class="editor-gestion-boton">
+
+                <span>Gestionar categorías</span>
+
+                <svg viewBox="0 0 24 24"
+                     width="24"
+                     height="24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2.4"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+                    <path d="M5 12h14"/>
+                    <path d="m13 6 6 6-6 6"/>
+                </svg>
+
+            </a>
+
+        </article>
+
+
+        <!-- PREGUNTAS -->
+        <article class="editor-gestion-card">
+
+            <div class="editor-gestion-icono" aria-hidden="true">
+                <svg viewBox="0 0 24 24"
+                     width="46"
+                     height="46"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+                    <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/>
+                    <path d="M9.5 9a2.5 2.5 0 1 1 4.4 1.6c-.9.8-1.9 1.2-1.9 2.4"/>
+                    <path d="M12 16h.01"/>
+                </svg>
+            </div>
+
+            <h2>Preguntas</h2>
+
+            <p>
+                Organizá las preguntas, editá su contenido
+                y controlá su estado.
+            </p>
+
+            <a href="/editor/mostrarGestionPreguntas"
+               class="editor-gestion-boton">
+
+                <span>Gestionar preguntas</span>
+
+                <svg viewBox="0 0 24 24"
+                     width="24"
+                     height="24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2.4"
+                     stroke-linecap="round"
+                     stroke-linejoin="round"
+                     aria-hidden="true">
+                    <path d="M5 12h14"/>
+                    <path d="m13 6 6 6-6 6"/>
+                </svg>
+
+            </a>
+
+        </article>
+
+    </section>
+
+
+    <section class="editor-revisiones"
+             aria-labelledby="editor-pendientes-titulo">
+
+        <h2 id="editor-pendientes-titulo">
+            Pendientes de revisión
+        </h2>
+
+        <div class="editor-revisiones-grid">
+
+            <a href="/editor/sugerencias"
+               class="editor-revision-link">
+                <span>Preguntas sugeridas</span>
+            </a>
+
+            <a href="/editor/reportes"
+               class="editor-revision-link">
+                <span>Preguntas reportadas</span>
+            </a>
+
+            <a href="/editor/mostrarCategoriasSugeridasPendientes"
+               class="editor-revision-link">
+                <span>Categorías sugeridas</span>
+            </a>
+
         </div>
-        <p>Las categorías creadas o aprobadas quedan habilitadas para agregar preguntas. Para aparecer en el inicio y las partidas, necesitan preguntas habilitadas.</p>
 
-        {{#errorCategorias}}
-            <p class="editor-aviso editor-aviso-error" role="alert">{{errorCategorias}}</p>
-        {{/errorCategorias}}
-
-        {{#sinCategoriasHabilitadas}}
-            <p class="editor-sin-pendientes">Todavía no hay categorías habilitadas.</p>
-        {{/sinCategoriasHabilitadas}}
-
-        {{#categoriasCargadas}}
-            {{^sinCategoriasHabilitadas}}
-                <div class="editor-categorias-tabla-contenedor" role="region" aria-label="Listado de categorías habilitadas" tabindex="0">
-                    <table class="editor-categorias-tabla">
-                        <caption class="editor-texto-accesible">Categorías habilitadas y cantidad de preguntas habilitadas de cada una.</caption>
-                        <thead>
-                        <tr>
-                            <th scope="col">Categoría</th>
-                            <th scope="col">Color</th>
-                            <th scope="col">Estado</th>
-                            <th scope="col">Preguntas habilitadas</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {{#categoriasHabilitadas}}
-                            <tr>
-                                <th scope="row">
-                                    {{nombre}}
-                                    {{^tienePreguntas}}<small>Necesita preguntas para aparecer en partidas.</small>{{/tienePreguntas}}
-                                </th>
-                                <td>
-                                    <span class="editor-categoria-muestra" style="--categoria-color: {{color}};">
-                                        <span class="editor-categoria-punto" aria-hidden="true"></span>
-                                        {{color}}
-                                    </span>
-                                </td>
-                                <td><span class="editor-categoria-estado">Habilitada</span></td>
-                                <td class="editor-categoria-cantidad">{{cantidad_preguntas}}</td>
-                            </tr>
-                        {{/categoriasHabilitadas}}
-                        </tbody>
-                    </table>
-                </div>
-            {{/sinCategoriasHabilitadas}}
-        {{/categoriasCargadas}}
     </section>
+
 </main>

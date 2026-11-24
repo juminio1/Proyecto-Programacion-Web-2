@@ -258,3 +258,32 @@ a.admin-dato:focus-visible {
     font-style: italic;
     font-weight: 700;
 }
+
+/* ---------- Estadísticas de los usuarios ---------- */
+
+.admin-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.admin-acciones .editor-boton {
+    margin: 0;
+}
+
+.admin-tabla-scroll {
+    max-height: 340px;
+    overflow-y: auto;
+    border-radius: 12px;
+}
+
+.admin-tabla th small {
+    display: inline;
+    margin-left: 4px;
+}
+
+#admin-caracteristicas .admin-seccion,
+.admin > .editor-aviso + .admin-seccion {
+    margin-top: 22px;
+}

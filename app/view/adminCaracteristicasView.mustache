@@ -1,0 +1,91 @@
+<link rel="stylesheet" href="/css/editor.css?v=5">
+<link rel="stylesheet" href="/css/admin.css?v=4">
+<main class="editor admin">
+    <section class="editor-panel" aria-labelledby="admin-caract-titulo">
+        <a class="editor-volver" href="/admin/show#seccion-jugadores">← Volver al panel</a>
+        <p class="editor-etiqueta">ROL ADMIN</p>
+        <h1 id="admin-caract-titulo">Estadísticas de los usuarios</h1>
+        <p>Distribución de los jugadores por país, sexo y grupo de edad.</p>
+    </section>
+
+    {{#errorCaracteristicas}}
+        <p class="editor-aviso editor-aviso-error" role="alert">{{errorCaracteristicas}}</p>
+    {{/errorCaracteristicas}}
+
+    {{#caracteristicasCargadas}}
+        <div id="admin-caracteristicas" data-graficos="{{graficosJson}}">
+
+            {{#sinJugadores}}
+                <section class="editor-panel admin-seccion">
+                    <p class="editor-sin-pendientes">Todavía no hay jugadores registrados.</p>
+                </section>
+            {{/sinJugadores}}
+
+            {{^sinJugadores}}
+                <section class="editor-panel admin-seccion" aria-labelledby="caract-pais-titulo">
+                    <h2 id="caract-pais-titulo">Usuarios por país</h2>
+                    <p>Total de jugadores: <strong>{{totalJugadores}}</strong>. El gráfico muestra los 8 países con más jugadores; la tabla los incluye a todos.</p>
+                    <div class="admin-grafico-fila">
+                        <div class="admin-grafico">
+                            <canvas id="grafico-paises" role="img" aria-label="Gráfico de usuarios por país"></canvas>
+                        </div>
+                        <div class="admin-tabla-scroll" role="region" aria-label="Usuarios por país" tabindex="0">
+                            <table class="editor-categorias-tabla admin-tabla">
+                                <caption class="editor-texto-accesible">Cantidad de jugadores por país.</caption>
+                                <thead><tr><th scope="col">País</th><th scope="col">Usuarios</th><th scope="col">%</th></tr></thead>
+                                <tbody>
+                                {{#paises}}
+                                    <tr><th scope="row">{{pais}}</th><td>{{cantidad}}</td><td>{{porcentaje}}</td></tr>
+                                {{/paises}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="editor-panel admin-seccion" aria-labelledby="caract-sexo-titulo">
+                    <h2 id="caract-sexo-titulo">Usuarios por sexo</h2>
+                    <div class="admin-grafico-fila">
+                        <div class="admin-grafico">
+                            <canvas id="grafico-sexos" role="img" aria-label="Gráfico de usuarios por sexo"></canvas>
+                        </div>
+                        <table class="editor-categorias-tabla admin-tabla">
+                            <caption class="editor-texto-accesible">Cantidad de jugadores por sexo.</caption>
+                            <thead><tr><th scope="col">Sexo</th><th scope="col">Usuarios</th><th scope="col">%</th></tr></thead>
+                            <tbody>
+                            {{#sexos}}
+                                <tr><th scope="row">{{sexo}}</th><td>{{cantidad}}</td><td>{{porcentaje}}</td></tr>
+                            {{/sexos}}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="editor-panel admin-seccion" aria-labelledby="caract-edad-titulo">
+                    <h2 id="caract-edad-titulo">Usuarios por grupo de edad</h2>
+                    <div class="admin-grafico-fila">
+                        <div class="admin-grafico">
+                            <canvas id="grafico-edades" role="img" aria-label="Gráfico de usuarios por grupo de edad"></canvas>
+                        </div>
+                        <table class="editor-categorias-tabla admin-tabla">
+                            <caption class="editor-texto-accesible">Cantidad de jugadores por grupo de edad.</caption>
+                            <thead><tr><th scope="col">Grupo</th><th scope="col">Usuarios</th><th scope="col">%</th></tr></thead>
+                            <tbody>
+                            {{#edades}}
+                                <tr>
+                                    <th scope="row">{{grupo}} <small>{{rango}}</small></th>
+                                    <td>{{cantidad}}</td>
+                                    <td>{{porcentaje}}</td>
+                                </tr>
+                            {{/edades}}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {{/sinJugadores}}
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+        <script src="/js/admin-caracteristicas.js?v=2"></script>
+    {{/caracteristicasCargadas}}
+</main>

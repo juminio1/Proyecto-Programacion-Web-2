@@ -1,0 +1,364 @@
+<link rel="stylesheet" href="/css/editor.css?v=13">
+
+<main class="editor">
+
+    <a href="/editor/show" class="editor-volver">
+        ← Volver al panel del editor
+    </a>
+
+    <section class="editor-panel">
+
+        <div class="editor-preguntas-cabecera">
+
+            <div class="editor-preguntas-cabecera-texto">
+
+                <p class="editor-etiqueta">
+                    GESTIÓN DEL EDITOR
+                </p>
+
+                <h1>Preguntas</h1>
+
+                <p class="editor-preguntas-descripcion">
+                    Consultá, buscá y administrá las preguntas disponibles en el juego.
+                </p>
+
+            </div>
+
+
+            <div class="editor-preguntas-acciones">
+
+                <a href="/editor/mostrarFormularioNuevaPregunta"
+                   class="editor-boton editor-boton-nueva-pregunta">
+                    <span aria-hidden="true">+</span>
+                    Nueva pregunta
+                </a>
+
+            </div>
+
+        </div>
+
+        <div class="editor-preguntas-resumen">
+
+            <div class="editor-resumen-item">
+
+        <span class="editor-resumen-icono">
+            ?
+        </span>
+
+                <div>
+                    <strong>
+                        {{cantidadTotalPreguntas}}
+                    </strong>
+
+                    <span>
+                Preguntas activas
+            </span>
+                </div>
+
+            </div>
+
+
+            <div class="editor-resumen-item">
+
+        <span class="editor-resumen-icono">
+            #
+        </span>
+
+                <div>
+                    <strong>
+                        {{cantidadTotalCategorias}}
+                    </strong>
+
+                    <span>
+                Categorías
+            </span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="editor-preguntas-herramientas">
+
+            <div class="editor-preguntas-buscador">
+
+                <label for="buscar-pregunta">
+                    Buscar pregunta
+                </label>
+
+                <input type="search"
+                       id="buscar-pregunta"
+                       placeholder="Ej: planeta rojo..."
+                       autocomplete="off">
+
+            </div>
+
+
+            <div class="editor-preguntas-filtro">
+
+                <label for="filtrar-categoria">
+                    Categoría
+                </label>
+
+                <select id="filtrar-categoria">
+
+                    <option value="">
+                        Todas las categorías
+                    </option>
+
+                    {{#categoriasConPreguntas}}
+                        <option value="{{nombreCategoria}}">
+                            {{nombreCategoria}}
+                        </option>
+                    {{/categoriasConPreguntas}}
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        {{#mensajeError}}
+            <p class="editor-aviso editor-aviso-error">
+                {{mensajeError}}
+            </p>
+        {{/mensajeError}}
+
+    </section>
+
+
+    {{#sinPreguntas}}
+
+        <section class="editor-panel"
+                 style="margin-top: 24px;">
+
+            <p>No hay preguntas cargadas.</p>
+
+        </section>
+
+    {{/sinPreguntas}}
+
+
+    <div id="editor-listado-preguntas">
+
+        {{#categoriasConPreguntas}}
+
+            <section class="editor-panel editor-categoria-preguntas"
+                     data-categoria="{{nombreCategoria}}">
+
+                <div class="editor-categorias-encabezado">
+
+                    <h2>
+                        {{nombreCategoria}}
+                    </h2>
+
+                    <span class="editor-categorias-total">
+                        {{cantidadPreguntas}} preguntas
+                    </span>
+
+                </div>
+
+
+                <div class="editor-categorias-tabla-contenedor">
+
+                    <table class="editor-categorias-tabla">
+
+                        <thead>
+
+                        <tr>
+                            <th>Pregunta</th>
+                            <th>Dificultad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                        {{#preguntas}}
+
+                            <tr class="editor-fila-pregunta"
+                                data-pregunta="{{pregunta}}">
+
+                                <td>
+                                    {{pregunta}}
+                                </td>
+
+                                <td>
+
+                                    {{#dificultadFacil}}
+                                        <span class="editor-badge-dificultad editor-dificultad-facil">
+                                            <span class="editor-badge-punto"></span>
+                                            Fácil
+                                        </span>
+                                    {{/dificultadFacil}}
+
+                                    {{#dificultadMedia}}
+                                        <span class="editor-badge-dificultad editor-dificultad-media">
+                                            <span class="editor-badge-punto"></span>
+                                            Media
+                                        </span>
+                                    {{/dificultadMedia}}
+
+                                    {{#dificultadDificil}}
+                                        <span class="editor-badge-dificultad editor-dificultad-dificil">
+                                            <span class="editor-badge-punto"></span>
+                                            Difícil
+                                        </span>
+                                    {{/dificultadDificil}}
+
+                                </td>
+
+                                <td>
+
+                                    {{#estaHabilitada}}
+                                        <span class="reporte-estado-activa">
+                                            Habilitada
+                                        </span>
+                                    {{/estaHabilitada}}
+
+                                    {{#estaDeshabilitada}}
+                                        <span class="reporte-estado-inactiva">
+                                            Deshabilitada
+                                        </span>
+                                    {{/estaDeshabilitada}}
+
+                                </td>
+
+
+                                <td class="editor-pregunta-acciones">
+
+                                    <a href="/editor/mostrarFormularioEditarPregunta?id={{id}}"
+                                    class="editor-accion editor-accion-editar"
+                                    title="Editar pregunta"
+                                    aria-label="Editar pregunta">
+
+                                    <svg viewBox="0 0 24 24"
+                                         aria-hidden="true">
+                                        <path d="M12 20h9"></path>
+                                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path>
+                                    </svg>
+
+                                    </a>
+
+                                    {{#estaHabilitada}}
+
+                                        <button type="button"
+                                                class="editor-accion editor-accion-baja"
+                                                title="Dar de baja"
+                                                aria-label="Dar de baja la pregunta"
+                                                data-accion="abrir-baja"
+                                                data-pregunta-id="{{id}}">
+
+                                            <svg viewBox="0 0 24 24"
+                                                 aria-hidden="true">
+                                                <path d="M3 6h18"></path>
+                                                <path d="M8 6V4h8v2"></path>
+                                                <path d="M19 6l-1 14H6L5 6"></path>
+                                                <path d="M10 11v5"></path>
+                                                <path d="M14 11v5"></path>
+                                            </svg>
+
+                                        </button>
+
+                                    {{/estaHabilitada}}
+
+                                </td>
+
+                            </tr>
+
+                        {{/preguntas}}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        {{/categoriasConPreguntas}}
+
+    </div>
+
+
+    <section id="editor-sin-resultados"
+             class="editor-panel editor-sin-resultados"
+             hidden>
+
+        <p>
+            No se encontraron preguntas con los filtros seleccionados.
+        </p>
+
+    </section>
+
+</main>
+
+
+
+<!-- =====================================================
+     MODAL DE CONFIRMACIÓN DE BAJA
+     ===================================================== -->
+
+<div id="modal-baja-pregunta"
+     class="editor-modal"
+     aria-hidden="true">
+
+    <div class="editor-modal-fondo"
+         data-accion="cerrar-baja">
+    </div>
+
+
+    <div class="editor-modal-contenido"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="modal-baja-titulo">
+
+        <div class="editor-modal-icono"
+             aria-hidden="true">
+            !
+        </div>
+
+
+        <h2 id="modal-baja-titulo">
+            Dar de baja pregunta
+        </h2>
+
+
+        <p>
+            ¿Seguro que querés dar de baja esta pregunta?
+        </p>
+
+
+        <p class="editor-modal-aclaracion">
+            Dejará de aparecer en nuevas partidas, pero no se eliminarán
+            los resultados de partidas anteriores.
+        </p>
+
+
+        <div class="editor-modal-acciones">
+
+            <button type="button"
+                    class="editor-modal-cancelar"
+                    data-accion="cerrar-baja">
+                Cancelar
+            </button>
+
+
+            <button type="button"
+                    class="editor-modal-confirmar"
+                    id="confirmar-baja-pregunta">
+                Dar de baja
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="/js/editorPreguntas.js?v=5" defer></script>

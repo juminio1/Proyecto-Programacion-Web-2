@@ -72,7 +72,7 @@ class Router
                 echo 'Esta página es exclusiva para administradores.';
                 exit;
             }
-            if (!in_array($method, ['', 'show', 'usuarios'], true)) {
+            if (!in_array($method, ['', 'show', 'usuarios', 'caracteristicas'], true)) {
                 http_response_code(404);
                 exit;
             }
@@ -102,7 +102,13 @@ class Router
                 'resolverreporte',
                 'mostrarcategoriassugeridaspendientes',
                 'aprobarcategoriasugerida',
-                'rechazarcategoriasugerida'
+                'rechazarcategoriasugerida',
+                'mostrargestionpreguntas',
+                'mostrarformularionuevapregunta',
+                'crearnuevapregunta',
+                'dardebajapregunta',
+                'mostrarformularioeditarpregunta',
+                'guardarcambiospregunta',
             ], true)) {
                 http_response_code(404);
                 exit;
