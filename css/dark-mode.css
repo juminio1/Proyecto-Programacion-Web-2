@@ -65,9 +65,9 @@ body,
 .sugerir,
 .boton-tema {
     transition: background-color 0.25s ease,
-                border-color 0.25s ease,
-                color 0.25s ease,
-                box-shadow 0.25s ease;
+    border-color 0.25s ease,
+    color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 html[data-theme="dark"] body,
@@ -184,11 +184,6 @@ html.dark-mode .barra-superior {
     box-shadow: 0 2px 14px rgba(0, 0, 0, 0.45);
 }
 
-html[data-theme="dark"] .logo-texto,
-html.dark-mode .logo-texto {
-    color: #ffffff;
-}
-
 html[data-theme="dark"] .barra-nav a,
 html.dark-mode .barra-nav a {
     color: #b4acd4;
@@ -268,11 +263,6 @@ html.dark-mode .pie-pagina {
     background-color: #171329;
     border-top-color: #292147;
     box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.35);
-}
-
-html[data-theme="dark"] .pie-marca,
-html.dark-mode .pie-marca {
-    color: #ffffff;
 }
 
 html[data-theme="dark"] .pie-creditos,
@@ -357,9 +347,9 @@ html.dark-mode .dato-icono-partidas {
 html[data-theme="dark"] .banner-jugar,
 html.dark-mode .banner-jugar {
     background:
-        radial-gradient(ellipse at 82% 12%, rgba(142, 101, 255, 0.18), transparent 55%),
-        radial-gradient(ellipse at 96% 100%, rgba(91, 47, 217, 0.22), transparent 50%),
-        linear-gradient(135deg, #25164d, #181033);
+            radial-gradient(ellipse at 82% 12%, rgba(142, 101, 255, 0.18), transparent 55%),
+            radial-gradient(ellipse at 96% 100%, rgba(91, 47, 217, 0.22), transparent 50%),
+            linear-gradient(135deg, #25164d, #181033);
     border-color: #3e2c7a;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
@@ -742,9 +732,9 @@ html.dark-mode #mapa-registro .leaflet-control-zoom a:hover {
 html[data-theme="dark"] .partida-pagina,
 html.dark-mode .partida-pagina {
     background-color: color-mix(
-        in srgb,
-        var(--color-categoria, #2c91e8) 14%,
-        #100d1e
+            in srgb,
+            var(--color-categoria, #2c91e8) 14%,
+            #100d1e
     );
     color: #e2ddf3;
 }
@@ -779,9 +769,9 @@ html.dark-mode .partida-tarjeta {
 html[data-theme="dark"] .partida-pregunta,
 html.dark-mode .partida-pregunta {
     background-color: color-mix(
-        in srgb,
-        var(--color-categoria, #2c91e8) 12%,
-        #1c1730
+            in srgb,
+            var(--color-categoria, #2c91e8) 12%,
+            #1c1730
     );
     border-color: #2e2650;
     border-top: 6px solid var(--color-categoria);

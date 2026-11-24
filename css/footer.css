@@ -26,32 +26,10 @@
 
 /* Marca */
 .pie-marca {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #1d1050;
-    font-size: 22px;
-    font-weight: 900;
-    letter-spacing: -0.02em;
-    text-decoration: none;
-}
-
-.pie-icono {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(180deg, #7a4af0, #4d25c6);
-    color: #ffffff;
-    font-size: 22px;
-    font-weight: 900;
-    box-shadow: 0 3px 8px rgba(91, 47, 217, 0.25);
-}
-
-.pie-marca:hover {
-    color: #5b2fd9;
+    display: block;
+    flex-shrink: 0;
+    width: 168px;
+    max-width: 100%;
 }
 
 /* Créditos */
