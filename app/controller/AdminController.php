@@ -98,6 +98,67 @@ class AdminController
         $this->render->renderiza('adminUsuarios', $datos);
     }
 
+    public function caracteristicas(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+
+        header('Cache-Control: no-store');
+
+        $datos = [];
+
+        try {
+            $paises = $this->model->obtenerUsuariosPorPais();
+            $sexos = $this->model->obtenerUsuariosPorSexo();
+            $edades = $this->model->obtenerUsuariosPorGrupoEdad();
+            $total = array_sum(array_column($sexos, 'cantidad'));
+
+            $paisesGrafico = array_slice($paises, 0, 8);
+            $otros = array_sum(array_column(array_slice($paises, 8), 'cantidad'));
+            if ($otros > 0) {
+                $paisesGrafico[] = ['pais' => 'Otros', 'cantidad' => $otros];
+            }
+
+            $conPorcentaje = fn (array $filas) => array_map(
+                fn (array $f) => $f + [
+                        'porcentaje' => $total > 0 ? number_format($f['cantidad'] * 100 / $total, 1, ',', '') . ' %' : '—',
+                    ],
+                $filas
+            );
+
+            $graficos = [
+                'paises' => [
+                    'etiquetas' => array_column($paisesGrafico, 'pais'),
+                    'valores' => array_column($paisesGrafico, 'cantidad'),
+                ],
+                'sexos' => [
+                    'etiquetas' => array_column($sexos, 'sexo'),
+                    'valores' => array_column($sexos, 'cantidad'),
+                ],
+                'edades' => [
+                    'etiquetas' => array_column($edades, 'grupo'),
+                    'valores' => array_column($edades, 'cantidad'),
+                ],
+            ];
+
+            $datos['totalJugadores'] = $total;
+            $datos['sinJugadores'] = $total === 0;
+            $datos['paises'] = $conPorcentaje($paises);
+            $datos['sexos'] = $conPorcentaje($sexos);
+            $datos['edades'] = $conPorcentaje($edades);
+            $datos['graficosJson'] = json_encode($graficos, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+            $datos['caracteristicasCargadas'] = true;
+        } catch (PDOException $error) {
+            error_log('Error al cargar características de los jugadores: ' . $error->getMessage());
+            $datos['errorCaracteristicas'] = 'No se pudieron cargar las estadísticas de los jugadores. Intentá nuevamente.';
+        }
+
+        $this->render->renderiza('adminCaracteristicas', $datos);
+    }
+
     private function cargarEstadisticas(int $periodo): array
     {
         $jugadores = $this->model->obtenerCantidadJugadores();
