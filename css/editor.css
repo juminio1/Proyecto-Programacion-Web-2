@@ -1072,6 +1072,18 @@ html.dark-mode .editor-revision-link:hover {
     box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
 }
 
+#baja-categoria {
+    position: fixed;
+    box-sizing: border-box;
+    width: min(460px, calc(100% - 32px));
+    margin: auto;
+}
+
+#baja-categoria::backdrop {
+    background: rgba(8, 5, 20, .75);
+    backdrop-filter: blur(4px);
+}
+
 .editor-modal-icono {
     display: grid;
     place-items: center;

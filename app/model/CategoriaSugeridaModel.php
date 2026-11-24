@@ -46,15 +46,20 @@ class CategoriaSugeridaModel
 
     public function existeCategoriaConNombre(string $nombre): bool
     {
+        return $this->buscarEstadoCategoriaPorNombre($nombre) !== null;
+    }
+
+    private function buscarEstadoCategoriaPorNombre(string $nombre): ?bool
+    {
         $consulta = $this->database->getConexion()->prepare(
-            'SELECT EXISTS(
-                SELECT 1 FROM categorias
-                WHERE CONVERT(TRIM(nombre) USING utf8mb4) COLLATE utf8mb4_unicode_ci = :nombre
-            )'
+            'SELECT habilitada FROM categorias
+             WHERE CONVERT(TRIM(nombre) USING utf8mb4) COLLATE utf8mb4_unicode_ci = :nombre
+             ORDER BY habilitada DESC LIMIT 1'
         );
         $consulta->execute(['nombre' => $nombre]);
 
-        return (bool) $consulta->fetchColumn();
+        $categoria = $consulta->fetch(PDO::FETCH_ASSOC);
+        return $categoria === false ? null : (bool) $categoria['habilitada'];
     }
 
     public function existeSugerenciaCategoriaPendienteConNombre(string $nombre): bool
@@ -87,8 +92,12 @@ class CategoriaSugeridaModel
         try {
             $this->bloquearCategoriasParaEvitarDuplicados();
 
-            if ($this->existeCategoriaConNombre($nombre)) {
+            $habilitada = $this->buscarEstadoCategoriaPorNombre($nombre);
+            if ($habilitada === true) {
                 throw new DomainException('Ya existe una categoría con ese nombre.');
+            }
+            if ($habilitada === false) {
+                throw new DomainException('Ese nombre pertenece a una categoría dada de baja. Elegí otro nombre para tu sugerencia.');
             }
 
             if ($this->existeSugerenciaCategoriaPendienteConNombre($nombre)) {

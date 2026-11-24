@@ -13,7 +13,9 @@
             <div class="pregunta-sugerida-errores" role="alert">{{mensajeError}}</div>
         {{/mensajeError}}
         {{#exito}}
-            <div class="pregunta-sugerida-exito" role="status">Los cambios de la categoría se guardaron correctamente.</div>
+            <div class="pregunta-sugerida-exito" role="status" data-volver-al-listado="/editor/mostrarGestionCategorias">
+                Los cambios de la categoría se guardaron correctamente.
+            </div>
         {{/exito}}
         {{#categoria}}
             <form id="editor-categoria-formulario" class="pregunta-sugerida-formulario" method="post"
@@ -26,4 +28,4 @@
         {{/categoria}}
     </section>
 </main>
-<script src="/js/editor-categoria.js?v=20261123" defer></script>
+<script src="/js/editor-categoria.js?v=confirmacion-edicion-1" defer></script>

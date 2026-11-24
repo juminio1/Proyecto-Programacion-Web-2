@@ -97,6 +97,7 @@ class Router
                 'guardarcategoria',
                 'mostrarformularioeditarcategoria',
                 'guardarcambioscategoria',
+                'dardebajacategoria',
                 'sugerencias',
                 'aprobar',
                 'rechazar',

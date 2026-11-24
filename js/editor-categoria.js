@@ -1,4 +1,11 @@
 (() => {
+    const confirmacion = document.querySelector('[data-volver-al-listado]');
+    if (confirmacion) {
+        window.setTimeout(() => {
+            window.location.replace(confirmacion.dataset.volverAlListado);
+        }, 3000);
+    }
+
     const formulario = document.getElementById('editor-categoria-formulario');
     if (!formulario) {
         return;

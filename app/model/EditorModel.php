@@ -142,69 +142,74 @@ class EditorModel
         });
     }
 
-public function resolverReporte(
-    int $preguntaId,
-    int $editorId,
-    bool $aprobar
-): void {
+    public function resolverReporte(
+        int $preguntaId,
+        int $editorId,
+        bool $aprobar
+    ): void {
 
-    $this->transaccion(function () use ($preguntaId, $editorId, $aprobar) {
+        $this->transaccion(function () use ($preguntaId, $editorId, $aprobar) {
 
-        $consulta = $this->pdo->prepare(
-            "SELECT id
-             FROM preguntas
-             WHERE id = ?
+            $consulta = $this->pdo->prepare(
+                "SELECT c.habilitada
+             FROM preguntas p
+             INNER JOIN categorias c ON c.id = p.categoria_id
+             WHERE p.id = ?
              FOR UPDATE"
-        );
+            );
 
-        $consulta->execute([$preguntaId]);
+            $consulta->execute([$preguntaId]);
 
-        if ($consulta->fetchColumn() === false) {
-            throw new DomainException('La pregunta no existe.');
-        }
+            $categoriaHabilitada = $consulta->fetchColumn();
+            if ($categoriaHabilitada === false) {
+                throw new DomainException('La pregunta no existe.');
+            }
+            if ($aprobar && (int) $categoriaHabilitada === 0) {
+                throw new DomainException('La categoría está dada de baja. Podés cerrar la revisión dando de baja la pregunta.');
+            }
 
-        $consulta = $this->pdo->prepare(
-            "SELECT COUNT(*)
+            $consulta = $this->pdo->prepare(
+                "SELECT COUNT(*)
              FROM reportes_preguntas
              WHERE pregunta_id = ?
              AND estado = 'pendiente'"
-        );
-
-        $consulta->execute([$preguntaId]);
-
-        if ((int) $consulta->fetchColumn() === 0) {
-            throw new DomainException(
-                'Esta pregunta ya fue revisada.'
             );
-        }
 
-        $consulta = $this->pdo->prepare(
-            "UPDATE preguntas
+            $consulta->execute([$preguntaId]);
+
+            if ((int) $consulta->fetchColumn() === 0) {
+                throw new DomainException(
+                    'Esta pregunta ya fue revisada.'
+                );
+            }
+
+            $consulta = $this->pdo->prepare(
+                "UPDATE preguntas
              SET habilitada = ?
              WHERE id = ?"
-        );
+            );
 
-        $consulta->execute([
-            (int) $aprobar,
-            $preguntaId
-        ]);
+            $consulta->execute([
+                (int) $aprobar,
+                $preguntaId
+            ]);
 
-        $consulta = $this->pdo->prepare(
-            "UPDATE reportes_preguntas
+            $consulta = $this->pdo->prepare(
+                "UPDATE reportes_preguntas
              SET estado = ?,
                  fecha_revision = CURRENT_TIMESTAMP,
                  editor_id = ?
              WHERE pregunta_id = ?
              AND estado = 'pendiente'"
-        );
+            );
 
-        $consulta->execute([
-            $aprobar ? 'rechazado' : 'aprobado',
-            $editorId,
-            $preguntaId
-        ]);
-    });
-}
+            $consulta->execute([
+                $aprobar ? 'rechazado' : 'aprobado',
+                $editorId,
+                $preguntaId
+            ]);
+        });
+    }
 
     public function obtenerPreguntasReportadas(): array
     {
@@ -332,11 +337,24 @@ public function resolverReporte(
          FROM preguntas p
          INNER JOIN categorias c
             ON c.id = p.categoria_id
-         WHERE p.habilitada = 1
+         WHERE p.habilitada = 1 AND c.habilitada = 1
          ORDER BY c.nombre ASC, p.id ASC"
         );
 
         return $consulta->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function validarCategoriaHabilitada(int $categoriaId): void
+    {
+        // Mantiene la categoría bloqueada para lectura hasta guardar la pregunta.
+        $consulta = $this->pdo->prepare(
+            'SELECT id FROM categorias WHERE id = ? AND habilitada = 1 LOCK IN SHARE MODE'
+        );
+        $consulta->execute([$categoriaId]);
+
+        if ($consulta->fetchColumn() === false) {
+            throw new DomainException('La categoría seleccionada no es válida.');
+        }
     }
 
     public function crearPreguntaConOpciones(
@@ -378,23 +396,10 @@ public function resolverReporte(
             throw new DomainException('Las cuatro respuestas deben ser distintas.');
         }
 
-        $consultaCategoria = $this->pdo->prepare(
-            "SELECT id
-         FROM categorias
-         WHERE id = ?
-           AND habilitada = 1
-         LIMIT 1"
-        );
-
-        $consultaCategoria->execute([$categoriaId]);
-
-        if ($consultaCategoria->fetchColumn() === false) {
-            throw new DomainException('La categoría seleccionada no es válida.');
-        }
-
         $this->pdo->beginTransaction();
-
         try {
+            $this->validarCategoriaHabilitada($categoriaId);
+
             $consultaPregunta = $this->pdo->prepare(
                 "INSERT INTO preguntas
                 (categoria_id, pregunta, habilitada)
@@ -578,24 +583,6 @@ public function resolverReporte(
             );
         }
 
-        $consultaCategoria = $this->pdo->prepare(
-            "SELECT id
-         FROM categorias
-         WHERE id = ?
-           AND habilitada = 1
-         LIMIT 1"
-        );
-
-        $consultaCategoria->execute([
-            $categoriaId
-        ]);
-
-        if ($consultaCategoria->fetchColumn() === false) {
-            throw new DomainException(
-                'La categoría seleccionada no es válida.'
-            );
-        }
-
         $consultaPregunta = $this->pdo->prepare(
             "SELECT id
          FROM preguntas
@@ -616,6 +603,8 @@ public function resolverReporte(
         $this->pdo->beginTransaction();
 
         try {
+            $this->validarCategoriaHabilitada($categoriaId);
+
             $actualizarPregunta = $this->pdo->prepare(
                 "UPDATE preguntas
              SET pregunta = ?,
