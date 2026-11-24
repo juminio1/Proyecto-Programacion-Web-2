@@ -18,12 +18,12 @@
         {{/sinActividad}}
         <div id="admin-estadisticas" data-graficos="{{graficosJson}}">
 
-            <section id="resumen" class="editor-panel admin-seccion" aria-labelledby="admin-resumen-titulo">
-                <h2 id="admin-resumen-titulo">Resumen general</h2>
+            <section id="resumen" tabindex="-1" class="editor-panel admin-seccion" aria-labelledby="admin-resumen-titulo">
+                <h2 id="admin-resumen-titulo">{{#vistaGeneral}}Resumen general{{/vistaGeneral}}{{^vistaGeneral}}Resumen del período{{/vistaGeneral}}</h2>
                 <div class="admin-resumen">
                     <a class="admin-dato" href="#seccion-jugadores">
                         <span class="admin-dato-numero">{{jugadores.total}}</span>
-                        <span class="admin-dato-texto">Jugadores registrados</span>
+                        <span class="admin-dato-texto">Jugadores{{^vistaGeneral}} registrados{{/vistaGeneral}}</span>
                     </a>
                     <a class="admin-dato" href="#seccion-partidas">
                         <span class="admin-dato-numero">{{partidas.jugadas}}</span>
@@ -41,40 +41,42 @@
                     {{/errorPreguntas}}
                     <a class="admin-dato" href="#seccion-nuevos">
                         <span class="admin-dato-numero">{{usuariosNuevos}}</span>
-                        <span class="admin-dato-texto">Usuarios nuevos</span>
+                        <span class="admin-dato-texto">Usuarios nuevos{{#vistaGeneral}} (últimos 30 días){{/vistaGeneral}}</span>
                     </a>
                 </div>
             </section>
 
-            <section id="seccion-jugadores" class="editor-panel admin-seccion" aria-labelledby="admin-jugadores-titulo">
+            <section id="seccion-jugadores" tabindex="-1" class="editor-panel admin-seccion" aria-labelledby="admin-jugadores-titulo">
                 <h2 id="admin-jugadores-titulo">Jugadores</h2>
-                {{^jugadores.total}}<p class="editor-sin-pendientes">No se registraron jugadores en este período.</p>{{/jugadores.total}}
-                <div class="admin-grafico-fila">
-                    <div class="admin-grafico">
-                        <canvas id="grafico-jugadores" role="img"
-                                aria-label="Gráfico de jugadores activos y sin activar"></canvas>
+                {{^jugadores.total}}<p class="editor-sin-pendientes">{{#vistaGeneral}}Todavía no hay jugadores registrados.{{/vistaGeneral}}{{^vistaGeneral}}No se registraron jugadores en este período.{{/vistaGeneral}}</p>{{/jugadores.total}}
+                {{#jugadores.total}}
+                    <div class="admin-grafico-fila">
+                        <div class="admin-grafico">
+                            <canvas id="grafico-jugadores" role="img"
+                                    aria-label="Gráfico de jugadores activos y sin activar"></canvas>
+                        </div>
+                        <table class="editor-categorias-tabla admin-tabla">
+                            <caption class="editor-texto-accesible">Cantidad de jugadores según su estado.</caption>
+                            <thead><tr><th scope="col">Estado</th><th scope="col">Cantidad</th></tr></thead>
+                            <tbody>
+                            <tr><th scope="row">Activos</th><td>{{jugadores.activos}}</td></tr>
+                            <tr><th scope="row">Sin activar</th><td>{{jugadores.inactivos}}</td></tr>
+                            <tr><th scope="row">Total</th><td>{{jugadores.total}}</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <table class="editor-categorias-tabla admin-tabla">
-                        <caption class="editor-texto-accesible">Cantidad de jugadores según su estado.</caption>
-                        <thead><tr><th scope="col">Estado</th><th scope="col">Cantidad</th></tr></thead>
-                        <tbody>
-                        <tr><th scope="row">Activos</th><td>{{jugadores.activos}}</td></tr>
-                        <tr><th scope="row">Sin activar</th><td>{{jugadores.inactivos}}</td></tr>
-                        <tr><th scope="row">Total</th><td>{{jugadores.total}}</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+                {{/jugadores.total}}
                 <div class="admin-acciones">
-                    <a class="editor-boton" href="/admin/usuarios?periodo={{periodo}}&amp;fecha={{fecha}}{{#detalle}}&amp;detalle={{detalle}}{{/detalle}}">Ver porcentaje de aciertos por usuario</a>
-                    <a class="editor-boton" href="/admin/caracteristicas?periodo={{periodo}}&amp;fecha={{fecha}}{{#detalle}}&amp;detalle={{detalle}}{{/detalle}}">Ver estadísticas de los usuarios</a>
+                    <a class="editor-boton" href="/admin/usuarios">Ver porcentaje de aciertos por usuario</a>
+                    <a class="editor-boton" href="/admin/caracteristicas">Ver estadísticas de los usuarios</a>
                 </div>
                 <a class="admin-volver" href="#resumen">↑ Volver al resumen</a>
             </section>
 
-            <section id="seccion-partidas" class="editor-panel admin-seccion" aria-labelledby="admin-partidas-titulo">
+            <section id="seccion-partidas" tabindex="-1" class="editor-panel admin-seccion" aria-labelledby="admin-partidas-titulo">
                 <h2 id="admin-partidas-titulo">Partidas</h2>
-                <p>Se cuentan las partidas iniciadas en el período según su estado actual. Las finalizadas y abandonadas se consideran jugadas.</p>
-                {{^partidas.total}}<p class="editor-sin-pendientes">No se iniciaron partidas en este período.</p>{{/partidas.total}}
+                <p>{{^vistaGeneral}}Se cuentan las partidas iniciadas en el período según su estado actual. {{/vistaGeneral}}Las finalizadas y abandonadas se consideran jugadas.</p>
+                {{^partidas.total}}<p class="editor-sin-pendientes">{{#vistaGeneral}}Todavía no se iniciaron partidas.{{/vistaGeneral}}{{^vistaGeneral}}No se iniciaron partidas en este período.{{/vistaGeneral}}</p>{{/partidas.total}}
                 <div class="admin-grafico-fila">
                     <div class="admin-grafico">
                         <canvas id="grafico-partidas" role="img"
@@ -94,15 +96,15 @@
                 <a class="admin-volver" href="#resumen">↑ Volver al resumen</a>
             </section>
 
-            <section id="seccion-preguntas" class="editor-panel admin-seccion" aria-labelledby="admin-preguntas-titulo">
+            <section id="seccion-preguntas" tabindex="-1" class="editor-panel admin-seccion" aria-labelledby="admin-preguntas-titulo">
                 <h2 id="admin-preguntas-titulo">Preguntas</h2>
                 {{#errorPreguntas}}
                     <p class="editor-aviso editor-aviso-error" role="alert">{{errorPreguntas}}</p>
                 {{/errorPreguntas}}
                 {{^errorPreguntas}}
-                    <p>Se incluyen las preguntas creadas en el período que tienen fecha de alta registrada. Una pregunta está disponible si tanto ella como su categoría están habilitadas.</p>
+                    <p>{{^vistaGeneral}}Se incluyen las preguntas creadas en el período que tienen fecha de alta registrada. {{/vistaGeneral}}Una pregunta está disponible si tanto ella como su categoría están habilitadas.</p>
                     {{#sinPreguntas}}
-                        <p class="editor-sin-pendientes">No hay preguntas con fecha de alta registrada en este período.</p>
+                        <p class="editor-sin-pendientes">{{#vistaGeneral}}Todavía no hay preguntas.{{/vistaGeneral}}{{^vistaGeneral}}No hay preguntas con fecha de alta registrada en este período.{{/vistaGeneral}}</p>
                     {{/sinPreguntas}}
                     {{^sinPreguntas}}
                         <div class="admin-grafico-fila">
@@ -132,9 +134,9 @@
                 <a class="admin-volver" href="#resumen">↑ Volver al resumen</a>
             </section>
 
-            <section id="seccion-nuevos" class="editor-panel admin-seccion" aria-labelledby="admin-nuevos-titulo">
+            <section id="seccion-nuevos" tabindex="-1" class="editor-panel admin-seccion" aria-labelledby="admin-nuevos-titulo">
                 <h2 id="admin-nuevos-titulo">Usuarios nuevos</h2>
-                <p>Jugadores registrados en el período seleccionado: <strong>{{usuariosNuevos}}</strong>.</p>
+                <p>Jugadores registrados {{#vistaGeneral}}en los últimos 30 días{{/vistaGeneral}}{{^vistaGeneral}}en el período seleccionado{{/vistaGeneral}}: <strong>{{usuariosNuevos}}</strong>.</p>
                 <div class="admin-grafico-fila">
                     <div class="admin-grafico admin-grafico-ancho">
                         <canvas id="grafico-nuevos" role="img"

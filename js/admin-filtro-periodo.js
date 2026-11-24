@@ -60,11 +60,12 @@
 
     function actualizarCampos() {
         const agrupado = periodo.value === 'mes' || periodo.value === 'anio';
-        mostrarCampo(fecha, !agrupado);
+        const usaFechaCompleta = periodo.value === 'dia' || periodo.value === 'semana';
+        mostrarCampo(fecha, usaFechaCompleta);
         mostrarCampo(anio, agrupado);
         mostrarCampo(mes, agrupado);
         mostrarCampo(dia, agrupado && mes.value !== '');
-        fecha.required = !agrupado;
+        fecha.required = usaFechaCompleta;
         anio.required = agrupado;
         mes.required = periodo.value === 'mes';
         detalle.disabled = !agrupado;
@@ -117,6 +118,23 @@
     formulario.addEventListener('change', actualizarAvisoPendiente);
     formulario.addEventListener('submit', function () {
         sincronizarFecha();
-        fecha.disabled = false;
+        fecha.disabled = periodo.value === 'general';
     });
+
+    const estadisticas = document.getElementById('admin-estadisticas');
+    if (!estadisticas) return;
+
+    estadisticas.addEventListener('click', function (evento) {
+        const enlace = evento.target.closest('a[href^="#"]');
+        if (!enlace || evento.ctrlKey || evento.metaKey || evento.shiftKey || evento.altKey) return;
+        const destino = document.getElementById(enlace.hash.slice(1));
+        if (!destino || !estadisticas.contains(destino)) return;
+        evento.preventDefault();
+        destino.focus({preventScroll: true});
+        destino.scrollIntoView({block: 'start'});
+    });
+
+    if (window.location.hash && estadisticas.contains(document.getElementById(window.location.hash.slice(1)))) {
+        window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+    }
 })();

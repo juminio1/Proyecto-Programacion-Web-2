@@ -7,7 +7,7 @@ use InvalidArgumentException;
 
 final class PeriodoEstadisticoModel
 {
-    public const OPCIONES = ['dia' => 'Día', 'semana' => 'Semana', 'mes' => 'Mes', 'anio' => 'Año'];
+    public const OPCIONES = ['general' => 'General', 'dia' => 'Día', 'semana' => 'Semana', 'mes' => 'Mes', 'anio' => 'Año'];
 
     public string $tipo;
     private string $detalle;
@@ -18,7 +18,11 @@ final class PeriodoEstadisticoModel
     public function __construct($tipo, $fecha, $detalle = '')
     {
         if (!is_string($tipo) || !isset(self::OPCIONES[$tipo])) {
-            throw new InvalidArgumentException('Elegí día, semana, mes o año.');
+            throw new InvalidArgumentException('Elegí general, día, semana, mes o año.');
+        }
+        if ($tipo === 'general') {
+            $fecha = date('Y-m-d');
+            $detalle = '';
         }
         if (!is_string($fecha) || !preg_match('/^[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}$/D', $fecha)) {
             throw new InvalidArgumentException('Elegí una fecha válida.');
@@ -29,6 +33,7 @@ final class PeriodoEstadisticoModel
         }
 
         $detallesPermitidos = [
+            'general' => [''],
             'dia' => [''],
             'semana' => [''],
             'mes' => ['', 'dia'],
@@ -42,6 +47,11 @@ final class PeriodoEstadisticoModel
         $this->referencia = $referencia;
         $this->detalle = $detalle;
         switch ($detalle ?: $tipo) {
+            case 'general':
+                // En la vista general, el indicador de altas conserva los últimos 30 días.
+                $this->desde = $referencia->modify('-29 days');
+                $this->hasta = $referencia->modify('+1 day');
+                break;
             case 'semana':
                 $this->desde = $referencia->modify('monday this week');
                 $this->hasta = $this->desde->modify('+1 week');
@@ -58,6 +68,11 @@ final class PeriodoEstadisticoModel
                 $this->desde = $referencia;
                 $this->hasta = $referencia->modify('+1 day');
         }
+    }
+
+    public function esGeneral(): bool
+    {
+        return $this->tipo === 'general';
     }
 
     public function parametrosSql(): array
@@ -80,7 +95,10 @@ final class PeriodoEstadisticoModel
             'detalle' => $this->detalle,
             'fecha' => $this->referencia->format('Y-m-d'),
             'periodos' => $opciones,
-            'rangoAplicado' => self::OPCIONES[$this->detalle ?: $this->tipo] . ' · ' . $rango,
+            'vistaGeneral' => $this->esGeneral(),
+            'rangoAplicado' => $this->esGeneral()
+                ? 'General · Historial completo'
+                : self::OPCIONES[$this->detalle ?: $this->tipo] . ' · ' . $rango,
         ];
     }
 }

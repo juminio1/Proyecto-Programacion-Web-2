@@ -21,15 +21,7 @@ class AdminController
 
     public function show(): void
     {
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-            http_response_code(405);
-            header('Allow: GET');
-            return;
-        }
-
-        header('Cache-Control: no-store');
-
-        [$periodo, $datos] = $this->leerFiltroPeriodo('/admin/show');
+        [$periodo, $datos] = $this->prepararFiltro('/admin/show');
         $datos['nombreAdmin'] = (string) ($_SESSION['usuario'] ?? 'Administrador');
 
         try {
@@ -45,18 +37,9 @@ class AdminController
 
     public function usuarios(): void
     {
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-            http_response_code(405);
-            header('Allow: GET');
-            return;
-        }
-
-        header('Cache-Control: no-store');
-
-        [$periodo, $datos] = $this->leerFiltroPeriodo('/admin/usuarios');
-        $nombre = Request::get('buscar', '');
-        $buscar = is_string($nombre) ? mb_substr(trim($nombre), 0, 50) : '';
-        $idUsuario = max(0, (int) filter_var(Request::get('usuario'), FILTER_VALIDATE_INT));
+        [$periodo, $datos] = $this->prepararFiltro('/admin/usuarios');
+        $buscar = $_SESSION['admin_buscar_jugador'] ?? '';
+        $idUsuario = $_SESSION['admin_id_jugador'] ?? 0;
 
         $datos += [
             'vistaUsuarios' => true,
@@ -91,15 +74,7 @@ class AdminController
 
     public function caracteristicas(): void
     {
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-            http_response_code(405);
-            header('Allow: GET');
-            return;
-        }
-
-        header('Cache-Control: no-store');
-
-        [$periodo, $datos] = $this->leerFiltroPeriodo('/admin/caracteristicas');
+        [$periodo, $datos] = $this->prepararFiltro('/admin/caracteristicas');
 
         try {
             $paises = $this->model->obtenerUsuariosPorPais($periodo);
@@ -150,20 +125,79 @@ class AdminController
         $this->render->renderiza('adminCaracteristicas', $datos);
     }
 
-    private function leerFiltroPeriodo(string $ruta): array
+    private function prepararFiltro(string $ruta): array
     {
-        $hoy = date('Y-m-d');
+        header('Cache-Control: no-store');
+        $metodo = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        if (!in_array($metodo, ['GET', 'POST'], true)) {
+            http_response_code(405);
+            header('Allow: GET, POST');
+            exit;
+        }
+
+        $_SESSION['admin_filtro_csrf'] ??= bin2hex(random_bytes(32));
+        if ($metodo === 'POST') {
+            $this->guardarFiltro($ruta);
+            header('Location: ' . $ruta, true, 303);
+            exit;
+        }
+
+        if (isset($_GET['periodo']) || isset($_GET['fecha']) || isset($_GET['detalle'])
+            || isset($_GET['buscar']) || isset($_GET['usuario'])) {
+            header('Location: ' . $ruta, true, 302);
+            exit;
+        }
+
+        $filtro = $_SESSION['admin_periodo'] ?? [];
+        $periodo = new PeriodoEstadisticoModel(
+            $filtro['periodo'] ?? 'general',
+            $filtro['fecha'] ?? date('Y-m-d'),
+            $filtro['detalle'] ?? ''
+        );
+        $aviso = $_SESSION['admin_aviso_filtro'] ?? null;
+        unset($_SESSION['admin_aviso_filtro']);
+
+        return [$periodo, $periodo->datosParaVista() + [
+                'rutaFiltro' => $ruta,
+                'avisoFiltro' => $aviso,
+                'tokenFiltro' => $_SESSION['admin_filtro_csrf'],
+            ]];
+    }
+
+    private function guardarFiltro(string $ruta): void
+    {
+        $token = Request::post('csrf_token');
+        if (!is_string($token) || !hash_equals($_SESSION['admin_filtro_csrf'], $token)) {
+            http_response_code(403);
+            exit;
+        }
+
+        if ($ruta === '/admin/usuarios' && Request::post('limpiar') === '1') {
+            unset($_SESSION['admin_buscar_jugador'], $_SESSION['admin_id_jugador']);
+            return;
+        }
+
         try {
             $periodo = new PeriodoEstadisticoModel(
-                Request::get('periodo', 'mes'),
-                Request::get('fecha', $hoy),
-                Request::get('detalle', '')
+                Request::post('periodo'),
+                Request::post('fecha', date('Y-m-d')),
+                Request::post('detalle', '')
             );
+            $datos = $periodo->datosParaVista();
+            $_SESSION['admin_periodo'] = [
+                'periodo' => $datos['periodo'],
+                'fecha' => $datos['fecha'],
+                'detalle' => $datos['detalle'],
+            ];
+
+            if ($ruta === '/admin/usuarios') {
+                $nombre = Request::post('buscar', '');
+                $_SESSION['admin_buscar_jugador'] = is_string($nombre) ? mb_substr(trim($nombre), 0, 50) : '';
+                $_SESSION['admin_id_jugador'] = max(0, (int) filter_var(Request::post('usuario'), FILTER_VALIDATE_INT));
+            }
         } catch (InvalidArgumentException $error) {
-            $periodo = new PeriodoEstadisticoModel('mes', $hoy);
-            $aviso = $error->getMessage() . ' Se muestra el mes actual.';
+            $_SESSION['admin_aviso_filtro'] = $error->getMessage() . ' Se conserva el filtro aplicado.';
         }
-        return [$periodo, $periodo->datosParaVista() + ['rutaFiltro' => $ruta, 'avisoFiltro' => $aviso ?? null]];
     }
 
     private function cargarEstadisticas(PeriodoEstadisticoModel $periodo): array
@@ -179,7 +213,7 @@ class AdminController
             $errorPreguntas = 'No se pudieron cargar las estadísticas de preguntas.';
             if (($error->errorInfo[0] ?? null) === '42S22'
                 && str_contains($error->errorInfo[2] ?? '', 'p.fecha_creacion')) {
-                $errorPreguntas = 'Para ver las estadísticas de preguntas, aplicá la migración hu24_fecha_preguntas.sql.';
+                $errorPreguntas = 'Para ver las estadísticas de preguntas, aplicá la migración fecha_preguntas.sql.';
             }
         }
         $preguntas = [

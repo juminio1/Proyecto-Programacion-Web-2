@@ -1,7 +1,8 @@
 {{#avisoFiltro}}
     <p class="editor-aviso editor-aviso-error" role="alert">{{avisoFiltro}}</p>
 {{/avisoFiltro}}
-<form class="admin-filtro" data-filtro-periodo data-detalle="{{detalle}}" method="get" action="{{rutaFiltro}}">
+<form class="admin-filtro" data-filtro-periodo data-detalle="{{detalle}}" method="post" action="{{rutaFiltro}}">
+    <input type="hidden" name="csrf_token" value="{{tokenFiltro}}">
     <div class="admin-filtro-campo">
         <label for="filtro-periodo">Período</label>
         <select id="filtro-periodo" name="periodo">
@@ -46,11 +47,11 @@
     <div class="admin-filtro-botones">
         <button type="submit" class="editor-boton">Aplicar filtro</button>
         {{#hayFiltro}}
-            <a class="editor-boton editor-boton-rechazar" href="/admin/usuarios?periodo={{periodo}}&amp;fecha={{fecha}}{{#detalle}}&amp;detalle={{detalle}}{{/detalle}}">Limpiar jugador</a>
+            <button type="submit" class="editor-boton editor-boton-rechazar" name="limpiar" value="1" formnovalidate>Limpiar jugador</button>
         {{/hayFiltro}}
     </div>
 </form>
 <p id="filtro-rango-semana" aria-live="polite" hidden></p>
 <p>Período aplicado <strong>{{rangoAplicado}}</strong></p>
 <p id="filtro-periodo-pendiente" role="status" hidden>Para actualizar las estadísticas con esta selección, presioná «Aplicar filtro».</p>
-<script src="/js/admin-filtro-periodo.js?v=2" defer></script>
+<script src="/js/admin-filtro-periodo.js?v=3" defer></script>
