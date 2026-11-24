@@ -41,27 +41,647 @@ class EditorController
         }
 
         header('Cache-Control: no-store');
-        $datos = [];
 
-        try {
-            $categorias = $this->categoriaModel->obtenerCategoriasHabilitadasConPreguntas();
+        $this->render->renderiza('editor');
+    }
 
-            foreach ($categorias as &$categoria) {
-                $categoria['cantidad_preguntas'] = (int) $categoria['cantidad_preguntas'];
-                $categoria['tienePreguntas'] = $categoria['cantidad_preguntas'] > 0;
-            }
-            unset($categoria);
-
-            $datos['categoriasHabilitadas'] = $categorias;
-            $datos['cantidadCategoriasHabilitadas'] = count($categorias);
-            $datos['sinCategoriasHabilitadas'] = $categorias === [];
-            $datos['categoriasCargadas'] = true;
-        } catch (PDOException $error) {
-            error_log('Error al cargar categorías habilitadas: ' . $error->getMessage());
-            $datos['errorCategorias'] = 'No se pudieron cargar las categorías habilitadas. Intentá nuevamente.';
+    public function mostrarGestionPreguntas(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
         }
 
-        $this->render->renderiza('editor', $datos);
+        header('Cache-Control: no-store');
+
+        try {
+            $preguntas = $this->editorModel
+                ->obtenerTodasLasPreguntasConCategoria();
+
+            $categoriasConPreguntas =
+                $this->agruparPreguntasPorCategoria($preguntas);
+
+            $this->render->renderiza('editorPreguntas', [
+                'categoriasConPreguntas' => $categoriasConPreguntas,
+                'sinPreguntas' => empty($preguntas)
+            ]);
+
+        } catch (PDOException $error) {
+
+            error_log(
+                'Error al cargar preguntas para gestión: '
+                . $error->getMessage()
+            );
+
+            $this->render->renderiza('editorPreguntas', [
+                'categoriasConPreguntas' => [],
+                'sinPreguntas' => true,
+                'mensajeError' =>
+                    'No se pudieron cargar las preguntas. Intentá nuevamente.'
+            ]);
+        }
+    }
+
+    private function agruparPreguntasPorCategoria(array $preguntas): array
+    {
+        $categorias = [];
+
+        foreach ($preguntas as $pregunta) {
+
+            $categoriaId = (int) $pregunta['categoria_id'];
+
+            if (!isset($categorias[$categoriaId])) {
+                $categorias[$categoriaId] = [
+                    'nombreCategoria' => $pregunta['categoria'],
+                    'colorCategoria' => $pregunta['color_categoria'],
+                    'cantidadPreguntas' => 0,
+                    'preguntas' => []
+                ];
+            }
+
+            $pregunta['estado'] =
+                (int) $pregunta['habilitada'] === 1
+                    ? 'Habilitada'
+                    : 'Deshabilitada';
+
+            $pregunta['estaHabilitada'] =
+                (int) $pregunta['habilitada'] === 1;
+
+            $pregunta['estaDeshabilitada'] =
+                (int) $pregunta['habilitada'] === 0;
+
+            $pregunta['dificultadTexto'] =
+                ucfirst($pregunta['dificultad']);
+
+            $pregunta['dificultadFacil'] =
+                $pregunta['dificultad'] === 'facil';
+
+            $pregunta['dificultadMedia'] =
+                $pregunta['dificultad'] === 'media';
+
+            $pregunta['dificultadDificil'] =
+                $pregunta['dificultad'] === 'dificil';
+
+            $categorias[$categoriaId]['preguntas'][] = $pregunta;
+
+            $categorias[$categoriaId]['cantidadPreguntas']++;
+        }
+
+        return array_values($categorias);
+    }
+
+    public function mostrarFormularioNuevaPregunta(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+
+        header('Cache-Control: no-store');
+
+        $_SESSION['editor_nueva_pregunta_csrf'] ??= bin2hex(random_bytes(32));
+
+        try {
+            $categorias = $this->sugerencias->obtenerCategorias();
+
+            $this->render->renderiza('editorNuevaPregunta', [
+                'categorias' => $categorias,
+                'tokenCSRF' => $_SESSION['editor_nueva_pregunta_csrf']
+            ]);
+
+        } catch (PDOException $error) {
+            error_log(
+                'Error al cargar categorías para nueva pregunta: '
+                . $error->getMessage()
+            );
+
+            $this->render->renderiza('editorNuevaPregunta', [
+                'categorias' => [],
+                'tokenCSRF' => $_SESSION['editor_nueva_pregunta_csrf'],
+                'hay_errores' => true,
+                'errores' => [
+                    'No se pudieron cargar las categorías.'
+                ]
+            ]);
+        }
+    }
+
+    public function crearNuevaPregunta(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            return;
+        }
+
+        $token = Request::post('csrf_token');
+        $tokenGuardado = $_SESSION['editor_nueva_pregunta_csrf'] ?? null;
+
+        if (
+            !is_string($token)
+            || !is_string($tokenGuardado)
+            || !hash_equals($tokenGuardado, $token)
+        ) {
+            http_response_code(403);
+            echo 'Volvé a abrir el formulario para crear la pregunta.';
+            return;
+        }
+
+        $pregunta = trim((string) Request::post('pregunta', ''));
+        $categoriaId = (int) Request::post('categoria_id', 0);
+
+        $opcionA = trim((string) Request::post('opcion_a', ''));
+        $opcionB = trim((string) Request::post('opcion_b', ''));
+        $opcionC = trim((string) Request::post('opcion_c', ''));
+        $opcionD = trim((string) Request::post('opcion_d', ''));
+
+        $respuestaCorrecta = strtoupper(
+            trim((string) Request::post('respuesta_correcta', ''))
+        );
+
+        try {
+            $this->editorModel->crearPreguntaConOpciones(
+                $categoriaId,
+                $pregunta,
+                $opcionA,
+                $opcionB,
+                $opcionC,
+                $opcionD,
+                $respuestaCorrecta
+            );
+
+            // Renovamos el token después de una creación exitosa.
+            $_SESSION['editor_nueva_pregunta_csrf'] = bin2hex(random_bytes(32));
+
+            $categorias = $this->sugerencias->obtenerCategorias();
+
+            $this->render->renderiza('editorNuevaPregunta', [
+                'categorias' => $categorias,
+                'tokenCSRF' => $_SESSION['editor_nueva_pregunta_csrf'],
+                'exito' => true,
+                'mensaje_exito' => 'La pregunta fue creada correctamente y ya está disponible para jugar.'
+            ]);
+
+        } catch (DomainException $error) {
+
+            $this->mostrarFormularioNuevaPreguntaConError(
+                $error->getMessage(),
+                $categoriaId,
+                $pregunta,
+                $opcionA,
+                $opcionB,
+                $opcionC,
+                $opcionD,
+                $respuestaCorrecta
+            );
+
+        } catch (PDOException $error) {
+
+            error_log(
+                'Error al crear nueva pregunta: '
+                . $error->getMessage()
+            );
+
+            $this->mostrarFormularioNuevaPreguntaConError(
+                'No se pudo crear la pregunta. Intentá nuevamente.',
+                $categoriaId,
+                $pregunta,
+                $opcionA,
+                $opcionB,
+                $opcionC,
+                $opcionD,
+                $respuestaCorrecta
+            );
+        }
+    }
+
+    private function mostrarFormularioNuevaPreguntaConError(
+        string $mensajeError,
+        int $categoriaId,
+        string $pregunta,
+        string $opcionA,
+        string $opcionB,
+        string $opcionC,
+        string $opcionD,
+        string $respuestaCorrecta
+    ): void {
+        $categorias = $this->sugerencias->obtenerCategorias();
+
+        foreach ($categorias as &$categoria) {
+            $categoria['seleccionada'] =
+                (int) $categoria['id'] === $categoriaId;
+        }
+
+        unset($categoria);
+
+        $this->render->renderiza('editorNuevaPregunta', [
+            'hay_errores' => true,
+            'errores' => [$mensajeError],
+
+            'categorias' => $categorias,
+            'tokenCSRF' => $_SESSION['editor_nueva_pregunta_csrf'],
+
+            'pregunta' => $pregunta,
+
+            'opcion_a' => $opcionA,
+            'opcion_b' => $opcionB,
+            'opcion_c' => $opcionC,
+            'opcion_d' => $opcionD,
+
+            'correcta_a' => $respuestaCorrecta === 'A',
+            'correcta_b' => $respuestaCorrecta === 'B',
+            'correcta_c' => $respuestaCorrecta === 'C',
+            'correcta_d' => $respuestaCorrecta === 'D'
+        ]);
+    }
+
+    public function darDeBajaPregunta(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+
+            echo json_encode([
+                'exito' => false,
+                'mensaje' => 'Método no permitido.'
+            ]);
+
+            return;
+        }
+
+        $preguntaId = (int) Request::post('pregunta_id', 0);
+
+        if ($preguntaId <= 0) {
+            http_response_code(400);
+
+            echo json_encode([
+                'exito' => false,
+                'mensaje' => 'La pregunta seleccionada no es válida.'
+            ]);
+
+            return;
+        }
+
+        try {
+            $preguntaFueDadaDeBaja =
+                $this->editorModel->darDeBajaPreguntaPorId($preguntaId);
+
+            if (!$preguntaFueDadaDeBaja) {
+                http_response_code(404);
+
+                echo json_encode([
+                    'exito' => false,
+                    'mensaje' => 'La pregunta no existe o ya se encuentra dada de baja.'
+                ]);
+
+                return;
+            }
+
+            echo json_encode([
+                'exito' => true,
+                'mensaje' => 'La pregunta fue dada de baja correctamente.'
+            ]);
+
+        } catch (DomainException $error) {
+            http_response_code(400);
+
+            echo json_encode([
+                'exito' => false,
+                'mensaje' => $error->getMessage()
+            ]);
+
+        } catch (PDOException $error) {
+            error_log(
+                'Error al dar de baja la pregunta: '
+                . $error->getMessage()
+            );
+
+            http_response_code(500);
+
+            echo json_encode([
+                'exito' => false,
+                'mensaje' => 'No se pudo dar de baja la pregunta.'
+            ]);
+        }
+    }
+
+    public function mostrarFormularioEditarPregunta(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            http_response_code(405);
+            header('Allow: GET');
+            return;
+        }
+
+        $preguntaId = isset($_GET['id'])
+            ? (int) $_GET['id']
+            : 0;
+
+        if ($preguntaId <= 0) {
+            http_response_code(400);
+            echo 'La pregunta seleccionada no es válida.';
+            return;
+        }
+
+        $_SESSION['editor_editar_pregunta_csrf'] ??=
+            bin2hex(random_bytes(32));
+
+        try {
+            $pregunta =
+                $this->editorModel->obtenerPreguntaConOpcionesPorId(
+                    $preguntaId
+                );
+
+            if ($pregunta === null) {
+                http_response_code(404);
+                echo 'La pregunta no existe.';
+                return;
+            }
+
+            $categorias =
+                $this->sugerencias->obtenerCategorias();
+
+            foreach ($categorias as &$categoria) {
+                $categoria['seleccionada'] =
+                    (int) $categoria['id']
+                    === (int) $pregunta['categoria_id'];
+            }
+
+            unset($categoria);
+
+            $respuestaCorrecta =
+                strtoupper(
+                    $pregunta['respuesta_correcta'] ?? ''
+                );
+
+            $this->render->renderiza(
+                'editorEditarPregunta',
+                [
+                    'preguntaId' => $pregunta['id'],
+                    'pregunta' => $pregunta['pregunta'],
+
+                    'categorias' => $categorias,
+
+                    'opcion_a' => $pregunta['opcion_a'] ?? '',
+                    'opcion_b' => $pregunta['opcion_b'] ?? '',
+                    'opcion_c' => $pregunta['opcion_c'] ?? '',
+                    'opcion_d' => $pregunta['opcion_d'] ?? '',
+
+                    'correcta_a' => $respuestaCorrecta === 'A',
+                    'correcta_b' => $respuestaCorrecta === 'B',
+                    'correcta_c' => $respuestaCorrecta === 'C',
+                    'correcta_d' => $respuestaCorrecta === 'D',
+
+                    'tokenCSRF' =>
+                        $_SESSION['editor_editar_pregunta_csrf']
+                ]
+            );
+
+        } catch (PDOException $error) {
+
+            error_log(
+                'Error al cargar pregunta para editar: '
+                . $error->getMessage()
+            );
+
+            http_response_code(500);
+            echo 'No se pudo cargar la pregunta.';
+        }
+    }
+
+    public function guardarCambiosPregunta(): void
+    {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            return;
+        }
+
+        $token = Request::post('csrf_token');
+
+        $tokenGuardado =
+            $_SESSION['editor_editar_pregunta_csrf'] ?? null;
+
+        if (
+            !is_string($token)
+            || !is_string($tokenGuardado)
+            || !hash_equals($tokenGuardado, $token)
+        ) {
+            http_response_code(403);
+            echo 'Volvé a abrir el formulario para editar la pregunta.';
+            return;
+        }
+
+        $preguntaId =
+            (int) Request::post('pregunta_id', 0);
+
+        $categoriaId =
+            (int) Request::post('categoria_id', 0);
+
+        $pregunta =
+            trim((string) Request::post('pregunta', ''));
+
+        $opcionA =
+            trim((string) Request::post('opcion_a', ''));
+
+        $opcionB =
+            trim((string) Request::post('opcion_b', ''));
+
+        $opcionC =
+            trim((string) Request::post('opcion_c', ''));
+
+        $opcionD =
+            trim((string) Request::post('opcion_d', ''));
+
+        $respuestaCorrecta = strtoupper(
+            trim(
+                (string) Request::post(
+                    'respuesta_correcta',
+                    ''
+                )
+            )
+        );
+
+        try {
+
+            $this->editorModel->actualizarPreguntaConOpciones(
+                $preguntaId,
+                $categoriaId,
+                $pregunta,
+                $opcionA,
+                $opcionB,
+                $opcionC,
+                $opcionD,
+                $respuestaCorrecta
+            );
+
+            $_SESSION['editor_editar_pregunta_csrf'] =
+                bin2hex(random_bytes(32));
+
+            $this->mostrarFormularioEditarPreguntaConResultado(
+                $preguntaId,
+                true,
+                'La pregunta fue modificada correctamente.'
+            );
+
+        } catch (DomainException $error) {
+
+            $this->mostrarFormularioEditarPreguntaConResultado(
+                $preguntaId,
+                false,
+                $error->getMessage(),
+                $categoriaId,
+                $pregunta,
+                $opcionA,
+                $opcionB,
+                $opcionC,
+                $opcionD,
+                $respuestaCorrecta
+            );
+
+        } catch (PDOException $error) {
+
+            error_log(
+                'Error al modificar pregunta: '
+                . $error->getMessage()
+            );
+
+            $this->mostrarFormularioEditarPreguntaConResultado(
+                $preguntaId,
+                false,
+                'No se pudo modificar la pregunta. Intentá nuevamente.',
+                $categoriaId,
+                $pregunta,
+                $opcionA,
+                $opcionB,
+                $opcionC,
+                $opcionD,
+                $respuestaCorrecta
+            );
+        }
+    }
+
+    private function mostrarFormularioEditarPreguntaConResultado(
+        int $preguntaId,
+        bool $exito,
+        string $mensaje,
+        ?int $categoriaId = null,
+        ?string $pregunta = null,
+        ?string $opcionA = null,
+        ?string $opcionB = null,
+        ?string $opcionC = null,
+        ?string $opcionD = null,
+        ?string $respuestaCorrecta = null
+    ): void {
+
+        $preguntaActual =
+            $this->editorModel
+                ->obtenerPreguntaConOpcionesPorId(
+                    $preguntaId
+                );
+
+        if ($preguntaActual === null) {
+            http_response_code(404);
+            echo 'La pregunta no existe.';
+            return;
+        }
+
+        $categorias =
+            $this->sugerencias->obtenerCategorias();
+
+        $categoriaSeleccionada =
+            $categoriaId
+            ?? (int) $preguntaActual['categoria_id'];
+
+        foreach ($categorias as &$categoria) {
+
+            $categoria['seleccionada'] =
+                (int) $categoria['id']
+                === $categoriaSeleccionada;
+        }
+
+        unset($categoria);
+
+        if ($exito) {
+
+            $pregunta =
+                $preguntaActual['pregunta'];
+
+            $opcionA =
+                $preguntaActual['opcion_a'] ?? '';
+
+            $opcionB =
+                $preguntaActual['opcion_b'] ?? '';
+
+            $opcionC =
+                $preguntaActual['opcion_c'] ?? '';
+
+            $opcionD =
+                $preguntaActual['opcion_d'] ?? '';
+
+            $respuestaCorrecta =
+                strtoupper(
+                    $preguntaActual['respuesta_correcta']
+                    ?? ''
+                );
+        }
+
+        $this->render->renderiza(
+            'editorEditarPregunta',
+            [
+                'preguntaId' => $preguntaId,
+
+                'pregunta' =>
+                    $pregunta ?? '',
+
+                'categorias' =>
+                    $categorias,
+
+                'opcion_a' =>
+                    $opcionA ?? '',
+
+                'opcion_b' =>
+                    $opcionB ?? '',
+
+                'opcion_c' =>
+                    $opcionC ?? '',
+
+                'opcion_d' =>
+                    $opcionD ?? '',
+
+                'correcta_a' =>
+                    $respuestaCorrecta === 'A',
+
+                'correcta_b' =>
+                    $respuestaCorrecta === 'B',
+
+                'correcta_c' =>
+                    $respuestaCorrecta === 'C',
+
+                'correcta_d' =>
+                    $respuestaCorrecta === 'D',
+
+                'tokenCSRF' =>
+                    $_SESSION['editor_editar_pregunta_csrf'],
+
+                'exito' =>
+                    $exito,
+
+                'mensaje_exito' =>
+                    $exito ? $mensaje : null,
+
+                'hay_errores' =>
+                    !$exito,
+
+                'errores' =>
+                    !$exito
+                        ? [$mensaje]
+                        : []
+            ]
+        );
     }
 
     public function sugerencias(): void

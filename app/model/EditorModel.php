@@ -317,4 +317,345 @@ public function resolverReporte(
             throw $error;
         }
     }
+
+    public function obtenerTodasLasPreguntasConCategoria(): array
+    {
+        $consulta = $this->pdo->query(
+            "SELECT
+            p.id,
+            p.pregunta,
+            p.habilitada,
+            p.dificultad,
+            c.id AS categoria_id,
+            c.nombre AS categoria,
+            c.color AS color_categoria
+         FROM preguntas p
+         INNER JOIN categorias c
+            ON c.id = p.categoria_id
+         WHERE p.habilitada = 1
+         ORDER BY c.nombre ASC, p.id ASC"
+        );
+
+        return $consulta->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function crearPreguntaConOpciones(
+        int $categoriaId,
+        string $pregunta,
+        string $opcionA,
+        string $opcionB,
+        string $opcionC,
+        string $opcionD,
+        string $respuestaCorrecta
+    ): void {
+        $opciones = [
+            'A' => trim($opcionA),
+            'B' => trim($opcionB),
+            'C' => trim($opcionC),
+            'D' => trim($opcionD)
+        ];
+
+        $pregunta = trim($pregunta);
+        $respuestaCorrecta = strtoupper(trim($respuestaCorrecta));
+
+        if ($pregunta === '') {
+            throw new DomainException('La pregunta es obligatoria.');
+        }
+
+        if (!isset($opciones[$respuestaCorrecta])) {
+            throw new DomainException('Debés indicar cuál es la respuesta correcta.');
+        }
+
+        if (in_array('', $opciones, true)) {
+            throw new DomainException('Debés completar las cuatro opciones.');
+        }
+
+        $normalizar = function_exists('mb_strtolower')
+            ? static fn(string $texto): string => mb_strtolower($texto, 'UTF-8')
+            : 'strtolower';
+
+        if (count(array_unique(array_map($normalizar, $opciones))) !== 4) {
+            throw new DomainException('Las cuatro respuestas deben ser distintas.');
+        }
+
+        $consultaCategoria = $this->pdo->prepare(
+            "SELECT id
+         FROM categorias
+         WHERE id = ?
+           AND habilitada = 1
+         LIMIT 1"
+        );
+
+        $consultaCategoria->execute([$categoriaId]);
+
+        if ($consultaCategoria->fetchColumn() === false) {
+            throw new DomainException('La categoría seleccionada no es válida.');
+        }
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $consultaPregunta = $this->pdo->prepare(
+                "INSERT INTO preguntas
+                (categoria_id, pregunta, habilitada)
+             VALUES
+                (?, ?, 1)"
+            );
+
+            $consultaPregunta->execute([
+                $categoriaId,
+                $pregunta
+            ]);
+
+            $preguntaId = (int) $this->pdo->lastInsertId();
+
+            $consultaOpcion = $this->pdo->prepare(
+                "INSERT INTO opciones
+                (pregunta_id, letra, texto, es_correcta)
+             VALUES
+                (?, ?, ?, ?)"
+            );
+
+            foreach ($opciones as $letra => $texto) {
+                $consultaOpcion->execute([
+                    $preguntaId,
+                    $letra,
+                    $texto,
+                    (int) ($letra === $respuestaCorrecta)
+                ]);
+            }
+
+            $this->pdo->commit();
+
+        } catch (Throwable $error) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $error;
+        }
+    }
+
+    public function darDeBajaPreguntaPorId(int $preguntaId): bool
+    {
+        if ($preguntaId <= 0) {
+            throw new DomainException(
+                'La pregunta seleccionada no es válida.'
+            );
+        }
+
+        $consulta = $this->pdo->prepare(
+            "UPDATE preguntas
+         SET habilitada = 0
+         WHERE id = ?
+           AND habilitada = 1"
+        );
+
+        $consulta->execute([
+            $preguntaId
+        ]);
+
+        return $consulta->rowCount() === 1;
+    }
+
+    public function obtenerPreguntaConOpcionesPorId(int $preguntaId): ?array
+    {
+        $consultaPregunta = $this->pdo->prepare(
+            "SELECT
+            id,
+            categoria_id,
+            pregunta,
+            habilitada,
+            dificultad
+         FROM preguntas
+         WHERE id = ?
+         LIMIT 1"
+        );
+
+        $consultaPregunta->execute([
+            $preguntaId
+        ]);
+
+        $pregunta = $consultaPregunta->fetch(PDO::FETCH_ASSOC);
+
+        if ($pregunta === false) {
+            return null;
+        }
+
+        $consultaOpciones = $this->pdo->prepare(
+            "SELECT
+            letra,
+            texto,
+            es_correcta
+         FROM opciones
+         WHERE pregunta_id = ?
+         ORDER BY letra ASC"
+        );
+
+        $consultaOpciones->execute([
+            $preguntaId
+        ]);
+
+        $opciones = $consultaOpciones->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($opciones as $opcion) {
+
+            $letra = strtolower($opcion['letra']);
+
+            $pregunta['opcion_' . $letra] =
+                $opcion['texto'];
+
+            if ((int) $opcion['es_correcta'] === 1) {
+                $pregunta['respuesta_correcta'] =
+                    strtoupper($opcion['letra']);
+            }
+        }
+
+        return $pregunta;
+    }
+
+    public function actualizarPreguntaConOpciones(
+        int $preguntaId,
+        int $categoriaId,
+        string $pregunta,
+        string $opcionA,
+        string $opcionB,
+        string $opcionC,
+        string $opcionD,
+        string $respuestaCorrecta
+    ): void {
+        $pregunta = trim($pregunta);
+
+        $opciones = [
+            'A' => trim($opcionA),
+            'B' => trim($opcionB),
+            'C' => trim($opcionC),
+            'D' => trim($opcionD)
+        ];
+
+        $respuestaCorrecta = strtoupper(
+            trim($respuestaCorrecta)
+        );
+
+        if ($preguntaId <= 0) {
+            throw new DomainException(
+                'La pregunta seleccionada no es válida.'
+            );
+        }
+
+        if ($pregunta === '') {
+            throw new DomainException(
+                'La pregunta es obligatoria.'
+            );
+        }
+
+        if (in_array('', $opciones, true)) {
+            throw new DomainException(
+                'Debés completar las cuatro opciones.'
+            );
+        }
+
+        if (!isset($opciones[$respuestaCorrecta])) {
+            throw new DomainException(
+                'Debés indicar cuál es la respuesta correcta.'
+            );
+        }
+
+        $normalizar = function_exists('mb_strtolower')
+            ? static fn(string $texto): string =>
+            mb_strtolower($texto, 'UTF-8')
+            : 'strtolower';
+
+        if (
+            count(
+                array_unique(
+                    array_map($normalizar, $opciones)
+                )
+            ) !== 4
+        ) {
+            throw new DomainException(
+                'Las cuatro respuestas deben ser distintas.'
+            );
+        }
+
+        $consultaCategoria = $this->pdo->prepare(
+            "SELECT id
+         FROM categorias
+         WHERE id = ?
+           AND habilitada = 1
+         LIMIT 1"
+        );
+
+        $consultaCategoria->execute([
+            $categoriaId
+        ]);
+
+        if ($consultaCategoria->fetchColumn() === false) {
+            throw new DomainException(
+                'La categoría seleccionada no es válida.'
+            );
+        }
+
+        $consultaPregunta = $this->pdo->prepare(
+            "SELECT id
+         FROM preguntas
+         WHERE id = ?
+         LIMIT 1"
+        );
+
+        $consultaPregunta->execute([
+            $preguntaId
+        ]);
+
+        if ($consultaPregunta->fetchColumn() === false) {
+            throw new DomainException(
+                'La pregunta que querés modificar no existe.'
+            );
+        }
+
+        $this->pdo->beginTransaction();
+
+        try {
+            $actualizarPregunta = $this->pdo->prepare(
+                "UPDATE preguntas
+             SET pregunta = ?,
+                 categoria_id = ?
+             WHERE id = ?"
+            );
+
+            $actualizarPregunta->execute([
+                $pregunta,
+                $categoriaId,
+                $preguntaId
+            ]);
+
+            $actualizarOpcion = $this->pdo->prepare(
+                "UPDATE opciones
+             SET texto = ?,
+                 es_correcta = ?
+             WHERE pregunta_id = ?
+               AND letra = ?"
+            );
+
+            foreach ($opciones as $letra => $texto) {
+                $actualizarOpcion->execute([
+                    $texto,
+                    (int) ($letra === $respuestaCorrecta),
+                    $preguntaId,
+                    $letra
+                ]);
+            }
+
+            $this->pdo->commit();
+
+        } catch (Throwable $error) {
+
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+
+            throw $error;
+        }
+    }
+
 }
