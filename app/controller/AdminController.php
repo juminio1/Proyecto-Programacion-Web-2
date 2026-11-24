@@ -3,14 +3,13 @@
 namespace app\controller;
 
 use app\model\AdminModel;
+use app\model\PeriodoEstadisticoModel;
+use InvalidArgumentException;
 use PDOException;
 use Request;
 
 class AdminController
 {
-    private const PERIODOS = [7, 30, 90];
-    private const PERIODO_POR_DEFECTO = 30;
-
     private AdminModel $model;
     private $render;
 
@@ -30,19 +29,8 @@ class AdminController
 
         header('Cache-Control: no-store');
 
-        $periodo = (int) Request::get('periodo', self::PERIODO_POR_DEFECTO);
-        if (!in_array($periodo, self::PERIODOS, true)) {
-            $periodo = self::PERIODO_POR_DEFECTO;
-        }
-
-        $datos = [
-            'nombreAdmin' => (string) ($_SESSION['usuario'] ?? 'Administrador'),
-            'periodo' => $periodo,
-            'periodos' => array_map(
-                fn (int $dias) => ['dias' => $dias, 'activo' => $dias === $periodo],
-                self::PERIODOS
-            ),
-        ];
+        [$periodo, $datos] = $this->leerFiltroPeriodo('/admin/show');
+        $datos['nombreAdmin'] = (string) ($_SESSION['usuario'] ?? 'Administrador');
 
         try {
             $datos += $this->cargarEstadisticas($periodo);
@@ -65,11 +53,13 @@ class AdminController
 
         header('Cache-Control: no-store');
 
-        $buscar = trim((string) Request::get('buscar', ''));
-        $buscar = mb_substr($buscar, 0, 50);
-        $idUsuario = max(0, (int) Request::get('usuario', 0));
+        [$periodo, $datos] = $this->leerFiltroPeriodo('/admin/usuarios');
+        $nombre = Request::get('buscar', '');
+        $buscar = is_string($nombre) ? mb_substr(trim($nombre), 0, 50) : '';
+        $idUsuario = max(0, (int) filter_var(Request::get('usuario'), FILTER_VALIDATE_INT));
 
-        $datos = [
+        $datos += [
+            'vistaUsuarios' => true,
             'buscar' => $buscar,
             'hayFiltro' => $buscar !== '' || $idUsuario > 0,
         ];
@@ -81,14 +71,15 @@ class AdminController
                     'nombre_usuario' => $j['nombre_usuario'],
                     'seleccionado' => (int) $j['id'] === $idUsuario,
                 ],
-                $this->model->obtenerListaJugadores()
+                $this->model->obtenerListaJugadores($periodo)
             );
-            $jugadores = $this->model->obtenerDesempenoJugadores($buscar, $idUsuario);
+            $jugadores = $this->model->obtenerDesempenoJugadores($periodo, $buscar, $idUsuario);
 
             $datos['listaJugadores'] = $lista;
             $datos['jugadores'] = $jugadores;
             $datos['cantidadJugadores'] = count($jugadores);
             $datos['sinResultados'] = $jugadores === [];
+            $datos['sinRespuestas'] = $jugadores !== [] && array_sum(array_column($jugadores, 'totalRespuestas')) === 0;
             $datos['usuariosCargados'] = true;
         } catch (PDOException $error) {
             error_log('Error al cargar desempeño de jugadores: ' . $error->getMessage());
@@ -108,12 +99,12 @@ class AdminController
 
         header('Cache-Control: no-store');
 
-        $datos = [];
+        [$periodo, $datos] = $this->leerFiltroPeriodo('/admin/caracteristicas');
 
         try {
-            $paises = $this->model->obtenerUsuariosPorPais();
-            $sexos = $this->model->obtenerUsuariosPorSexo();
-            $edades = $this->model->obtenerUsuariosPorGrupoEdad();
+            $paises = $this->model->obtenerUsuariosPorPais($periodo);
+            $sexos = $this->model->obtenerUsuariosPorSexo($periodo);
+            $edades = $this->model->obtenerUsuariosPorGrupoEdad($periodo);
             $total = array_sum(array_column($sexos, 'cantidad'));
 
             $paisesGrafico = array_slice($paises, 0, 8);
@@ -159,12 +150,42 @@ class AdminController
         $this->render->renderiza('adminCaracteristicas', $datos);
     }
 
-    private function cargarEstadisticas(int $periodo): array
+    private function leerFiltroPeriodo(string $ruta): array
     {
-        $jugadores = $this->model->obtenerCantidadJugadores();
-        $partidas = $this->model->obtenerCantidadPartidas();
-        $preguntas = $this->model->obtenerCantidadPreguntas();
-        $porCategoria = $this->model->obtenerCantidadPreguntasPorCategoria();
+        $hoy = date('Y-m-d');
+        try {
+            $periodo = new PeriodoEstadisticoModel(
+                Request::get('periodo', 'mes'),
+                Request::get('fecha', $hoy),
+                Request::get('detalle', '')
+            );
+        } catch (InvalidArgumentException $error) {
+            $periodo = new PeriodoEstadisticoModel('mes', $hoy);
+            $aviso = $error->getMessage() . ' Se muestra el mes actual.';
+        }
+        return [$periodo, $periodo->datosParaVista() + ['rutaFiltro' => $ruta, 'avisoFiltro' => $aviso ?? null]];
+    }
+
+    private function cargarEstadisticas(PeriodoEstadisticoModel $periodo): array
+    {
+        $jugadores = $this->model->obtenerCantidadJugadores($periodo);
+        $partidas = $this->model->obtenerCantidadPartidas($periodo);
+        $errorPreguntas = null;
+        try {
+            $porCategoria = $this->model->obtenerCantidadPreguntasPorCategoria($periodo);
+        } catch (PDOException $error) {
+            error_log('Error al cargar estadísticas de preguntas: ' . $error->getMessage());
+            $porCategoria = [];
+            $errorPreguntas = 'No se pudieron cargar las estadísticas de preguntas.';
+            if (($error->errorInfo[0] ?? null) === '42S22'
+                && str_contains($error->errorInfo[2] ?? '', 'p.fecha_creacion')) {
+                $errorPreguntas = 'Para ver las estadísticas de preguntas, aplicá la migración hu24_fecha_preguntas.sql.';
+            }
+        }
+        $preguntas = [
+            'creadas' => array_sum(array_column($porCategoria, 'creadas')),
+            'disponibles' => array_sum(array_column($porCategoria, 'disponibles')),
+        ];
         $nuevosPorDia = $this->model->obtenerCantidadUsuariosNuevosPorDia($periodo);
 
         $totalNuevos = array_sum(array_column($nuevosPorDia, 'cantidad'));
@@ -194,7 +215,10 @@ class AdminController
             'partidas' => $partidas,
             'preguntas' => $preguntas,
             'preguntasPorCategoria' => $porCategoria,
-            'sinCategorias' => $porCategoria === [],
+            'errorPreguntas' => $errorPreguntas,
+            'sinPreguntas' => $porCategoria === [],
+            'sinActividad' => $errorPreguntas === null && $jugadores['total'] === 0
+                && $partidas['total'] === 0 && $porCategoria === [],
             'usuariosNuevos' => $totalNuevos,
             // Solo se listan en la tabla los días con altas (el gráfico muestra todos).
             'nuevosPorDia' => array_values(array_map(

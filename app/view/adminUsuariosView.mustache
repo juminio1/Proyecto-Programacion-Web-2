@@ -1,34 +1,13 @@
 <link rel="stylesheet" href="/css/editor.css?v=5">
-<link rel="stylesheet" href="/css/admin.css?v=4">
+<link rel="stylesheet" href="/css/admin.css?v=5">
 <main class="editor admin">
     <section class="editor-panel" aria-labelledby="admin-usuarios-titulo">
-        <a class="editor-volver" href="/admin/show#seccion-jugadores">← Volver al panel</a>
+        <a class="editor-volver" href="/admin/show?periodo={{periodo}}&amp;fecha={{fecha}}{{#detalle}}&amp;detalle={{detalle}}{{/detalle}}#seccion-jugadores">← Volver al panel</a>
         <p class="editor-etiqueta">ROL ADMIN</p>
         <h1 id="admin-usuarios-titulo">Porcentaje de aciertos por usuario</h1>
-        <p>Porcentaje de respuestas correctas sobre el total de respuestas de cada jugador.</p>
+        <p>Porcentaje de respuestas correctas sobre el total de respuestas de cada jugador, según el día en que respondió.</p>
 
-        <form class="admin-filtro" method="get" action="/admin/usuarios">
-            <div class="admin-filtro-campo">
-                <label for="filtro-buscar">Buscar por nombre de usuario</label>
-                <input id="filtro-buscar" type="search" name="buscar" value="{{buscar}}"
-                       maxlength="50" placeholder="Ej: dorian" autocomplete="off">
-            </div>
-            <div class="admin-filtro-campo">
-                <label for="filtro-usuario">O elegir de la lista</label>
-                <select id="filtro-usuario" name="usuario">
-                    <option value="0">Todos los jugadores</option>
-                    {{#listaJugadores}}
-                        <option value="{{id}}"{{#seleccionado}} selected{{/seleccionado}}>{{nombre_usuario}}</option>
-                    {{/listaJugadores}}
-                </select>
-            </div>
-            <div class="admin-filtro-botones">
-                <button type="submit" class="editor-boton">Filtrar</button>
-                {{#hayFiltro}}
-                    <a class="editor-boton editor-boton-rechazar" href="/admin/usuarios">Limpiar</a>
-                {{/hayFiltro}}
-            </div>
-        </form>
+        {{> adminFiltroPeriodo}}
     </section>
 
     {{#errorUsuarios}}
@@ -43,9 +22,12 @@
             </div>
 
             {{#sinResultados}}
-                <p class="editor-sin-pendientes">No se encontraron jugadores con ese filtro.</p>
+                <p class="editor-sin-pendientes">No se encontraron jugadores con ese filtro en el período seleccionado.</p>
             {{/sinResultados}}
 
+            {{#sinRespuestas}}
+                <p class="editor-sin-pendientes">No se registraron respuestas para esta selección en el período.</p>
+            {{/sinRespuestas}}
             {{^sinResultados}}
                 <div class="editor-categorias-tabla-contenedor" role="region" aria-label="Porcentaje de aciertos por jugador" tabindex="0">
                     <table class="editor-categorias-tabla admin-tabla">

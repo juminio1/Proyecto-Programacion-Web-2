@@ -1,10 +1,11 @@
 <link rel="stylesheet" href="/css/editor.css?v=5">
-<link rel="stylesheet" href="/css/admin.css?v=3">
+<link rel="stylesheet" href="/css/admin.css?v=5">
 <main class="editor admin">
     <section class="editor-panel" aria-labelledby="editor-titulo">
         <p class="editor-etiqueta">ROL ADMIN</p>
         <h1 id="editor-titulo">Panel del administrador</h1>
-        <p>Hola, {{nombreAdmin}}. Acá podés ver la actividad y el crecimiento de la aplicación.</p>
+        <p>Hola, {{nombreAdmin}}. Acá puedes ver la actividad y el crecimiento de la aplicación.</p>
+        {{> adminFiltroPeriodo}}
     </section>
 
     {{#errorEstadisticas}}
@@ -12,6 +13,9 @@
     {{/errorEstadisticas}}
 
     {{#estadisticasCargadas}}
+        {{#sinActividad}}
+            <p class="editor-aviso" role="status">No hay registros de jugadores, partidas iniciadas ni preguntas creadas con fecha conocida en este período.</p>
+        {{/sinActividad}}
         <div id="admin-estadisticas" data-graficos="{{graficosJson}}">
 
             <section id="resumen" class="editor-panel admin-seccion" aria-labelledby="admin-resumen-titulo">
@@ -19,29 +23,32 @@
                 <div class="admin-resumen">
                     <a class="admin-dato" href="#seccion-jugadores">
                         <span class="admin-dato-numero">{{jugadores.total}}</span>
-                        <span class="admin-dato-texto">Jugadores</span>
+                        <span class="admin-dato-texto">Jugadores registrados</span>
                     </a>
                     <a class="admin-dato" href="#seccion-partidas">
                         <span class="admin-dato-numero">{{partidas.jugadas}}</span>
                         <span class="admin-dato-texto">Partidas jugadas</span>
                     </a>
-                    <a class="admin-dato" href="#seccion-preguntas">
-                        <span class="admin-dato-numero">{{preguntas.disponibles}}</span>
-                        <span class="admin-dato-texto">Preguntas disponibles</span>
-                    </a>
-                    <a class="admin-dato" href="#seccion-preguntas">
-                        <span class="admin-dato-numero">{{preguntas.creadas}}</span>
-                        <span class="admin-dato-texto">Preguntas creadas</span>
-                    </a>
+                    {{^errorPreguntas}}
+                        <a class="admin-dato" href="#seccion-preguntas">
+                            <span class="admin-dato-numero">{{preguntas.disponibles}}</span>
+                            <span class="admin-dato-texto">Preguntas disponibles</span>
+                        </a>
+                        <a class="admin-dato" href="#seccion-preguntas">
+                            <span class="admin-dato-numero">{{preguntas.creadas}}</span>
+                            <span class="admin-dato-texto">Preguntas creadas</span>
+                        </a>
+                    {{/errorPreguntas}}
                     <a class="admin-dato" href="#seccion-nuevos">
                         <span class="admin-dato-numero">{{usuariosNuevos}}</span>
-                        <span class="admin-dato-texto">Usuarios nuevos (últimos {{periodo}} días)</span>
+                        <span class="admin-dato-texto">Usuarios nuevos</span>
                     </a>
                 </div>
             </section>
 
             <section id="seccion-jugadores" class="editor-panel admin-seccion" aria-labelledby="admin-jugadores-titulo">
                 <h2 id="admin-jugadores-titulo">Jugadores</h2>
+                {{^jugadores.total}}<p class="editor-sin-pendientes">No se registraron jugadores en este período.</p>{{/jugadores.total}}
                 <div class="admin-grafico-fila">
                     <div class="admin-grafico">
                         <canvas id="grafico-jugadores" role="img"
@@ -58,15 +65,16 @@
                     </table>
                 </div>
                 <div class="admin-acciones">
-                    <a class="editor-boton" href="/admin/usuarios">Ver porcentaje de aciertos por usuario</a>
-                    <a class="editor-boton" href="/admin/caracteristicas">Ver estadísticas de los usuarios</a>
+                    <a class="editor-boton" href="/admin/usuarios?periodo={{periodo}}&amp;fecha={{fecha}}{{#detalle}}&amp;detalle={{detalle}}{{/detalle}}">Ver porcentaje de aciertos por usuario</a>
+                    <a class="editor-boton" href="/admin/caracteristicas?periodo={{periodo}}&amp;fecha={{fecha}}{{#detalle}}&amp;detalle={{detalle}}{{/detalle}}">Ver estadísticas de los usuarios</a>
                 </div>
                 <a class="admin-volver" href="#resumen">↑ Volver al resumen</a>
             </section>
 
             <section id="seccion-partidas" class="editor-panel admin-seccion" aria-labelledby="admin-partidas-titulo">
                 <h2 id="admin-partidas-titulo">Partidas</h2>
-                <p>Se consideran jugadas las partidas finalizadas y abandonadas.</p>
+                <p>Se cuentan las partidas iniciadas en el período según su estado actual. Las finalizadas y abandonadas se consideran jugadas.</p>
+                {{^partidas.total}}<p class="editor-sin-pendientes">No se iniciaron partidas en este período.</p>{{/partidas.total}}
                 <div class="admin-grafico-fila">
                     <div class="admin-grafico">
                         <canvas id="grafico-partidas" role="img"
@@ -88,47 +96,45 @@
 
             <section id="seccion-preguntas" class="editor-panel admin-seccion" aria-labelledby="admin-preguntas-titulo">
                 <h2 id="admin-preguntas-titulo">Preguntas</h2>
-                <p>Disponibles: habilitadas y de una categoría habilitada. Creadas: todas las cargadas en la aplicación.</p>
-                {{#sinCategorias}}
-                    <p class="editor-sin-pendientes">Todavía no hay categorías habilitadas.</p>
-                {{/sinCategorias}}
-                {{^sinCategorias}}
-                    <div class="admin-grafico-fila">
-                        <div class="admin-grafico">
-                            <canvas id="grafico-preguntas" role="img"
-                                    aria-label="Gráfico de preguntas disponibles por categoría"></canvas>
+                {{#errorPreguntas}}
+                    <p class="editor-aviso editor-aviso-error" role="alert">{{errorPreguntas}}</p>
+                {{/errorPreguntas}}
+                {{^errorPreguntas}}
+                    <p>Se incluyen las preguntas creadas en el período que tienen fecha de alta registrada. Una pregunta está disponible si tanto ella como su categoría están habilitadas.</p>
+                    {{#sinPreguntas}}
+                        <p class="editor-sin-pendientes">No hay preguntas con fecha de alta registrada en este período.</p>
+                    {{/sinPreguntas}}
+                    {{^sinPreguntas}}
+                        <div class="admin-grafico-fila">
+                            <div class="admin-grafico">
+                                <canvas id="grafico-preguntas" role="img"
+                                        aria-label="Gráfico de preguntas disponibles por categoría"></canvas>
+                            </div>
+                            <table class="editor-categorias-tabla admin-tabla">
+                                <caption class="editor-texto-accesible">Preguntas disponibles y creadas por categoría.</caption>
+                                <thead>
+                                <tr>
+                                    <th scope="col">Categoría</th>
+                                    <th scope="col">Disponibles</th>
+                                    <th scope="col">Creadas</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {{#preguntasPorCategoria}}
+                                    <tr><th scope="row">{{nombre}}</th><td>{{disponibles}}</td><td>{{creadas}}</td></tr>
+                                {{/preguntasPorCategoria}}
+                                <tr><th scope="row">Total</th><td>{{preguntas.disponibles}}</td><td>{{preguntas.creadas}}</td></tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <table class="editor-categorias-tabla admin-tabla">
-                            <caption class="editor-texto-accesible">Preguntas disponibles y creadas por categoría.</caption>
-                            <thead>
-                            <tr>
-                                <th scope="col">Categoría</th>
-                                <th scope="col">Disponibles</th>
-                                <th scope="col">Creadas</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {{#preguntasPorCategoria}}
-                                <tr><th scope="row">{{nombre}}</th><td>{{disponibles}}</td><td>{{creadas}}</td></tr>
-                            {{/preguntasPorCategoria}}
-                            <tr><th scope="row">Total</th><td>{{preguntas.disponibles}}</td><td>{{preguntas.creadas}}</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                {{/sinCategorias}}
+                    {{/sinPreguntas}}
+                {{/errorPreguntas}}
                 <a class="admin-volver" href="#resumen">↑ Volver al resumen</a>
             </section>
 
             <section id="seccion-nuevos" class="editor-panel admin-seccion" aria-labelledby="admin-nuevos-titulo">
-                <div class="admin-encabezado">
-                    <h2 id="admin-nuevos-titulo">Usuarios nuevos</h2>
-                    <nav class="admin-periodos" aria-label="Período de usuarios nuevos">
-                        {{#periodos}}
-                            <a href="/admin/show?periodo={{dias}}"{{#activo}} class="activo" aria-current="true"{{/activo}}>{{dias}} días</a>
-                        {{/periodos}}
-                    </nav>
-                </div>
-                <p>Jugadores registrados en los últimos {{periodo}} días: <strong>{{usuariosNuevos}}</strong>.</p>
+                <h2 id="admin-nuevos-titulo">Usuarios nuevos</h2>
+                <p>Jugadores registrados en el período seleccionado: <strong>{{usuariosNuevos}}</strong>.</p>
                 <div class="admin-grafico-fila">
                     <div class="admin-grafico admin-grafico-ancho">
                         <canvas id="grafico-nuevos" role="img"

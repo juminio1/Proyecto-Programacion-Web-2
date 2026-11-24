@@ -287,3 +287,7 @@ a.admin-dato:focus-visible {
 .admin > .editor-aviso + .admin-seccion {
     margin-top: 22px;
 }
+
+.admin-filtro-campo[hidden] {
+    display: none;
+}
