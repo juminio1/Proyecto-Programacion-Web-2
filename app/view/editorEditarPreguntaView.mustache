@@ -4,7 +4,7 @@
 <main class="pregunta-sugerida-pagina">
 
     <div style="max-width: 850px; margin: 0 auto 16px;">
-        <a href="/editor/mostrarGestionPreguntas"
+        <a href="{{urlListado}}"
            class="editor-volver">
             ← Volver a gestión de preguntas
         </a>
@@ -48,6 +48,9 @@
             <input type="hidden"
                    name="pregunta_id"
                    value="{{preguntaId}}">
+            <input type="hidden" name="pagina" value="{{pagina}}">
+            <input type="hidden" name="buscar" value="{{buscar}}">
+            <input type="hidden" name="categoria" value="{{categoria}}">
 
 
             <div class="campo">

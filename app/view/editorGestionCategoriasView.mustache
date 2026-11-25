@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/css/editor.css?v=baja-categorias-1">
+<link rel="stylesheet" href="/css/editor.css?v=paginacion-categorias-1">
 
 <main class="editor" aria-labelledby="categorias-titulo">
     <a class="editor-volver" href="/editor/show">← Volver al panel del editor</a>
@@ -21,15 +21,23 @@
         {{#mensajeError}}
             <p class="editor-aviso editor-aviso-error" role="alert">{{mensajeError}}</p>
         {{/mensajeError}}
-        {{#hayCategorias}}
-            <div id="herramientas-categorias" hidden>
-                <div class="editor-preguntas-herramientas">
-                    <div class="editor-preguntas-buscador">
-                        <label for="buscar-categoria">Buscar categoría</label>
-                        <input id="buscar-categoria" type="search" placeholder="Nombre de la categoría" autocomplete="off">
-                    </div>
+        {{#mostrarBuscador}}
+            <form class="editor-preguntas-herramientas editor-categorias-busqueda"
+                  method="get" action="/editor/mostrarGestionCategorias" role="search" aria-label="Categorías">
+                <div class="editor-preguntas-buscador">
+                    <label for="buscar-categoria">Buscar categoría</label>
+                    <input id="buscar-categoria" name="buscar" type="search" value="{{buscar}}"
+                           placeholder="Nombre de la categoría" autocomplete="off">
                 </div>
-            </div>
+                <div class="editor-categorias-busqueda-acciones">
+                    <button class="editor-boton" type="submit">Buscar</button>
+                    {{#hayBusqueda}}
+                        <a class="editor-boton editor-boton-rechazar" href="/editor/mostrarGestionCategorias">Limpiar</a>
+                    {{/hayBusqueda}}
+                </div>
+            </form>
+        {{/mostrarBuscador}}
+        {{#hayCategorias}}
             <div id="tabla-categorias" class="editor-categorias-tabla-contenedor"
                  role="region" aria-label="Categorías registradas" tabindex="0">
                 <table class="editor-categorias-tabla">
@@ -56,13 +64,13 @@
                             <td class="editor-categoria-cantidad">{{cantidad_preguntas}}</td>
                             <td>
                                 {{#habilitada}}
-                                    <a href="/editor/mostrarFormularioEditarCategoria?id={{id}}"
-                                    class="editor-accion editor-accion-editar"
-                                    title="Editar categoría" aria-label="Editar categoría {{nombre}}">
-                                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                                        <path d="M12 20h9"></path>
-                                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path>
-                                    </svg>
+                                    <a href="{{urlEditar}}"
+                                       class="editor-accion editor-accion-editar"
+                                       title="Editar categoría" aria-label="Editar categoría {{nombre}}">
+                                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                                            <path d="M12 20h9"></path>
+                                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path>
+                                        </svg>
                                     </a>
                                     <button type="button" class="editor-accion editor-accion-baja"
                                             data-baja-categoria="{{id}}" data-nombre="{{nombre}}"
@@ -78,10 +86,25 @@
                     </tbody>
                 </table>
             </div>
-            <p id="categorias-sin-coincidencias" role="status" hidden>No se encontraron categorías con ese nombre.</p>
+            {{#mostrarPaginacion}}
+                <nav class="editor-categorias-paginacion" aria-label="Páginas de categorías">
+                    {{#urlAnterior}}
+                        <a class="editor-boton editor-boton-rechazar" href="{{urlAnterior}}" rel="prev">Anterior</a>
+                    {{/urlAnterior}}
+                    <span>Página {{pagina}} de {{totalPaginas}}</span>
+                    {{#urlSiguiente}}
+                        <a class="editor-boton editor-boton-rechazar" href="{{urlSiguiente}}" rel="next">Siguiente</a>
+                    {{/urlSiguiente}}
+                </nav>
+            {{/mostrarPaginacion}}
         {{/hayCategorias}}
         {{#sinCategorias}}
-            <p>Todavía no hay categorías registradas.</p>
+            {{#hayBusqueda}}
+                <p role="status">No se encontraron categorías con ese nombre.</p>
+            {{/hayBusqueda}}
+            {{^hayBusqueda}}
+                <p>Todavía no hay categorías registradas.</p>
+            {{/hayBusqueda}}
         {{/sinCategorias}}
     </section>
 </main>
@@ -93,8 +116,10 @@
     <form action="/editor/darDeBajaCategoria" method="post" class="editor-modal-acciones">
         <input type="hidden" name="csrf_token" value="{{tokenBaja}}">
         <input type="hidden" name="categoria_id" id="id-categoria-baja">
+        <input type="hidden" name="pagina" value="{{pagina}}">
+        <input type="hidden" name="buscar" value="{{buscar}}">
         <button class="editor-modal-cancelar" type="button" autofocus>Cancelar</button>
         <button class="editor-modal-confirmar" type="submit">Dar de baja</button>
     </form>
 </dialog>
-<script src="/js/editor-gestion-categoria.js?v=baja-1" defer></script>
+<script src="/js/editor-gestion-categoria.js?v=paginacion-1" defer></script>

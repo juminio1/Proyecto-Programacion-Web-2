@@ -4,10 +4,15 @@ namespace app\model;
 
 use DomainException;
 use PDO;
+use PDOStatement;
 use Throwable;
 
 class EditorModel
 {
+    private const PREGUNTAS_ACTIVAS_PARA_GESTION = 'FROM preguntas p
+        INNER JOIN categorias c ON c.id = p.categoria_id
+        WHERE p.habilitada = 1 AND c.habilitada = 1';
+
     private PDO $pdo;
 
     public function __construct($database)
@@ -323,25 +328,64 @@ class EditorModel
         }
     }
 
-    public function obtenerTodasLasPreguntasConCategoria(): array
+    public function obtenerResumenPreguntasPorCategoria(): array
     {
         $consulta = $this->pdo->query(
-            "SELECT
-            p.id,
-            p.pregunta,
-            p.habilitada,
-            p.dificultad,
-            c.id AS categoria_id,
-            c.nombre AS categoria,
-            c.color AS color_categoria
-         FROM preguntas p
-         INNER JOIN categorias c
-            ON c.id = p.categoria_id
-         WHERE p.habilitada = 1 AND c.habilitada = 1
-         ORDER BY c.nombre ASC, p.id ASC"
+            'SELECT c.id, c.nombre, COUNT(p.id) AS cantidad_preguntas
+             FROM categorias c
+             LEFT JOIN preguntas p ON p.categoria_id = c.id AND p.habilitada = 1
+             WHERE c.habilitada = 1
+             GROUP BY c.id, c.nombre
+             ORDER BY c.nombre ASC, c.id ASC'
         );
 
         return $consulta->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function contarPreguntasParaGestion(string $buscar, ?int $categoriaId): int
+    {
+        $consulta = $this->prepararConsultaPreguntasParaGestion('COUNT(*)', $buscar, $categoriaId);
+        $consulta->execute();
+        return (int) $consulta->fetchColumn();
+    }
+
+    public function obtenerPreguntasParaGestion(
+        string $buscar,
+        ?int $categoriaId,
+        int $limite,
+        int $desplazamiento
+    ): array {
+        $consulta = $this->prepararConsultaPreguntasParaGestion(
+            'p.id, p.pregunta, p.habilitada, p.dificultad,
+             c.id AS categoria_id, c.nombre AS categoria, c.color AS color_categoria',
+            $buscar,
+            $categoriaId,
+            'ORDER BY c.nombre ASC, p.id ASC LIMIT :limite OFFSET :desplazamiento'
+        );
+        $consulta->bindValue('limite', $limite, PDO::PARAM_INT);
+        $consulta->bindValue('desplazamiento', $desplazamiento, PDO::PARAM_INT);
+        $consulta->execute();
+
+        return $consulta->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function prepararConsultaPreguntasParaGestion(
+        string $columnas,
+        string $buscar,
+        ?int $categoriaId,
+        string $ordenYPaginacion = ''
+    ): PDOStatement {
+        $consulta = $this->pdo->prepare(
+            'SELECT ' . $columnas . ' ' . self::PREGUNTAS_ACTIVAS_PARA_GESTION
+            . " AND (:todas_las_categorias = 1 OR c.id = :categoria_id)
+                AND CONVERT(p.pregunta USING utf8mb4) COLLATE utf8mb4_unicode_ci LIKE :buscar ESCAPE '!' "
+            . $ordenYPaginacion
+        );
+        $patron = '%' . strtr($buscar, ['!' => '!!', '%' => '!%', '_' => '!_']) . '%';
+        $consulta->bindValue('todas_las_categorias', (int) ($categoriaId === null), PDO::PARAM_INT);
+        $consulta->bindValue('categoria_id', $categoriaId ?? 0, PDO::PARAM_INT);
+        $consulta->bindValue('buscar', $patron, PDO::PARAM_STR);
+        return $consulta;
     }
 
     private function validarCategoriaHabilitada(int $categoriaId): void

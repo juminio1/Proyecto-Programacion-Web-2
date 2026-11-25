@@ -13,6 +13,9 @@ use Request;
 
 class EditorController
 {
+    private const CATEGORIAS_POR_PAGINA = 10;
+    private const PREGUNTAS_POR_PAGINA = 10;
+
     private PreguntaSugeridaModel $sugerencias;
     private EditorModel $editorModel;
     private CategoriaSugeridaModel $categorias;
@@ -61,16 +64,39 @@ class EditorController
         $datos['tokenBaja'] = $_SESSION['editor_categoria_baja_csrf'];
 
         try {
-            $categorias = $this->categoriaModel->obtenerCategoriasParaGestion();
+            $filtros = $this->filtrosListadoEditor(Request::get('pagina'), Request::get('buscar'));
+            $totalCategorias = $this->categoriaModel->contarCategoriasParaGestion($filtros['buscar']);
+            $totalPaginas = max(1, (int) ceil($totalCategorias / self::CATEGORIAS_POR_PAGINA));
+            $pagina = min($filtros['pagina'], $totalPaginas);
+            $filtros['pagina'] = $pagina;
+
+            $categorias = $this->categoriaModel->obtenerCategoriasParaGestion(
+                $filtros['buscar'],
+                self::CATEGORIAS_POR_PAGINA,
+                ($pagina - 1) * self::CATEGORIAS_POR_PAGINA
+            );
             foreach ($categorias as &$categoria) {
                 $categoria['color'] = $this->colorCategoriaParaVista($categoria['color']);
                 $categoria['habilitada'] = (bool) $categoria['habilitada'];
+                $categoria['urlEditar'] = $this->urlCategorias($filtros, (int) $categoria['id']);
             }
             unset($categoria);
 
+            $datos['pagina'] = $pagina;
+            $datos['buscar'] = $filtros['buscar'];
             $datos['categorias'] = $categorias;
             $datos['hayCategorias'] = $categorias !== [];
-            $datos['sinCategorias'] = $categorias === [];
+            $datos['sinCategorias'] = !$datos['hayCategorias'];
+            $datos['hayBusqueda'] = $filtros['buscar'] !== '';
+            $datos['mostrarBuscador'] = $datos['hayCategorias'] || $datos['hayBusqueda'];
+            $datos['mostrarPaginacion'] = $totalPaginas > 1;
+            $datos['totalPaginas'] = $totalPaginas;
+            if ($pagina > 1) {
+                $datos['urlAnterior'] = $this->urlCategorias(['pagina' => $pagina - 1] + $filtros);
+            }
+            if ($pagina < $totalPaginas) {
+                $datos['urlSiguiente'] = $this->urlCategorias(['pagina' => $pagina + 1] + $filtros);
+            }
         } catch (PDOException $error) {
             error_log('Error al listar categorías: ' . $error->getMessage());
             http_response_code(500);
@@ -96,7 +122,7 @@ class EditorController
             return;
         }
 
-        $id = $this->validarIdCategoria(Request::post('categoria_id'));
+        $id = $this->validarEnteroPositivo(Request::post('categoria_id'));
         try {
             if ($id === null) {
                 throw new DomainException('Seleccioná una categoría válida.');
@@ -111,7 +137,8 @@ class EditorController
         }
 
         $_SESSION['editor_categorias_aviso_gestion'] = $aviso;
-        header('Location: /editor/mostrarGestionCategorias', true, 303);
+        $filtros = $this->filtrosListadoEditor(Request::post('pagina'), Request::post('buscar'));
+        header('Location: ' . $this->urlCategorias($filtros), true, 303);
     }
 
     public function nuevaCategoria(): void
@@ -189,26 +216,27 @@ class EditorController
             return;
         }
 
-        $id = $this->validarIdCategoria(Request::get('id'));
+        $filtros = $this->filtrosListadoEditor(Request::get('pagina'), Request::get('buscar'));
+        $id = $this->validarEnteroPositivo(Request::get('id'));
         if ($id === null) {
-            $this->mostrarErrorEdicionCategoria(400, 'Seleccioná una categoría válida.');
+            $this->mostrarErrorEdicionCategoria(400, 'Seleccioná una categoría válida.', $filtros);
             return;
         }
 
         try {
             $categoria = $this->categoriaModel->obtenerCategoriaParaEditar($id);
         } catch (OutOfBoundsException $error) {
-            $this->mostrarErrorEdicionCategoria(404, $error->getMessage());
+            $this->mostrarErrorEdicionCategoria(404, $error->getMessage(), $filtros);
             return;
         } catch (PDOException $error) {
             error_log('Error al consultar la categoría: ' . $error->getMessage());
-            $this->mostrarErrorEdicionCategoria(500, 'No se pudo cargar la categoría. Intentá nuevamente.');
+            $this->mostrarErrorEdicionCategoria(500, 'No se pudo cargar la categoría. Intentá nuevamente.', $filtros);
             return;
         }
 
         $exito = isset($_SESSION['editor_categorias_guardadas'][$id]);
         unset($_SESSION['editor_categorias_guardadas'][$id]);
-        $this->mostrarEdicionCategoria($categoria, '', $exito);
+        $this->mostrarEdicionCategoria($categoria, $filtros, '', $exito);
     }
 
     public function guardarCambiosCategoria(): void
@@ -219,16 +247,17 @@ class EditorController
             return;
         }
 
+        $filtros = $this->filtrosListadoEditor(Request::post('pagina'), Request::post('buscar'));
         $token = Request::post('csrf_token');
         $esperado = $_SESSION['editor_categoria_editar_csrf'] ?? null;
         if (!is_string($token) || !is_string($esperado) || !hash_equals($esperado, $token)) {
-            $this->mostrarErrorEdicionCategoria(403, 'Volvé a abrir la categoría desde el listado para editarla.');
+            $this->mostrarErrorEdicionCategoria(403, 'Volvé a abrir la categoría desde el listado para editarla.', $filtros);
             return;
         }
 
-        $id = $this->validarIdCategoria(Request::post('categoria_id'));
+        $id = $this->validarEnteroPositivo(Request::post('categoria_id'));
         if ($id === null) {
-            $this->mostrarErrorEdicionCategoria(400, 'Seleccioná una categoría válida.');
+            $this->mostrarErrorEdicionCategoria(400, 'Seleccioná una categoría válida.', $filtros);
             return;
         }
 
@@ -242,47 +271,70 @@ class EditorController
         try {
             $this->categoriaModel->actualizarCategoria($id, $categoria['nombre'], $categoria['color']);
         } catch (OutOfBoundsException $error) {
-            $this->mostrarErrorEdicionCategoria(404, $error->getMessage());
+            $this->mostrarErrorEdicionCategoria(404, $error->getMessage(), $filtros);
             return;
         } catch (DomainException $error) {
             http_response_code(422);
-            $this->mostrarEdicionCategoria($categoria, $error->getMessage());
+            $this->mostrarEdicionCategoria($categoria, $filtros, $error->getMessage());
             return;
         } catch (PDOException $error) {
             error_log('Error al editar la categoría: ' . $error->getMessage());
             http_response_code(500);
-            $this->mostrarEdicionCategoria($categoria, 'No se pudieron guardar los cambios. Intentá nuevamente.');
+            $this->mostrarEdicionCategoria($categoria, $filtros, 'No se pudieron guardar los cambios. Intentá nuevamente.');
             return;
         }
 
         $_SESSION['editor_categorias_guardadas'][$id] = true;
-        header('Location: /editor/mostrarFormularioEditarCategoria?id=' . $id, true, 303);
+        header('Location: ' . $this->urlCategorias($filtros, $id), true, 303);
     }
 
-    private function validarIdCategoria($valor): ?int
+    private function filtrosListadoEditor($pagina, $buscar): array
+    {
+        return [
+            'pagina' => $this->validarEnteroPositivo($pagina) ?? 1,
+            'buscar' => is_string($buscar) && preg_match('//u', $buscar) === 1 ? trim($buscar) : ''
+        ];
+    }
+
+    private function urlCategorias(array $filtros, ?int $categoriaId = null): string
+    {
+        if ($filtros['buscar'] === '') {
+            unset($filtros['buscar']);
+        }
+        if ($categoriaId !== null) {
+            return '/editor/mostrarFormularioEditarCategoria?' . http_build_query(['id' => $categoriaId] + $filtros);
+        }
+        return '/editor/mostrarGestionCategorias?' . http_build_query($filtros);
+    }
+
+    private function validarEnteroPositivo($valor): ?int
     {
         $id = filter_var($valor, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         return $id === false ? null : $id;
     }
 
-    private function mostrarErrorEdicionCategoria(int $estado, string $mensaje): void
+    private function mostrarErrorEdicionCategoria(int $estado, string $mensaje, array $filtros): void
     {
         http_response_code($estado);
         header('Cache-Control: no-store');
-        $this->render->renderiza('editorEditarCategoria', ['mensajeError' => $mensaje]);
+        $this->render->renderiza('editorEditarCategoria', [
+            'mensajeError' => $mensaje,
+            'urlListado' => $this->urlCategorias($filtros)
+        ]);
     }
 
-    private function mostrarEdicionCategoria(array $categoria, string $error = '', bool $exito = false): void
+    private function mostrarEdicionCategoria(array $categoria, array $filtros, string $error = '', bool $exito = false): void
     {
         header('Cache-Control: no-store');
         $_SESSION['editor_categoria_editar_csrf'] ??= bin2hex(random_bytes(32));
         $categoria['color'] = $this->colorCategoriaParaVista($categoria['color']);
         $this->render->renderiza('editorEditarCategoria', [
-            'categoria' => $categoria,
-            'tokenCSRF' => $_SESSION['editor_categoria_editar_csrf'],
-            'mensajeError' => $error,
-            'exito' => $exito
-        ]);
+                'categoria' => $categoria,
+                'tokenCSRF' => $_SESSION['editor_categoria_editar_csrf'],
+                'mensajeError' => $error,
+                'exito' => $exito,
+                'urlListado' => $this->urlCategorias($filtros)
+            ] + $filtros);
     }
 
     public function mostrarGestionPreguntas(): void
@@ -296,45 +348,85 @@ class EditorController
         header('Cache-Control: no-store');
 
         try {
-            $preguntas = $this->editorModel
-                ->obtenerTodasLasPreguntasConCategoria();
+            $filtros = $this->filtrosGestionPreguntas(
+                Request::get('pagina'), Request::get('buscar'), Request::get('categoria')
+            );
+            $resumenCategorias = $this->editorModel->obtenerResumenPreguntasPorCategoria();
+            $categoriasFiltro = [];
+            $totalPreguntas = 0;
+            $totalCategorias = 0;
+            foreach ($resumenCategorias as $categoria) {
+                $cantidad = (int) $categoria['cantidad_preguntas'];
+                $totalPreguntas += $cantidad;
+                $totalCategorias += (int) ($cantidad > 0);
+                $categoria['seleccionada'] = (int) $categoria['id'] === $filtros['categoria'];
+                if ($cantidad > 0 || $categoria['seleccionada']) {
+                    $categoriasFiltro[] = $categoria;
+                }
+            }
 
-            $categoriasConPreguntas =
-                $this->agruparPreguntasPorCategoria($preguntas);
+            $hayFiltros = $filtros['buscar'] !== '' || $filtros['categoria'] !== null;
+            $totalResultados = $hayFiltros
+                ? $this->editorModel->contarPreguntasParaGestion($filtros['buscar'], $filtros['categoria'])
+                : $totalPreguntas;
+            $totalPaginas = max(1, (int) ceil($totalResultados / self::PREGUNTAS_POR_PAGINA));
+            $pagina = min($filtros['pagina'], $totalPaginas);
+            $filtros['pagina'] = $pagina;
 
-            $cantidadTotalPreguntas = count($preguntas);
-
-            $cantidadTotalCategorias =
-                count($categoriasConPreguntas);
-
-            $this->render->renderiza('editorPreguntas', [
-                'categoriasConPreguntas' => $categoriasConPreguntas,
-                'sinPreguntas' => empty($preguntas),
-
-                'cantidadTotalPreguntas' =>
-                    $cantidadTotalPreguntas,
-
-                'cantidadTotalCategorias' =>
-                    $cantidadTotalCategorias
-            ]);
-
-        } catch (PDOException $error) {
-
-            error_log(
-                'Error al cargar preguntas para gestión: '
-                . $error->getMessage()
+            $preguntas = $this->editorModel->obtenerPreguntasParaGestion(
+                $filtros['buscar'],
+                $filtros['categoria'],
+                self::PREGUNTAS_POR_PAGINA,
+                ($pagina - 1) * self::PREGUNTAS_POR_PAGINA
             );
 
+            $datos = [
+                    'categoriasFiltro' => $categoriasFiltro,
+                    'categoriasConPreguntas' => $this->agruparPreguntasPorCategoria($preguntas, $filtros),
+                    'cantidadTotalPreguntas' => $totalPreguntas,
+                    'cantidadTotalCategorias' => $totalCategorias,
+                    'sinPreguntas' => $totalPreguntas === 0,
+                    'sinResultados' => $totalPreguntas > 0 && $preguntas === [],
+                    'hayFiltros' => $hayFiltros,
+                    'mostrarFiltros' => $totalPreguntas > 0 || $hayFiltros,
+                    'mostrarPaginacion' => $totalPaginas > 1 && $preguntas !== [],
+                    'totalPaginas' => $totalPaginas
+                ] + $filtros;
+            if ($pagina > 1) {
+                $datos['urlAnterior'] = $this->urlPreguntas(['pagina' => $pagina - 1] + $filtros);
+            }
+            if ($pagina < $totalPaginas) {
+                $datos['urlSiguiente'] = $this->urlPreguntas(['pagina' => $pagina + 1] + $filtros);
+            }
+            $this->render->renderiza('editorPreguntas', $datos);
+        } catch (PDOException $error) {
+            error_log('Error al cargar preguntas para gestión: ' . $error->getMessage());
+            http_response_code(500);
             $this->render->renderiza('editorPreguntas', [
-                'categoriasConPreguntas' => [],
-                'sinPreguntas' => true,
-                'mensajeError' =>
-                    'No se pudieron cargar las preguntas. Intentá nuevamente.'
+                'mensajeError' => 'No se pudieron cargar las preguntas. Intentá nuevamente.'
             ]);
         }
     }
 
-    private function agruparPreguntasPorCategoria(array $preguntas): array
+    private function filtrosGestionPreguntas($pagina, $buscar, $categoria): array
+    {
+        return $this->filtrosListadoEditor($pagina, $buscar) + [
+                'categoria' => $this->validarEnteroPositivo($categoria)
+            ];
+    }
+
+    private function urlPreguntas(array $filtros, ?int $preguntaId = null): string
+    {
+        if ($filtros['buscar'] === '') {
+            unset($filtros['buscar']);
+        }
+        if ($preguntaId !== null) {
+            return '/editor/mostrarFormularioEditarPregunta?' . http_build_query(['id' => $preguntaId] + $filtros);
+        }
+        return '/editor/mostrarGestionPreguntas?' . http_build_query($filtros);
+    }
+
+    private function agruparPreguntasPorCategoria(array $preguntas, array $filtros): array
     {
         $categorias = [];
 
@@ -374,6 +466,7 @@ class EditorController
             $pregunta['dificultadDificil'] =
                 $pregunta['dificultad'] === 'dificil';
 
+            $pregunta['urlEditar'] = $this->urlPreguntas($filtros, (int) $pregunta['id']);
             $categorias[$categoriaId]['preguntas'][] = $pregunta;
 
             $categorias[$categoriaId]['cantidadPreguntas']++;
@@ -627,6 +720,9 @@ class EditorController
             return;
         }
 
+        $filtros = $this->filtrosGestionPreguntas(
+            Request::get('pagina'), Request::get('buscar'), Request::get('categoria')
+        );
         $preguntaId = isset($_GET['id'])
             ? (int) $_GET['id']
             : 0;
@@ -673,6 +769,7 @@ class EditorController
                 [
                     'preguntaId' => $pregunta['id'],
                     'pregunta' => $pregunta['pregunta'],
+                    'urlListado' => $this->urlPreguntas($filtros),
 
                     'categorias' => $categorias,
 
@@ -688,7 +785,7 @@ class EditorController
 
                     'tokenCSRF' =>
                         $_SESSION['editor_editar_pregunta_csrf']
-                ]
+                ] + $filtros
             );
 
         } catch (PDOException $error) {
@@ -711,6 +808,9 @@ class EditorController
             return;
         }
 
+        $filtros = $this->filtrosGestionPreguntas(
+            Request::post('pagina'), Request::post('buscar'), Request::post('categoria')
+        );
         $token = Request::post('csrf_token');
 
         $tokenGuardado =
@@ -775,7 +875,8 @@ class EditorController
             $this->mostrarFormularioEditarPreguntaConResultado(
                 $preguntaId,
                 true,
-                'La pregunta fue modificada correctamente.'
+                'La pregunta fue modificada correctamente.',
+                $filtros
             );
 
         } catch (DomainException $error) {
@@ -784,6 +885,7 @@ class EditorController
                 $preguntaId,
                 false,
                 $error->getMessage(),
+                $filtros,
                 $categoriaId,
                 $pregunta,
                 $opcionA,
@@ -804,6 +906,7 @@ class EditorController
                 $preguntaId,
                 false,
                 'No se pudo modificar la pregunta. Intentá nuevamente.',
+                $filtros,
                 $categoriaId,
                 $pregunta,
                 $opcionA,
@@ -819,6 +922,7 @@ class EditorController
         int $preguntaId,
         bool $exito,
         string $mensaje,
+        array $filtros,
         ?int $categoriaId = null,
         ?string $pregunta = null,
         ?string $opcionA = null,
@@ -884,6 +988,7 @@ class EditorController
             'editorEditarPregunta',
             [
                 'preguntaId' => $preguntaId,
+                'urlListado' => $this->urlPreguntas($filtros),
 
                 'pregunta' =>
                     $pregunta ?? '',
@@ -931,7 +1036,7 @@ class EditorController
                     !$exito
                         ? [$mensaje]
                         : []
-            ]
+            ] + $filtros
         );
     }
 

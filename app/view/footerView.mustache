@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/css/footer.css?v=2">
+</div>
 <footer class="pie-pagina">
     <div class="pie-contenido">
         <a class="pie-marca" href="{{enlaceInicio}}">
@@ -15,6 +15,16 @@
         <p class="pie-creditos">Integrantes: Dorian Villalba, Lucas Garcia, Ramiro Bruzón, Julieta Miño.</p>
     </div>
 </footer>
+
+<script>
+    if (typeof ResizeObserver === 'function') {
+        const piePagina = document.querySelector('.pie-pagina');
+        new ResizeObserver(() => {
+            const altura = Math.ceil(piePagina.getBoundingClientRect().height);
+            document.documentElement.style.setProperty('--altura-pie-pagina', altura + 'px');
+        }).observe(piePagina, {box: 'border-box'});
+    }
+</script>
 
 <script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
