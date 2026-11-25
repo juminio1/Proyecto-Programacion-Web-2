@@ -13,12 +13,6 @@
 
     <title>Preguntados</title>
 
-
-    <!-- =====================================================
-         TEMA INICIAL
-         Evita un cambio visual al cargar la página
-         ===================================================== -->
-
     <script>
         (function () {
 
@@ -60,8 +54,7 @@
                 }
 
             } catch (e) {
-                // Si localStorage no está disponible,
-                // la página continúa normalmente.
+                // Si localStorage no está disponible, la página continúa normalmente.
             }
 
         })();
@@ -92,6 +85,7 @@
             rel="stylesheet"
             href="/css/dark-mode.css?v=2"
     >
+    <link rel="stylesheet" href="/css/footer.css?v=3">
 
 
     <!-- MODO OSCURO -->
@@ -104,17 +98,12 @@
 </head>
 
 
-<body{{#paginaLogin}} class="pagina-login"{{/paginaLogin}}>
+<body class="pagina-preguntados{{#paginaLogin}} pagina-login{{/paginaLogin}}">
 
 
 <header class="barra-superior">
 
     <div class="barra-contenido">
-
-
-        <!-- =================================================
-             LOGO
-             ================================================= -->
 
         <a
                 class="logo"
@@ -342,11 +331,6 @@
 
             {{/sesionIniciada}}
 
-
-            <!-- =================================================
-                 USUARIO NO LOGUEADO
-                 ================================================= -->
-
             {{^sesionIniciada}}
 
                 <a
@@ -363,3 +347,5 @@
     </div>
 
 </header>
+
+<div class="contenido-pagina">
