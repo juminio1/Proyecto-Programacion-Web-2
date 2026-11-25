@@ -418,6 +418,35 @@
     font-weight: 900;
 }
 
+.editor-categorias-busqueda {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.editor-categorias-busqueda .editor-preguntas-buscador {
+    flex: 1 1 250px;
+    min-width: 0;
+}
+
+.editor-categorias-busqueda-acciones,
+.editor-categorias-paginacion {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.editor-categorias-paginacion {
+    justify-content: center;
+    margin-top: 22px;
+}
+
+.editor-categorias-busqueda-acciones .editor-boton,
+.editor-categorias-paginacion .editor-boton {
+    margin: 0;
+}
+
 .editor-texto-accesible {
     position: absolute;
     width: 1px;

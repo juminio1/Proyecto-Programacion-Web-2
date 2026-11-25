@@ -10,6 +10,8 @@ use Throwable;
 
 class CategoriaModel
 {
+    private const FILTRO_NOMBRE = "CONVERT(c.nombre USING utf8mb4) COLLATE utf8mb4_unicode_ci LIKE :nombre ESCAPE '!'";
+
     private $database;
 
     public function __construct($database)
@@ -147,16 +149,37 @@ class CategoriaModel
         }
     }
 
-    public function obtenerCategoriasParaGestion(): array
+    public function contarCategoriasParaGestion(string $buscar): int
     {
-        $consulta = $this->database->getConexion()->query(
+        $consulta = $this->database->getConexion()->prepare(
+            'SELECT COUNT(*) FROM categorias c WHERE ' . self::FILTRO_NOMBRE
+        );
+        $consulta->execute(['nombre' => $this->patronBusqueda($buscar)]);
+
+        return (int) $consulta->fetchColumn();
+    }
+
+    public function obtenerCategoriasParaGestion(string $buscar, int $limite, int $desplazamiento): array
+    {
+        $consulta = $this->database->getConexion()->prepare(
             'SELECT c.id, c.nombre, c.color, c.habilitada, COUNT(p.id) AS cantidad_preguntas
              FROM categorias c
              LEFT JOIN preguntas p ON p.categoria_id = c.id AND p.habilitada = 1 AND c.habilitada = 1
+             WHERE ' . self::FILTRO_NOMBRE . '
              GROUP BY c.id, c.nombre, c.color, c.habilitada
-             ORDER BY c.habilitada DESC, c.nombre ASC'
+             ORDER BY c.habilitada DESC, c.nombre ASC, c.id ASC
+             LIMIT :limite OFFSET :desplazamiento'
         );
+        $consulta->bindValue('nombre', $this->patronBusqueda($buscar), PDO::PARAM_STR);
+        $consulta->bindValue('limite', $limite, PDO::PARAM_INT);
+        $consulta->bindValue('desplazamiento', $desplazamiento, PDO::PARAM_INT);
+        $consulta->execute();
 
         return $consulta->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    private function patronBusqueda(string $buscar): string
+    {
+        return '%' . strtr($buscar, ['!' => '!!', '%' => '!%', '_' => '!_']) . '%';
     }
 }
