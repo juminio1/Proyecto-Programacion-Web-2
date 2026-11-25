@@ -430,20 +430,25 @@
 }
 
 .editor-categorias-busqueda-acciones,
-.editor-categorias-paginacion {
+.editor-categorias-paginacion,
+.editor-preguntas-filtros-acciones,
+.editor-preguntas-paginacion {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 10px;
 }
 
-.editor-categorias-paginacion {
+.editor-categorias-paginacion,
+.editor-preguntas-paginacion {
     justify-content: center;
     margin-top: 22px;
 }
 
 .editor-categorias-busqueda-acciones .editor-boton,
-.editor-categorias-paginacion .editor-boton {
+.editor-categorias-paginacion .editor-boton,
+.editor-preguntas-filtros-acciones .editor-boton,
+.editor-preguntas-paginacion .editor-boton {
     margin: 0;
 }
 
@@ -1220,6 +1225,11 @@ html.dark-mode .editor-revision-link:hover {
     padding-top: 24px;
 
     border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.editor-preguntas-formulario-filtros {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+    align-items: end;
 }
 
 .editor-preguntas-buscador,

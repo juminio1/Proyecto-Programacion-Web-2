@@ -1,33 +1,199 @@
 <link rel="stylesheet" href="/css/preguntaSugerida.css?v=2">
-<link rel="stylesheet" href="/css/editor.css?v=13">
+<link rel="stylesheet" href="/css/editor.css?v=9">
 
 <main class="pregunta-sugerida-pagina">
+
     <div style="max-width: 850px; margin: 0 auto 16px;">
-        <a href="{{urlListado}}" class="editor-volver">← Volver a gestión de categorías</a>
+        <a href="{{urlListado}}"
+           class="editor-volver">
+            ← Volver a gestión de preguntas
+        </a>
     </div>
-    <section class="pregunta-sugerida-contenedor" aria-labelledby="editar-categoria-titulo">
+
+    <section class="pregunta-sugerida-contenedor">
+
         <div class="pregunta-sugerida-encabezado">
-            <h1 id="editar-categoria-titulo">Editar categoría</h1>
+            <h1>Editar pregunta</h1>
+
+            <p>
+                Modificá los datos de la pregunta seleccionada.
+            </p>
         </div>
-        {{#mensajeError}}
-            <div class="pregunta-sugerida-errores" role="alert">{{mensajeError}}</div>
-        {{/mensajeError}}
+
+        {{#hay_errores}}
+            <div class="pregunta-sugerida-errores">
+                <ul>
+                    {{#errores}}
+                        <li>{{.}}</li>
+                    {{/errores}}
+                </ul>
+            </div>
+        {{/hay_errores}}
+
         {{#exito}}
-            <div class="pregunta-sugerida-exito" role="status" data-volver-al-listado="{{urlListado}}">
-                Los cambios de la categoría se guardaron correctamente.
+            <div class="pregunta-sugerida-exito">
+                <p>{{mensaje_exito}}</p>
             </div>
         {{/exito}}
-        {{#categoria}}
-            <form id="editor-categoria-formulario" class="pregunta-sugerida-formulario" method="post"
-                  action="/editor/guardarCambiosCategoria">
-                <input type="hidden" name="csrf_token" value="{{tokenCSRF}}">
-                <input type="hidden" name="categoria_id" value="{{id}}">
-                <input type="hidden" name="pagina" value="{{pagina}}">
-                <input type="hidden" name="buscar" value="{{buscar}}">
-                {{> editorCamposCategoria}}
-                <button type="submit" class="boton-enviar">Guardar cambios</button>
-            </form>
-        {{/categoria}}
+
+
+        <form method="post"
+              action="/editor/guardarCambiosPregunta"
+              class="pregunta-sugerida-formulario">
+
+            <input type="hidden"
+                   name="csrf_token"
+                   value="{{tokenCSRF}}">
+
+            <input type="hidden"
+                   name="pregunta_id"
+                   value="{{preguntaId}}">
+            <input type="hidden" name="pagina" value="{{pagina}}">
+            <input type="hidden" name="buscar" value="{{buscar}}">
+            <input type="hidden" name="categoria" value="{{categoria}}">
+
+
+            <div class="campo">
+
+                <label for="pregunta">
+                    Pregunta
+                </label>
+
+                <textarea id="pregunta"
+                          name="pregunta"
+                          rows="4"
+                          required>{{pregunta}}</textarea>
+
+            </div>
+
+
+            <div class="campo">
+
+                <label for="categoria_id">
+                    Categoría
+                </label>
+
+                <select id="categoria_id"
+                        name="categoria_id"
+                        required>
+
+                    <option value="">
+                        Seleccioná una categoría
+                    </option>
+
+                    {{#categorias}}
+                        <option value="{{id}}"
+                                {{#seleccionada}}selected{{/seleccionada}}>
+                            {{nombre}}
+                        </option>
+                    {{/categorias}}
+
+                </select>
+
+            </div>
+
+
+            <fieldset class="opciones">
+
+                <legend>
+                    Opciones de respuesta
+                </legend>
+
+
+                <div class="opcion">
+
+                    <input type="radio"
+                           id="correcta_a"
+                           name="respuesta_correcta"
+                           value="A"
+                           {{#correcta_a}}checked{{/correcta_a}}
+                           required>
+
+                    <label for="correcta_a">
+                        A
+                    </label>
+
+                    <input type="text"
+                           name="opcion_a"
+                           value="{{opcion_a}}"
+                           placeholder="Opción A"
+                           required>
+
+                </div>
+
+
+                <div class="opcion">
+
+                    <input type="radio"
+                           id="correcta_b"
+                           name="respuesta_correcta"
+                           value="B"
+                           {{#correcta_b}}checked{{/correcta_b}}>
+
+                    <label for="correcta_b">
+                        B
+                    </label>
+
+                    <input type="text"
+                           name="opcion_b"
+                           value="{{opcion_b}}"
+                           placeholder="Opción B"
+                           required>
+
+                </div>
+
+
+                <div class="opcion">
+
+                    <input type="radio"
+                           id="correcta_c"
+                           name="respuesta_correcta"
+                           value="C"
+                           {{#correcta_c}}checked{{/correcta_c}}>
+
+                    <label for="correcta_c">
+                        C
+                    </label>
+
+                    <input type="text"
+                           name="opcion_c"
+                           value="{{opcion_c}}"
+                           placeholder="Opción C"
+                           required>
+
+                </div>
+
+
+                <div class="opcion">
+
+                    <input type="radio"
+                           id="correcta_d"
+                           name="respuesta_correcta"
+                           value="D"
+                           {{#correcta_d}}checked{{/correcta_d}}>
+
+                    <label for="correcta_d">
+                        D
+                    </label>
+
+                    <input type="text"
+                           name="opcion_d"
+                           value="{{opcion_d}}"
+                           placeholder="Opción D"
+                           required>
+
+                </div>
+
+            </fieldset>
+
+
+            <button type="submit"
+                    class="boton-enviar">
+                Guardar cambios
+            </button>
+
+        </form>
+
     </section>
+
 </main>
-<script src="/js/editor-categoria.js?v=confirmacion-edicion-1" defer></script>

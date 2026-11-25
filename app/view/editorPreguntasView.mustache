@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/css/editor.css?v=13">
+<link rel="stylesheet" href="/css/editor.css?v=paginacion-preguntas-1">
 
 <main class="editor">
 
@@ -37,90 +37,103 @@
 
         </div>
 
-        <div class="editor-preguntas-resumen">
+        {{^mensajeError}}
+            <div class="editor-preguntas-resumen">
 
-            <div class="editor-resumen-item">
+                <div class="editor-resumen-item">
 
         <span class="editor-resumen-icono">
             ?
         </span>
 
-                <div>
-                    <strong>
-                        {{cantidadTotalPreguntas}}
-                    </strong>
+                    <div>
+                        <strong>
+                            {{cantidadTotalPreguntas}}
+                        </strong>
 
-                    <span>
+                        <span>
                 Preguntas activas
             </span>
+                    </div>
+
                 </div>
 
-            </div>
 
-
-            <div class="editor-resumen-item">
+                <div class="editor-resumen-item">
 
         <span class="editor-resumen-icono">
             #
         </span>
 
-                <div>
-                    <strong>
-                        {{cantidadTotalCategorias}}
-                    </strong>
+                    <div>
+                        <strong>
+                            {{cantidadTotalCategorias}}
+                        </strong>
 
-                    <span>
+                        <span>
                 Categorías
             </span>
+                    </div>
+
                 </div>
 
             </div>
 
-        </div>
+        {{/mensajeError}}
+        {{#mostrarFiltros}}
+            <form class="editor-preguntas-herramientas editor-preguntas-formulario-filtros"
+                  method="get" action="/editor/mostrarGestionPreguntas" role="search" aria-label="Preguntas">
 
-        <div class="editor-preguntas-herramientas">
+                <div class="editor-preguntas-buscador">
 
-            <div class="editor-preguntas-buscador">
+                    <label for="buscar-pregunta">
+                        Buscar pregunta
+                    </label>
 
-                <label for="buscar-pregunta">
-                    Buscar pregunta
-                </label>
+                    <input type="search"
+                           id="buscar-pregunta"
+                           name="buscar"
+                           value="{{buscar}}"
+                           placeholder="Ej: planeta rojo..."
+                           autocomplete="off">
 
-                <input type="search"
-                       id="buscar-pregunta"
-                       placeholder="Ej: planeta rojo..."
-                       autocomplete="off">
-
-            </div>
+                </div>
 
 
-            <div class="editor-preguntas-filtro">
+                <div class="editor-preguntas-filtro">
 
-                <label for="filtrar-categoria">
-                    Categoría
-                </label>
+                    <label for="filtrar-categoria">
+                        Categoría
+                    </label>
 
-                <select id="filtrar-categoria">
+                    <select id="filtrar-categoria" name="categoria">
 
-                    <option value="">
-                        Todas las categorías
-                    </option>
-
-                    {{#categoriasConPreguntas}}
-                        <option value="{{nombreCategoria}}">
-                            {{nombreCategoria}}
+                        <option value="">
+                            Todas las categorías
                         </option>
-                    {{/categoriasConPreguntas}}
 
-                </select>
+                        {{#categoriasFiltro}}
+                            <option value="{{id}}"{{#seleccionada}} selected{{/seleccionada}}>
+                                {{nombre}}
+                            </option>
+                        {{/categoriasFiltro}}
 
-            </div>
+                    </select>
 
-        </div>
+                </div>
+
+                <div class="editor-preguntas-filtros-acciones">
+                    <button class="editor-boton" type="submit">Filtrar</button>
+                    {{#hayFiltros}}
+                        <a class="editor-boton editor-boton-rechazar" href="/editor/mostrarGestionPreguntas">Limpiar</a>
+                    {{/hayFiltros}}
+                </div>
+            </form>
+        {{/mostrarFiltros}}
 
 
         {{#mensajeError}}
-            <p class="editor-aviso editor-aviso-error">
+            <p class="editor-aviso editor-aviso-error" role="alert">
                 {{mensajeError}}
             </p>
         {{/mensajeError}}
@@ -144,8 +157,7 @@
 
         {{#categoriasConPreguntas}}
 
-            <section class="editor-panel editor-categoria-preguntas"
-                     data-categoria="{{nombreCategoria}}">
+            <section class="editor-panel editor-categoria-preguntas">
 
                 <div class="editor-categorias-encabezado">
 
@@ -154,7 +166,7 @@
                     </h2>
 
                     <span class="editor-categorias-total">
-                        {{cantidadPreguntas}} preguntas
+                        {{cantidadPreguntas}} en esta página
                     </span>
 
                 </div>
@@ -180,8 +192,7 @@
 
                         {{#preguntas}}
 
-                            <tr class="editor-fila-pregunta"
-                                data-pregunta="{{pregunta}}">
+                            <tr class="editor-fila-pregunta">
 
                                 <td>
                                     {{pregunta}}
@@ -231,16 +242,16 @@
 
                                 <td class="editor-pregunta-acciones">
 
-                                    <a href="/editor/mostrarFormularioEditarPregunta?id={{id}}"
-                                    class="editor-accion editor-accion-editar"
-                                    title="Editar pregunta"
-                                    aria-label="Editar pregunta">
+                                    <a href="{{urlEditar}}"
+                                       class="editor-accion editor-accion-editar"
+                                       title="Editar pregunta"
+                                       aria-label="Editar pregunta">
 
-                                    <svg viewBox="0 0 24 24"
-                                         aria-hidden="true">
-                                        <path d="M12 20h9"></path>
-                                        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path>
-                                    </svg>
+                                        <svg viewBox="0 0 24 24"
+                                             aria-hidden="true">
+                                            <path d="M12 20h9"></path>
+                                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path>
+                                        </svg>
 
                                     </a>
 
@@ -285,15 +296,23 @@
     </div>
 
 
-    <section id="editor-sin-resultados"
-             class="editor-panel editor-sin-resultados"
-             hidden>
+    {{#sinResultados}}
+        <section class="editor-panel editor-sin-resultados">
+            <p role="status">No se encontraron preguntas con los filtros seleccionados.</p>
+        </section>
+    {{/sinResultados}}
 
-        <p>
-            No se encontraron preguntas con los filtros seleccionados.
-        </p>
-
-    </section>
+    {{#mostrarPaginacion}}
+        <nav class="editor-preguntas-paginacion" aria-label="Páginas de preguntas">
+            {{#urlAnterior}}
+                <a class="editor-boton editor-boton-rechazar" href="{{urlAnterior}}" rel="prev">Anterior</a>
+            {{/urlAnterior}}
+            <span>Página {{pagina}} de {{totalPaginas}}</span>
+            {{#urlSiguiente}}
+                <a class="editor-boton editor-boton-rechazar" href="{{urlSiguiente}}" rel="next">Siguiente</a>
+            {{/urlSiguiente}}
+        </nav>
+    {{/mostrarPaginacion}}
 
 </main>
 
@@ -361,4 +380,4 @@
 </div>
 
 
-<script src="/js/editorPreguntas.js?v=5" defer></script>
+<script src="/js/editorPreguntas.js?v=paginacion-1" defer></script>
