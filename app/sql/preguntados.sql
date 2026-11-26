@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
                                         activo TINYINT(1) NOT NULL DEFAULT 0,
                                         token_activacion VARCHAR(64) DEFAULT NULL,
                                         fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                        perfil_publico TINYINT(1) NOT NULL DEFAULT 1,
                                         puntaje_acumulado INT NOT NULL DEFAULT 0
 );
 
