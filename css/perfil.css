@@ -967,3 +967,223 @@ html.dark-mode .perfil-qr-enlace:hover {
     top: 0;
     z-index: 2;
 }
+
+/* ==========================================================================
+   PRIVACIDAD DEL PERFIL
+   ========================================================================== */
+
+.perfil-hero-acciones {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+
+/* ---------- Selector de privacidad ---------- */
+
+/* ---------- Selector de privacidad ---------- */
+
+.perfil-privacidad-form {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.perfil-privacidad-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.perfil-privacidad-campo label {
+    color: var(--texto-principal, #f3efff);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+
+/* Selector con estética similar a Jugar partida */
+
+.perfil-privacidad-select {
+    min-height: 46px;
+    min-width: 140px;
+
+    padding: 10px 38px 10px 20px;
+
+    border: 2px solid var(--morado, #5b2fd9);
+    border-radius: 999px;
+
+    background-color: var(--bg-superficie, #1c1730);
+    color: var(--texto-principal, #f3efff);
+
+    font: inherit;
+    font-size: 15px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow:
+            0 4px 14px rgba(91, 47, 217, 0.18);
+
+    transition:
+            border-color .15s ease,
+            transform .15s ease,
+            box-shadow .15s ease;
+}
+
+.perfil-privacidad-select:hover {
+    border-color: #8b5cff;
+}
+
+.perfil-privacidad-select:focus-visible {
+    outline: none;
+
+    border-color: #8b5cff;
+
+    box-shadow:
+            0 0 0 3px rgba(139, 92, 255, 0.18),
+            0 4px 14px rgba(91, 47, 217, 0.25);
+}
+
+
+/* Guardar con la misma estética que Jugar partida */
+
+.perfil-privacidad-boton {
+    min-height: 46px;
+
+    padding: 12px 24px;
+
+    border: 0;
+    border-radius: 999px;
+
+    background-color: var(--morado, #5b2fd9);
+    color: #ffffff;
+
+    font: inherit;
+    font-size: 15px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow:
+            0 4px 14px rgba(91, 47, 217, 0.25);
+
+    transition:
+            transform .15s ease,
+            background-color .15s ease;
+}
+
+.perfil-privacidad-boton:hover {
+    background-color: #4d25c6;
+    color: #ffffff;
+
+    transform: translateY(-2px);
+}
+
+.perfil-privacidad-boton:active {
+    transform: translateY(0);
+}
+
+
+/* ---------- Mensajes ---------- */
+
+.perfil-aviso {
+    margin: 0;
+    padding: 14px 18px;
+
+    border-radius: 14px;
+
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.perfil-aviso-exito {
+    border: 1px solid #a7dfbd;
+    background: #eefaf2;
+    color: #176638;
+}
+
+.perfil-aviso-privado {
+    border: 1px solid #d8ccef;
+    background: #f7f3ff;
+    color: #51436c;
+}
+
+
+/* ---------- Perfil privado visto por otro usuario ---------- */
+
+.perfil-grid-cuerpo.perfil-grid-cuerpo-privado {
+    grid-template-columns:
+        minmax(340px, .9fr)
+        minmax(0, 1.55fr);
+
+    grid-template-areas:
+        "datos qr";
+}
+
+
+/* ---------- Dark mode ---------- */
+
+html[data-theme="dark"] .perfil-privacidad-select,
+html.dark-mode .perfil-privacidad-select {
+    background: #171228;
+    color: #f3efff;
+    border-color: #433369;
+}
+
+html[data-theme="dark"] .perfil-aviso-exito,
+html.dark-mode .perfil-aviso-exito {
+    background: #173224;
+    color: #7ce3a2;
+    border-color: #245838;
+}
+
+html[data-theme="dark"] .perfil-aviso-privado,
+html.dark-mode .perfil-aviso-privado {
+    background: #211a38;
+    color: #d3c7ec;
+    border-color: #433369;
+}
+
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1050px) {
+
+    .perfil-grid-cuerpo.perfil-grid-cuerpo-privado {
+        grid-template-columns: minmax(0, 1fr);
+
+        grid-template-areas:
+            "datos"
+            "qr";
+    }
+}
+
+@media (max-width: 700px) {
+
+    .perfil-hero-acciones {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .perfil-privacidad-form {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .perfil-privacidad-campo {
+        flex: 1;
+    }
+
+    .perfil-privacidad-select {
+        width: 100%;
+    }
+
+    .perfil-privacidad-boton {
+        align-self: flex-end;
+    }
+}
