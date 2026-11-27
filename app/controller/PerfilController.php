@@ -24,11 +24,6 @@ class PerfilController
         $idSesion =
             $_SESSION['usuario_id'] ?? null;
 
-
-        /* =====================================================
-           USUARIO A MOSTRAR
-           ===================================================== */
-
         if (isset($_GET['id'])) {
 
             $idUsuario =
@@ -63,11 +58,6 @@ class PerfilController
             Redirect::to('/inicio/show');
             return;
         }
-
-
-        /* =====================================================
-           PRIVACIDAD
-           ===================================================== */
 
         $esMiPerfil =
             $idSesion !== null
@@ -116,10 +106,7 @@ class PerfilController
             ]
         );
 
-
-        /* =====================================================
-           QR
-           ===================================================== */
+        //qr
 
         $baseUrl =
             'https://preguntadospw2.infinityfreeapp.com';
@@ -148,11 +135,6 @@ class PerfilController
         $qrPerfil =
             $resultadoQr->getDataUri();
 
-
-        /* =====================================================
-           TOTAL DE PARTIDAS + PUNTAJE
-           ===================================================== */
-
         $resumenPartidas =
             $this->model
                 ->obtenerResumenPartidasFinalizadas(
@@ -170,11 +152,6 @@ class PerfilController
             $resumenPartidas[
             'puntajeAcumulado'
             ];
-
-
-        /* =====================================================
-           HISTORIAL
-           ===================================================== */
 
         /*
          * Si otro usuario está viendo un perfil privado,
@@ -194,11 +171,6 @@ class PerfilController
             $partidasFinalizadas
             );
 
-
-        /* =====================================================
-           FOTO
-           ===================================================== */
-
         $fotoPerfil = null;
 
 
@@ -216,10 +188,6 @@ class PerfilController
                 );
         }
 
-
-        /* =====================================================
-           INICIAL
-           ===================================================== */
 
         $nombreReferencia =
             !empty(
@@ -260,11 +228,6 @@ class PerfilController
                 );
         }
 
-
-        /* =====================================================
-           FECHA DE REGISTRO
-           ===================================================== */
-
         $fechaRegistro = '-';
 
 
@@ -294,10 +257,6 @@ class PerfilController
             }
         }
 
-
-        /* =====================================================
-           UBICACIÓN
-           ===================================================== */
 
         $latitud = null;
         $longitud = null;
